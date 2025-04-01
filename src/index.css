@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+
+
+/* styles.css */
+.animate-shake-once {
+  animation: shake 0.5s ease-in-out 1; 
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+  75% {
+    transform: translateX(-5px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* Keep the existing pop animation if you still want it */
+.animate-pop {
+  animation: pop 0.3s ease-in-out;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+
+/* Import Poppins with weights 400, 500, 600, 700 */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+/* Apply Poppins globally */
+body {
+  font-family: 'Poppins', sans-serif;
+  -webkit-font-smoothing: antialiased; /* Smoother text */
+}
+
+/* Optional: Utility classes */
+.font-light { font-weight: 300; }
+.font-regular { font-weight: 400; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }

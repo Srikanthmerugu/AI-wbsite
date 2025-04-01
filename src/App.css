@@ -1,0 +1,36 @@
+button {
+  cursor: pointer;
+}
+
+/* Loading css start here */
+
+/* HTML: <div class="loader"></div> */
+.loader {
+  width: fit-content;
+  font-size: 100px;
+  font-family: monospace;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #00000000;
+  -webkit-text-stroke: 1px #0a7ba7;
+  --g:conic-gradient(#1876a4 0 0) no-repeat text;
+  background:var(--g) 0,var(--g) 1ch,var(--g) 2ch,var(--g) 3ch,var(--g) 4ch,var(--g) 5ch,var(--g) 6ch,var(--g) 7ch,var(--g) 8ch,var(--g) 9ch,var(--g) 10ch;
+  background-position-y: 100%,0;
+  animation: l16 2s linear infinite alternate;
+}
+.loader:before {
+  content: "FinsightAI";
+}
+@keyframes l16 {
+  0%     {background-size: 1ch 0   ,1ch 0   ,1ch 0   ,1ch 0   ,1ch 0   ,1ch 0   ,1ch 0   }
+  14.28% {background-size: 1ch 100%,1ch 0   ,1ch 0   ,1ch 0   ,1ch 0   ,1ch 0   ,1ch 0   }
+  28.57% {background-size: 1ch 100%,1ch 100%,1ch 0   ,1ch 0   ,1ch 0   ,1ch 0   ,1ch 0   }
+  42.85% {background-size: 1ch 100%,1ch 100%,1ch 100%,1ch 0   ,1ch 0   ,1ch 0   ,1ch 0   }
+  57.14% {background-size: 1ch 100%,1ch 100%,1ch 100%,1ch 100%,1ch 0   ,1ch 0   ,1ch 0   }
+  61.43% {background-size: 1ch 100%,1ch 100%,1ch 100%,1ch 100%,1ch 100%,1ch 0   ,1ch 0   }
+  65.71% {background-size: 1ch 100%,1ch 100%,1ch 100%,1ch 100%,1ch 100%,1ch 100%,1ch 0   }
+  70%   {background-size: 1ch 100%,1ch 100%,1ch 100%,1ch 100%,1ch 100%,1ch 100%,1ch 1%}
+  75%   {background-size: 1ch 100%,1ch 100%,1ch 100%,1ch 100%,1ch 100%,1ch 100%,1ch 0%}
+  80%   {background-size: 1ch 100%,1ch 100%,1ch 100%,1ch 100%,1ch 100%,1ch 100%,1ch 100%}
+  90%   {background-size: 1ch 100%,1ch 100%,1ch 100%,1ch 100%,1ch 100%,1ch 100%,1ch 100%}
+}

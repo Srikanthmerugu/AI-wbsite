@@ -1,0 +1,25 @@
+@layer utilities {
+    @keyframes pop {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(0.9);
+      }
+      100% {
+        transform: scale(1.1);
+      }
+    }
+    
+    .animate-pop {
+      animation: pop 0.3s ease-in-out forwards;
+    }
+    
+    .transition-width {
+      transition-property: width;
+    }
+    
+    .transition-spacing {
+      transition-property: margin, padding;
+    }
+  }
