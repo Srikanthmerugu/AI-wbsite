@@ -1,133 +1,162 @@
-import React from "react";
-import { FiChevronLeft, FiChevronRight, FiMessageSquare } from "react-icons/fi";
-import MenuItem from "./MenuItem";
-import "./styles.css";
-import { MdMenuOpen } from "react-icons/md";
+import React, { useState } from "react";
+import { NavLink } from "react-router-dom";
+import { FiChevronRight, FiChevronLeft } from "react-icons/fi";
 import { RiMenuFold2Fill } from "react-icons/ri";
-
-
+import { CustomTreeMenu } from "./CustomTreeMenu/CustomTreeMenu";
+import { mainLogo, fevicon } from "../../assets/Assets";
 
 // Import React Icons for menu items
-import { FiHome, FiUser, FiClipboard, FiGrid, FiBarChart2, FiBell, FiUsers, FiSettings, FiHelpCircle } from "react-icons/fi";
-import { fevicon, mainLogo } from "../../assets/Assets";
+import { 
+  FiHome, 
+  FiUser, 
+  FiClipboard, 
+  FiGrid, 
+  FiBarChart2, 
+  FiBell, 
+  FiUsers, 
+  FiSettings, 
+  FiHelpCircle,
+  FiMessageSquare,
+  FiFile
+} from "react-icons/fi";
+
+const iconComponents = {
+  FiHome,
+  FiUser,
+  FiClipboard,
+  FiGrid,
+  FiBarChart2,
+  FiBell,
+  FiUsers,
+  FiSettings,
+  FiHelpCircle,
+  FiMessageSquare,
+  FiFile
+};
 
 const MENUITEMS = [
-  
   {
     menutitle: "",
     menucontent: "Ready to use Apps",
     Items: [
-      // {
-      //   path: '/financial-overview',
-      //   icon: FiMessageSquare
-      //   , 
-      //   title: "DASHBOARD",
-      //   type: "link",
-      // },
-
-    
       {
         title: "DASHBOARD",
-        icon: FiHome,
+        icon: { name: "FiHome" },
         path: '/financial-overview',
-        type: "sub" || "link",
+        type: "sub",
         badge: "badge badge-light-secondary",
         badgetxt: "New",
         active: false,
         children: [
-          { path: '/financial-overview', type: "link", title: "Financial Overview" },
-          { path:'/key-financial' , type: "link", title: "Key Financial KPIs" },
+          { 
+            path: '/financial-overview', 
+            type: "link", 
+            title: "Financial Overview",
+            icon: { name: "FiFile" },
+            children: [
+              { path: '#', type: "link", title: "Revenue", icon: { name: "FiFile" } },
+              { path: '#', type: "link", title: "Total Expenses", icon: { name: "FiFile" } },
+            ],
+          },
+          { 
+            path: '/key-financial', 
+            type: "link", 
+            title: "Key Financial KPIs",
+            icon: { name: "FiFile" },
+            children: [
+              { path: '#', type: "link", title: "Gross Profit", icon: { name: "FiFile" } },
+              { path: '#', type: "link", title: "EBITDA", icon: { name: "FiFile" } },
+            ],
+          },
         ],
       },
       {
         title: "Financial Reports",
-        icon: FiUser, 
+        icon: { name: "FiUser" }, 
         path: '/financial-core-reports',
         type: "sub",
         bookmark: true,
         active: false,
         children: [
-          { path: '/financial-core-reports', type: "link", title: "Core  & Custom Reports" },
-        //   { path: '#', type: "link", title: "Custom Reports" },
+          { path: '/financial-core-reports', type: "link", title: "Core & Custom Reports", icon: { name: "FiFile" } },
         ],
       },
       {
-        title: "Forecasting & Scenario ",
-        icon: FiClipboard, 
+        title: "Forecasting & Scenario",
+        icon: { name: "FiClipboard" }, 
         type: "sub",
         active: false,
         children: [
-          { path: '/revenueForecasting', title: "Revenue Forecasting", type: "link" },
-          { path: '/expenseForecasting', title: "Expense Forecasting", type: "link" },
-          { path:'/cashFlow-projections', title: "Cash Flow Projections", type: "link" },
-          { path: '#', title: "Headcount & Payroll Forecast", type: "link" },
-          { path:'#', title: "CAPEX Forecast", type: "link" },
-          { path: '#', title: "Debt & Interest Forecasting", type: "link" },
-          { path: '#', title: "Scenario Modeling", type: "link" },
+          { path: '/revenueForecasting', title: "Revenue Forecasting", type: "link", icon: { name: "FiFile" } },
+          { path: '/expenseForecasting', title: "Expense Forecasting", type: "link", icon: { name: "FiFile" } },
+          { path: '/cashFlow-projections', title: "Cash Flow Projections", type: "link", icon: { name: "FiFile" } },
+          { path: '#', title: "Headcount & Payroll Forecast", type: "link", icon: { name: "FiFile" } },
+          { path: '#', title: "CAPEX Forecast", type: "link", icon: { name: "FiFile" } },
+          { path: '#', title: "Debt & Interest Forecasting", type: "link", icon: { name: "FiFile" } },
+          { path: '#', title: "Scenario Modeling", type: "link", icon: { name: "FiFile" } },
         ],
       },
       {
         title: "Budgeting",
-        icon: FiGrid, 
+        icon: { name: "FiGrid" }, 
         type: "sub",
         active: false,
         children: [
-          { path: '#', title: "Operational Budgeting", type: "link" },
-          { path: '#', title: "Revenue-Based", type: "link" },
-          { path:'#', title: "Capital Expenditure(CAPEX)", type: "link" },
-          { path: '#', title: "Workforce Payroll Budgeting", type: "link" },
-          { path: '#', title: "Zero-Based Budgeting (ZBB)", type: "link" },
-          { path: '#', title: "Rolling & Flexible Budgeting", type: "link" },
-          { path: '#', title: "Scenario Modeling & If Analysis for Budgeting", type: "link" },
+          { path: '#', title: "Operational Budgeting", type: "link", icon: { name: "FiFile" } },
+          { path: '#', title: "Revenue-Based", type: "link", icon: { name: "FiFile" } },
+          { path: '#', title: "Capital Expenditure(CAPEX)", type: "link", icon: { name: "FiFile" } },
+          { path: '#', title: "Workforce Payroll Budgeting", type: "link", icon: { name: "FiFile" } },
+          { path: '#', title: "Zero-Based Budgeting (ZBB)", type: "link", icon: { name: "FiFile" } },
+          { path: '#', title: "Rolling & Flexible Budgeting", type: "link", icon: { name: "FiFile" } },
+          { path: '#', title: "Scenario Modeling & If Analysis for Budgeting", type: "link", icon: { name: "FiFile" } },
         ],
       },
       {
         title: "Performance Analytics",
-        icon: FiBarChart2, 
+        icon: { name: "FiBarChart2" }, 
         type: "sub",
         active: false,
         children: [
-          { path: '#', title: "Sales and Marketing Analytics", type: "link" },
-          { path: '#', title: "HR & Workforce Analytics", type: "link" },
-          { path: '#', title: "Finance & Accounting Analytics", type: "link" },
-          { path: '#', title: "Supply Chain & Procurement Analytics", type: "link" },
+          { path: '#', title: "Sales and Marketing Analytics", type: "link", icon: { name: "FiFile" } },
+          { path: '#', title: "HR & Workforce Analytics", type: "link", icon: { name: "FiFile" } },
+          { path: '#', title: "Finance & Accounting Analytics", type: "link", icon: { name: "FiFile" } },
+          { path: '#', title: "Supply Chain & Procurement Analytics", type: "link", icon: { name: "FiFile" } },
         ],
       },
       {
         title: "AI Insights & Alerts",
-        icon: FiBell,
+        icon: { name: "FiBell" },
         type: "sub",
         active: false,
         children: [
-          { path: '/smart-financial-alerts', title: "Smart Financial Alerts", type: "link" },
-          { path: '/aI-financial-recommendations', title: "AI-Powered Financial Recommendations", type: "link" },
-          { path:'#', title: "Predictive Risk Management", type: "link" },
-          { path: '#', title: "AI-Driven Forecast Accuracy Monitoring", type: "link" },
-          { path: '#', title: "AI-Powered Benchmarking & Peer Comparisons", type: "link" },
+          { path: '/smart-financial-alerts', title: "Smart Financial Alerts", type: "link", icon: { name: "FiFile" } },
+          { path: '/aI-financial-recommendations', title: "AI-Powered Financial Recommendations", type: "link", icon: { name: "FiFile" } },
+          { path: '#', title: "Predictive Risk Management", type: "link", icon: { name: "FiFile" } },
+          { path: '#', title: "AI-Driven Forecast Accuracy Monitoring", type: "link", icon: { name: "FiFile" } },
+          { path: '#', title: "AI-Powered Benchmarking & Peer Comparisons", type: "link", icon: { name: "FiFile" } },
         ],
       },
       {
         path: '/user-management',
-        icon: FiUsers, 
+        icon: { name: "FiUsers" }, 
         title: "User Management",
         type: "link",
       },
       {
         path: '#',
-        icon: FiSettings, 
+        icon: { name: "FiSettings" }, 
         title: "Settings & Customization",
         type: "link",
       },
       {
         path: '/help-Support',
-        icon: FiHelpCircle, 
+        icon: { name: "FiHelpCircle" }, 
         title: "Help & Support",
         type: "link",
       },
       {
         path: '/ask-ai',
-        icon: FiMessageSquare
-        , 
+        icon: { name: "FiMessageSquare" },
         title: "Ask AI",
         type: "link",
       },
@@ -136,52 +165,51 @@ const MENUITEMS = [
 ];
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
-  
   return (
-    <div className={`fixed overflow-scroll  inset-y-0 left-0 bg-white shadow-lg z-50 transition-all duration-300 ${isOpen ? "w-60" : "w-20 px-4"}`}>
+    <div className={`fixed inset-y-0 left-0 bg-white shadow-lg z-50 transition-all duration-300 flex flex-col ${isOpen ? "w-64" : "w-20"}`}>
       {/* Sidebar Header */}
-      <div className="flex items-center justify-between  mr-5 py-2 border-b border-gray-100">
+      <div className="flex items-center justify-between p-4 border-b border-gray-100">
         {isOpen ? (
           <div className="flex items-center">
-            <img src={mainLogo} alt="FinSightAI"  />
-            {/* <span className="ml-2 text-xl font-semibold text-gray-800">FinSightAI</span> */}
-            {/* <img src={mainLogo} /> */}
+            <img src={mainLogo} alt="FinSightAI" className="h-13" />
           </div>
         ) : (
-          <img src={fevicon} alt="FinSightAI" className="h-8 px-0 mx-auto" />
+          <img src={fevicon} alt="FinSightAI" className="h-8 mx-auto" />
         )}
         <button
           onClick={toggleSidebar}
-          className="p-1 rounded-full bg-blue-200 hover:bg-gray-100 transition-colors duration-200"
+          className="p-1 rounded-full bg-blue-100 hover:bg-blue-200 transition-colors duration-200"
         >
           {isOpen ? (
-            // <FiChevronLeft className="text-gray-600 hover:text-gray-900" size={20} />
-            // <MdMenuOpen className="text-gray-600 hover:text-gray-900" size={30} />
-            <RiMenuFold2Fill className="text-gray-600 text-blue-800  hover:text-gray-900" size={20}  />
-
-
+            <RiMenuFold2Fill className="text-sky-800" size={20} />
           ) : (
-            <FiChevronRight className="text-gray-600  hover:text-gray-900" size={15} />
+            <FiChevronRight className="text-gray-600" size={20} />
           )}
         </button>
       </div>
 
-      {/* Menu Items */}
-      <div className="overflow-y-auto h-[calc(100vh-64px)]">
-        {MENUITEMS.map((menuGroup, index) => (
-          <div key={index}>
-            {menuGroup.menutitle && (
-              <div className="px-1 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                {isOpen ? menuGroup.menutitle : ""}
-              </div>
-            )}
-            <ul className="space-y-1 px-2 py-3">
-              {menuGroup.Items.map((item, itemIndex) => (
-                <MenuItem key={itemIndex} item={item} isSidebarOpen={isOpen} />
-              ))}
-            </ul>
+      {/* Menu Content */}
+      <div className="flex-1 overflow-y-auto">
+        {isOpen ? (
+          <CustomTreeMenu items={MENUITEMS[0].Items} />
+        ) : (
+          <div className="flex flex-col items-center py-4 space-y-4">
+            {MENUITEMS[0].Items.map((item, index) => (
+              <NavLink
+                key={index}
+                to={item.path || '#'}
+                className={({ isActive }) =>
+                  `p-3 rounded-lg transition-colors duration-200 flex items-center justify-center ${
+                    isActive ? "bg-blue-100 text-blue-600" : "text-gray-600 hover:bg-blue-50 hover:text-blue-600"
+                  }`
+                }
+                title={item.title}
+              >
+                {item.icon && React.createElement(iconComponents[item.icon.name], { size: 20 })}
+              </NavLink>
+            ))}
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
