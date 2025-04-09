@@ -61,7 +61,7 @@ const SmallAIChatBot = () => {
   };
 
   return (
-    <div className="flex w-[100%] h-full bg-sky-50">
+    <div className="flex w-[100%] h-auto bg-sky-50">
       {/* Left Sidebar - Conversation History */}
       <div className=" bg-sky-50 border-r border-sky-700 flex flex-col">
         {/* <div className="p-4 border-b border-sky-700 bg-sky-800">

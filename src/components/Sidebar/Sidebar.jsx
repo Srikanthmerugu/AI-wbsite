@@ -4,6 +4,8 @@ import { FiChevronRight, FiChevronLeft } from "react-icons/fi";
 import { RiMenuFold2Fill } from "react-icons/ri";
 import { CustomTreeMenu } from "./CustomTreeMenu/CustomTreeMenu";
 import { mainLogo, fevicon } from "../../assets/Assets";
+import { FaLayerGroup } from "react-icons/fa6";
+
 
 // Import React Icons for menu items
 import { 
@@ -14,6 +16,7 @@ import {
   FiBarChart2, 
   FiBell, 
   FiUsers, 
+  // FaLayerGroup,
   FiSettings, 
   FiHelpCircle,
   FiMessageSquare,
@@ -28,6 +31,7 @@ const iconComponents = {
   FiBarChart2,
   FiBell,
   FiUsers,
+  FaLayerGroup,
   FiSettings,
   FiHelpCircle,
   FiMessageSquare,
@@ -55,7 +59,10 @@ const MENUITEMS = [
             icon: { name: "FiFile" },
             children: [
               { path: '#', type: "link", title: "Revenue", icon: { name: "FiFile" } },
-              { path: '#', type: "link", title: "Total Expenses", icon: { name: "FiFile" } },
+              { path: '#', type: "link", title: "Expenses", icon: { name: "FiFile" } },
+              { path: '#', type: "link", title: "Gross Profit", icon: { name: "FiFile" } },
+              { path: '#', type: "link", title: "EBITDA", icon: { name: "FiFile" } },
+              { path: '#', type: "link", title: "Cashflow", icon: { name: "FiFile" } },
             ],
           },
           { 
@@ -64,8 +71,11 @@ const MENUITEMS = [
             title: "Key Financial KPIs",
             icon: { name: "FiFile" },
             children: [
-              { path: '#', type: "link", title: "Gross Profit", icon: { name: "FiFile" } },
-              { path: '#', type: "link", title: "EBITDA", icon: { name: "FiFile" } },
+              { path: '#', type: "link", title: "Revenue per Employee", icon: { name: "FiFile" } },
+              { path: '#', type: "link", title: "Marketing ROI", icon: { name: "FiFile" } },
+              { path: '#', type: "link", title: "Cost per Lead", icon: { name: "FiFile" } },
+              // { path: '#', type: "link", title: "EBITDA", icon: { name: "FiFile" } },
+              { path: '#', type: "link", title: "Profitability by Product/Region", icon: { name: "FiFile" } },
             ],
           },
         ],
@@ -140,6 +150,12 @@ const MENUITEMS = [
         path: '/user-management',
         icon: { name: "FiUsers" }, 
         title: "User Management",
+        type: "link",
+      },
+      {
+        path: '/company-management-table',
+        icon: { name: "FaLayerGroup" }, 
+        title: "All Companies Management",
         type: "link",
       },
       {

@@ -16,6 +16,7 @@ import UserManagement from './pages/Suport/UserManagement';
 import CashFlowProjections from './pages/CashFlowProjections';
 import SmartFinancialAlerts from './pages/SmartFinancialAlerts';
 import AIFinancialRecommendations from './pages/AIFinancialRecommendations';
+import CompanyManagementTable from './pages/All Company management/CompanyManagementTable';
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
               <Route path="/smart-financial-alerts" element={<SmartFinancialAlerts />} />
               <Route path="/expenseForecasting" element={<ExpenseForecastingDashboard />} />
               <Route path="/aI-financial-recommendations" element={<AIFinancialRecommendations />} />
+              <Route path="/company-management-table" element={<CompanyManagementTable />} />
             </Route>
           </Route>
 

@@ -117,10 +117,11 @@ const Navbar = ({ toggleSidebar }) => {
           <div className="relative">
             <button 
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="flex items-center space-x-2 focus:outline-none"
-            >
-              <FaUserCircle className="text-gray-600 hover:text-gray-900 text-2xl" />
-              <span className="hidden md:inline-block text-sm font-medium text-gray-700">Shashi</span>
+              className="flex  p-2 bg-gradient-to-r from-[#004a80] to-[#9ccdf3]  rounded-sm items-center space-x-2 focus:outline-none shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02]"
+            >  
+            <span className="hidden capitalize md:inline-block text-sm bord   font-medium text-white">INSIENT CONSULTING</span>
+
+              <FaUserCircle className="text-sky-800 hover:text-sky-200 text-2xl" />
             </button>
             
             <ProfileDropdown 

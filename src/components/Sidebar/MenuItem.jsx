@@ -88,7 +88,7 @@ const MenuItem = ({ item, isSidebarOpen, level = 0, isLastChild = false }) => {
       </div>
 
       {hasChildren && isOpen && (
-        <ul className={`relative ${level > 0 ? 'pl-4' : 'pl-8'}`}>
+        <ul className={`relative ${level > 0 ? 'pl-2' : 'pl-4'}`}>
           {item.children.map((child, childIndex) => (
             <MenuItem
               key={childIndex}
