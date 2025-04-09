@@ -436,9 +436,9 @@ const FinancialOverview = () => {
                     ref={aiChatbotRef}
                     className="absolute right-0 mt-2 w-full sm:w-64 bg-white rounded-md shadow-lg z-10 border border-gray-200 p-2"
                   >
-                    <div className="flex flex-col  items-center space-x">
-                      <h1 className="text-sm w-full my-2 text-sky-700">Ask regarding the {title}</h1>
-                      <div className="flex space-x-2">
+                    <div className="flex flex-col  items-center space-x-2">
+                      <h1>Ask regarding the {title}</h1>
+                      <div className="">
                       <input
                         type="text"
                         // value={aiInput}
