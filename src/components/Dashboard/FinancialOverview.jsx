@@ -520,7 +520,7 @@ const FinancialOverview = () => {
                 onClick={() => setShowAIDropdown(true)}
                 className="p-1 rounded hover:bg-gray-100"
                 data-tooltip-id="ai-tooltip"
-                data-tooltip-content="Ask AI"
+                data-tooltip-content="Ask AI" 
               >
                 <BsStars />
               </button>
