@@ -438,7 +438,7 @@ const FinancialOverview = () => {
                   >
                     <div className="flex flex-col  items-center space-x-2">
                       <h1>Ask regarding the {title}</h1>
-                      <div className="">
+                      <div className="flex justify-between gap-3">
                       <input
                         type="text"
                         // value={aiInput}
@@ -448,7 +448,7 @@ const FinancialOverview = () => {
                       />
                       <button
                         onClick={() => handleSendAIQuery(widgetId)}
-                        className="p-1 bg-sky-500 text-white rounded hover:bg-sky-600"
+                        className="p-2 bg-sky-500 text-white rounded hover:bg-sky-600"
                         disabled={!aiInput.trim()}
                       >
                         <FiSend />
@@ -527,7 +527,7 @@ const FinancialOverview = () => {
               {showAIDropdown && (
                 <div
                   ref={dropdownRef}
-                  className="absolute right-0 mt-2 w-full sm:w-64 bg-white rounded-md shadow-lg z-10 border border-gray-200 p-2"
+                  className="absolute right-0 mt-2 w-full sm:w-44 bg-white rounded-md shadow-lg z-10 border border-gray-200 p-2"
                 >
                   <div className="flex items-center space-x-2">
                     <input

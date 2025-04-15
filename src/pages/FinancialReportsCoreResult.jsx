@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FiChevronDown, FiChevronRight, FiDownload, FiPrinter, FiFilter, FiSend } from "react-icons/fi";
+import {
+  FiChevronDown,
+  FiChevronRight,
+  FiDownload,
+  FiPrinter,
+  FiFilter,
+  FiSend,
+} from "react-icons/fi";
 import { Bar, Pie, Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -13,16 +20,36 @@ import {
 } from "chart.js";
 import { BsStars } from "react-icons/bs";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, LineElement, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  LineElement,
+  Tooltip,
+  Legend
+);
 
 // Sample Data
 const sampleData = {
   pnl: {
     labels: ["Jan", "Feb", "Mar", "Apr", "May"],
     datasets: [
-      { label: "Actual", data: [12000, 19000, 15000, 18000, 22000], backgroundColor: "rgba(54, 162, 235, 0.7)" },
-      { label: "Budget", data: [15000, 15000, 17000, 20000, 21000], backgroundColor: "rgba(255, 99, 132, 0.7)" },
-      { label: "Forecast", data: [13000, 17000, 16000, 19000, 23000], backgroundColor: "rgba(75, 192, 192, 0.7)" },
+      {
+        label: "Actual",
+        data: [12000, 19000, 15000, 18000, 22000],
+        backgroundColor: "rgba(54, 162, 235, 0.7)",
+      },
+      {
+        label: "Budget",
+        data: [15000, 15000, 17000, 20000, 21000],
+        backgroundColor: "rgba(255, 99, 132, 0.7)",
+      },
+      {
+        label: "Forecast",
+        data: [13000, 17000, 16000, 19000, 23000],
+        backgroundColor: "rgba(75, 192, 192, 0.7)",
+      },
     ],
     tableData: [
       { month: "Jan", Actual: 12000, Budget: 15000, Forecast: 13000 },
@@ -35,20 +62,62 @@ const sampleData = {
   balanceSheet: {
     tableData: [
       { account: "Cash", current: 45000, previous: 38000, positive: true },
-      { account: "Accounts Receivable", current: 32000, previous: 28000, positive: true },
-      { account: "Inventory", current: 28000, previous: 31000, positive: false },
-      { account: "Total Assets", current: 185000, previous: 172000, positive: true },
-      { account: "Accounts Payable", current: 22000, previous: 18000, positive: false },
-      { account: "Total Liabilities", current: 85000, previous: 78000, positive: false },
-      { account: "Retained Earnings", current: 100000, previous: 94000, positive: true },
+      {
+        account: "Accounts Receivable",
+        current: 32000,
+        previous: 28000,
+        positive: true,
+      },
+      {
+        account: "Inventory",
+        current: 28000,
+        previous: 31000,
+        positive: false,
+      },
+      {
+        account: "Total Assets",
+        current: 185000,
+        previous: 172000,
+        positive: true,
+      },
+      {
+        account: "Accounts Payable",
+        current: 22000,
+        previous: 18000,
+        positive: false,
+      },
+      {
+        account: "Total Liabilities",
+        current: 85000,
+        previous: 78000,
+        positive: false,
+      },
+      {
+        account: "Retained Earnings",
+        current: 100000,
+        previous: 94000,
+        positive: true,
+      },
     ],
   },
   cashFlow: {
     labels: ["Jan", "Feb", "Mar", "Apr", "May"],
     datasets: [
-      { label: "Operational", data: [5000, 6000, 7000, 8000, 9000], backgroundColor: "rgba(54, 162, 235, 0.7)" },
-      { label: "Investing", data: [-2000, -1500, -1000, -500, 0], backgroundColor: "rgba(255, 99, 132, 0.7)" },
-      { label: "Financing", data: [3000, 2500, 2000, 1500, 1000], backgroundColor: "rgba(75, 192, 192, 0.7)" },
+      {
+        label: "Operational",
+        data: [5000, 6000, 7000, 8000, 9000],
+        backgroundColor: "rgba(54, 162, 235, 0.7)",
+      },
+      {
+        label: "Investing",
+        data: [-2000, -1500, -1000, -500, 0],
+        backgroundColor: "rgba(255, 99, 132, 0.7)",
+      },
+      {
+        label: "Financing",
+        data: [3000, 2500, 2000, 1500, 1000],
+        backgroundColor: "rgba(75, 192, 192, 0.7)",
+      },
     ],
     tableData: [
       { month: "Jan", Operational: 5000, Investing: -2000, Financing: 3000 },
@@ -105,8 +174,16 @@ const sampleData = {
   budgetVsActuals: {
     labels: ["Jan", "Feb", "Mar", "Apr", "May"],
     datasets: [
-      { label: "Actual", data: [12000, 19000, 15000, 18000, 22000], backgroundColor: "rgba(54, 162, 235, 0.7)" },
-      { label: "Budget", data: [15000, 15000, 17000, 20000, 21000], backgroundColor: "rgba(255, 99, 132, 0.7)" },
+      {
+        label: "Actual",
+        data: [12000, 19000, 15000, 18000, 22000],
+        backgroundColor: "rgba(54, 162, 235, 0.7)",
+      },
+      {
+        label: "Budget",
+        data: [15000, 15000, 17000, 20000, 21000],
+        backgroundColor: "rgba(255, 99, 132, 0.7)",
+      },
     ],
     tableData: [
       { month: "Jan", Actual: 12000, Budget: 15000 },
@@ -135,8 +212,16 @@ const sampleData = {
   custom1: {
     labels: ["Q1", "Q2", "Q3", "Q4"],
     datasets: [
-      { label: "Revenue", data: [50000, 55000, 60000, 65000], backgroundColor: "rgba(54, 162, 235, 0.7)" },
-      { label: "Expenses", data: [30000, 32000, 34000, 36000], backgroundColor: "rgba(255, 99, 132, 0.7)" },
+      {
+        label: "Revenue",
+        data: [50000, 55000, 60000, 65000],
+        backgroundColor: "rgba(54, 162, 235, 0.7)",
+      },
+      {
+        label: "Expenses",
+        data: [30000, 32000, 34000, 36000],
+        backgroundColor: "rgba(255, 99, 132, 0.7)",
+      },
     ],
     tableData: [
       { quarter: "Q1", Revenue: 50000, Expenses: 30000 },
@@ -150,7 +235,11 @@ const sampleData = {
     datasets: [
       {
         data: [40000, 35000, 30000],
-        backgroundColor: ["rgba(54, 162, 235, 0.7)", "rgba(75, 192, 192, 0.7)", "rgba(255, 99, 132, 0.7)"],
+        backgroundColor: [
+          "rgba(54, 162, 235, 0.7)",
+          "rgba(75, 192, 192, 0.7)",
+          "rgba(255, 99, 132, 0.7)",
+        ],
       },
     ],
     tableData: [
@@ -196,7 +285,10 @@ const FinancialReports = () => {
       if (filtersRef.current && !filtersRef.current.contains(event.target)) {
         setShowFilters(false);
       }
-      if (aiChatbotRef.current && !aiChatbotRef.current.contains(event.target)) {
+      if (
+        aiChatbotRef.current &&
+        !aiChatbotRef.current.contains(event.target)
+      ) {
         setShowAIDropdown(null);
       }
     };
@@ -206,19 +298,59 @@ const FinancialReports = () => {
 
   // Report Definitions
   const coreReports = [
-    { id: "pnl", title: "Profit & Loss Statement", description: "Actual vs Budget vs Forecast" },
-    { id: "balanceSheet", title: "Balance Sheet", description: "Assets, Liabilities, and Equity Summary" },
-    { id: "cashFlow", title: "Cash Flow Statement", description: "Operational, Investing, and Financing Cash Flow" },
-    { id: "arAging", title: "AR Aging Reports", description: "Overdue receivables breakdown" },
-    { id: "apAging", title: "AP Aging Reports", description: "Overdue Payments Breakdown" },
-    { id: "budgetVsActuals", title: "Budget vs. Actuals", description: "Variance Analysis & Cost Overruns" },
-    { id: "financialRatios", title: "Financial Ratio Analysis", description: "Liquidity, Profitability, and Efficiency Ratios" },
-    { id: "departmental", title: "Departmental Performance Reports", description: "Cost Centers, P&L by Business Unit" },
+    {
+      id: "pnl",
+      title: "Profit & Loss Statement",
+      description: "Actual vs Budget vs Forecast",
+    },
+    {
+      id: "balanceSheet",
+      title: "Balance Sheet",
+      description: "Assets, Liabilities, and Equity Summary",
+    },
+    {
+      id: "cashFlow",
+      title: "Cash Flow Statement",
+      description: "Operational, Investing, and Financing Cash Flow",
+    },
+    {
+      id: "arAging",
+      title: "AR Aging Reports",
+      description: "Overdue receivables breakdown",
+    },
+    {
+      id: "apAging",
+      title: "AP Aging Reports",
+      description: "Overdue Payments Breakdown",
+    },
+    {
+      id: "budgetVsActuals",
+      title: "Budget vs. Actuals",
+      description: "Variance Analysis & Cost Overruns",
+    },
+    {
+      id: "financialRatios",
+      title: "Financial Ratio Analysis",
+      description: "Liquidity, Profitability, and Efficiency Ratios",
+    },
+    {
+      id: "departmental",
+      title: "Departmental Performance Reports",
+      description: "Cost Centers, P&L by Business Unit",
+    },
   ];
 
   const customReports = [
-    { id: "custom1", title: "Custom Revenue Report", description: "Revenue vs Expenses by Quarter" },
-    { id: "custom2", title: "Regional Sales Report", description: "Sales by Region" },
+    {
+      id: "custom1",
+      title: "Custom Revenue Report",
+      description: "Revenue vs Expenses by Quarter",
+    },
+    {
+      id: "custom2",
+      title: "Regional Sales Report",
+      description: "Sales by Region",
+    },
   ];
 
   // Render Chart or Table
@@ -226,17 +358,25 @@ const FinancialReports = () => {
     const data = sampleData[reportId];
     if (!data) return <div className="text-gray-500">No data available</div>;
 
-    const toggleView = () => setViewMode(viewMode === "chart" ? "table" : "chart");
+    const toggleView = () =>
+      setViewMode(viewMode === "chart" ? "table" : "chart");
 
     if (viewMode === "chart") {
-      if (reportId === "balanceSheet" || reportId === "financialRatios" || reportId === "departmental") {
+      if (
+        reportId === "balanceSheet" ||
+        reportId === "financialRatios" ||
+        reportId === "departmental"
+      ) {
         return (
           <div className="mt-4">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   {Object.keys(data.tableData[0]).map((key) => (
-                    <th key={key} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th
+                      key={key}
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                    >
                       {key}
                     </th>
                   ))}
@@ -246,8 +386,15 @@ const FinancialReports = () => {
                 {data.tableData.map((row, index) => (
                   <tr key={index}>
                     {Object.values(row).map((value, i) => (
-                      <td key={i} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {typeof value === "boolean" ? (value ? "↑" : "↓") : value}
+                      <td
+                        key={i}
+                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                      >
+                        {typeof value === "boolean"
+                          ? value
+                            ? "↑"
+                            : "↓"
+                          : value}
                       </td>
                     ))}
                   </tr>
@@ -266,13 +413,22 @@ const FinancialReports = () => {
       return (
         <div className="mt-4 h-80">
           {reportId === "arAging" || reportId === "apAging" ? (
-            <Pie data={data} options={{ responsive: true, plugins: { legend: { position: "right" } } }} />
+            <Pie
+              data={data}
+              options={{
+                responsive: true,
+                plugins: { legend: { position: "right" } },
+              }}
+            />
           ) : (
             <Bar
               data={data}
               options={{
                 responsive: true,
-                plugins: { legend: { position: "top" }, tooltip: { mode: "index", intersect: false } },
+                plugins: {
+                  legend: { position: "top" },
+                  tooltip: { mode: "index", intersect: false },
+                },
                 scales: { x: { stacked: false }, y: { stacked: false } },
               }}
             />
@@ -292,7 +448,10 @@ const FinancialReports = () => {
             <thead className="bg-gray-50">
               <tr>
                 {Object.keys(data.tableData[0]).map((key) => (
-                  <th key={key} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th
+                    key={key}
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                  >
                     {key}
                   </th>
                 ))}
@@ -302,14 +461,17 @@ const FinancialReports = () => {
               {data.tableData.map((row, index) => (
                 <tr key={index}>
                   {Object.values(row).map((value, i) => (
-                    <td key={i} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td
+                      key={i}
+                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                    >
                       {value}
                     </td>
                   ))}
                 </tr>
               ))}
-              </tbody>
-            </table>
+            </tbody>
+          </table>
           <button
             onClick={toggleView}
             className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
@@ -324,24 +486,23 @@ const FinancialReports = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
       <div className="max-w-7xl mx-auto">
-        
-
-
-
-
-          {/* Header */}
-              <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h1 className="text-xl font-bold text-white">Financial Reports</h1>
-                    <p className="text-sky-100 text-sm">Access and analyze all financial insights</p>
-                  </div>
-                  <div className="flex space-x-3">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-xl font-bold text-white">
+                Financial Reports
+              </h1>
+              <p className="text-sky-100 text-sm">
+                Access and analyze all financial insights
+              </p>
+            </div>
+            <div className="flex space-x-3">
               <select
                 value={timeRange}
                 onChange={(e) => setTimeRange(e.target.value)}
                 className="flex items-center outline-0 py-2 px-3 text-sm font-medium text-white bg-sky-900 rounded-lg  hover:bg-white hover:text-sky-900 transition-colors duration-200"
-                >
+              >
                 <option value="3M">Last 3 Months</option>
                 <option value="6M">Last 6 Months</option>
                 <option value="12M">Last 12 Months</option>
@@ -350,19 +511,24 @@ const FinancialReports = () => {
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className="flex items-center py-2 px-3 text-sm font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200"
-                >
+              >
                 <FiFilter className="mr-2" /> Filters
               </button>
             </div>
-                </div>
-              </div>
+          </div>
+        </div>
 
         {/* Filters (Collapsible) */}
         {showFilters && (
-          <div className="bg-white p-6 rounded-xl shadow-md mb-6" ref={filtersRef}>
+          <div
+            className="bg-white p-6 rounded-xl shadow-md mb-6"
+            ref={filtersRef}
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Date Range
+                </label>
                 <select className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500">
                   <option>Month</option>
                   <option>Quarter</option>
@@ -371,7 +537,9 @@ const FinancialReports = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category
+                </label>
                 <select className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500">
                   <option>All</option>
                   <option>Revenue</option>
@@ -411,83 +579,96 @@ const FinancialReports = () => {
 
         {/* Report List */}
         <div className="mt-6 space-y-6">
-          {(activeTab === "core" ? coreReports : customReports).map((report) => (
-            <div
-              key={report.id}
-              className="bg-white rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300"
-            >
-              <button
-                onClick={() => toggleReport(report.id)}
-                className="w-full flex justify-between items-center p-6 text-left focus:outline-none hover:bg-gray-50"
+          {(activeTab === "core" ? coreReports : customReports).map(
+            (report) => (
+              <div
+                key={report.id}
+                className="bg-white rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300"
               >
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">{report.title}</h3>
-                  <p className="text-sm text-gray-600 mt-1">{report.description}</p>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <span className="px-3 py-1 bg-sky-100 text-sky-800 rounded-full text-sm font-medium">
-                    {report.id.includes("aging") ? "Monthly" : "Quarterly"}
-                  </span>
-                  {expandedReports[report.id] ? (
-                    <FiChevronDown className="text-gray-500 w-6 h-6" />
-                  ) : (
-                    <FiChevronRight className="text-gray-500 w-6 h-6" />
-                  )}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowAIDropdown(report.id);
-                    }}
-                    className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-                  >
-                                   <BsStars />
-                   
-                  </button>
-                  {showAIDropdown === report.id && (
-                    <div
-                      ref={aiChatbotRef}
-                      className="absolute right-6 mt-2 w-72 bg-white rounded-lg shadow-lg z-10 border border-gray-200 p-3"
-                    >                      <h1 className="text-sm w-full my-2 text-sky-700">Ask regarding the {report.title}</h1>
-
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          value={aiInputs[report.id] || ""}
-                          onChange={(e) => setAiInputs((prev) => ({ ...prev, [report.id]: e.target.value }))}
-                          placeholder="Ask AI about this report..."
-                          className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
-                        />
-                        <button
-                          onClick={() => handleSendAIQuery(report.id)}
-                          className="p-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50"
-                          disabled={!aiInputs[report.id]?.trim()}
-                        >
-                          <FiSend className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </button>
-
-              {expandedReports[report.id] && (
-                <div className="p-6 border-t border-gray-200">
-                  {renderContent(report.id)}
-                  <div className="mt-6 flex justify-end space-x-4">
-                    <button className="flex items-center px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500">
-                      <FiDownload className="mr-2" /> Export
-                    </button>
-                    <button className="flex items-center px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500">
-                      <FiPrinter className="mr-2" /> Print
-                    </button>
-                    <button className="flex items-center px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500">
-                      <FiFilter className="mr-2" /> Filter Data
-                    </button>
+                <button
+                  onClick={() => toggleReport(report.id)}
+                  className="w-full flex justify-between items-center p-6 text-left focus:outline-none hover:bg-gray-50"
+                >
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">
+                      {report.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {report.description}
+                    </p>
                   </div>
-                </div>
-              )}
-            </div>
-          ))}
+                  <div className="flex items-center space-x-4">
+                    <span className="px-3 py-1 bg-sky-100 text-sky-800 rounded-full text-sm font-medium">
+                      {report.id.includes("aging") ? "Monthly" : "Quarterly"}
+                    </span>
+                    {expandedReports[report.id] ? (
+                      <FiChevronDown className="text-gray-500 w-6 h-6" />
+                    ) : (
+                      <FiChevronRight className="text-gray-500 w-6 h-6" />
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowAIDropdown(report.id);
+                      }}
+                      className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                    >
+                      <BsStars />
+                    </button>
+                    {showAIDropdown === report.id && (
+                      <div
+                        ref={aiChatbotRef}
+                        className="absolute right-6 mt-2 w-72 bg-white rounded-lg shadow-lg z-10 border border-gray-200 p-3"
+                      >
+                        {" "}
+                        <h1 className="text-sm w-full my-2 text-sky-700">
+                          Ask regarding the {report.title}
+                        </h1>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="text"
+                            value={aiInputs[report.id] || ""}
+                            onChange={(e) =>
+                              setAiInputs((prev) => ({
+                                ...prev,
+                                [report.id]: e.target.value,
+                              }))
+                            }
+                            placeholder="Ask AI about this report..."
+                            className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                          />
+                          <button
+                            onClick={() => handleSendAIQuery(report.id)}
+                            className="p-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50"
+                            disabled={!aiInputs[report.id]?.trim()}
+                          >
+                            <FiSend className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </button>
+
+                {expandedReports[report.id] && (
+                  <div className="p-6 border-t border-gray-200">
+                    {renderContent(report.id)}
+                    <div className="mt-6 flex justify-end space-x-4">
+                      <button className="flex items-center px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                        <FiDownload className="mr-2" /> Export
+                      </button>
+                      <button className="flex items-center px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                        <FiPrinter className="mr-2" /> Print
+                      </button>
+                      <button className="flex items-center px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                        <FiFilter className="mr-2" /> Filter Data
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          )}
         </div>
       </div>
     </div>
