@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FiSearch, FiBell, FiMessageSquare, FiMenu } from 'react-icons/fi';
 import { FaUserCircle } from 'react-icons/fa';
 import SearchBar from './SearchBar';
@@ -10,18 +10,48 @@ const Navbar = ({ toggleSidebar }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isMessagesOpen, setIsMessagesOpen] = useState(false);
-  
+
+  // Create refs for each dropdown
+  const profileRef = useRef(null);
+  const notificationsRef = useRef(null);
+  const messagesRef = useRef(null);
+
   // Sample data
   const notifications = [
     { id: 1, type: 'success', message: 'Item moved successfully' },
     { id: 2, type: 'error', message: 'Item has been deleted' },
-    { id: 3, type: 'warning', message: 'Low inventory warning' }
+    { id: 3, type: 'warning', message: 'Low inventory warning' },
   ];
 
   const messages = [
     { id: 1, sender: 'John Doe', message: 'Please review the report', time: '2 min ago' },
-    { id: 2, sender: 'Jane Smith', message: 'Meeting at 3pm', time: '1 hour ago' }
+    { id: 2, sender: 'Jane Smith', message: 'Meeting at 3pm', time: '1 hour ago' },
   ];
+
+  // Handle click outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
+      }
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+        setIsNotificationsOpen(false);
+      }
+      if (messagesRef.current && !messagesRef.current.contains(event.target)) {
+        setIsMessagesOpen(false);
+      }
+    };
+
+    // Add event listener when any dropdown is open
+    if (isProfileOpen || isNotificationsOpen || isMessagesOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    // Clean up
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isProfileOpen, isNotificationsOpen, isMessagesOpen]);
 
   return (
     <header className="bg-white shadow-sm z-40">
@@ -33,22 +63,24 @@ const Navbar = ({ toggleSidebar }) => {
         >
           <FiMenu className="text-gray-600 hover:text-gray-900" size={20} />
         </button>
-        
-        {/* Search Bar */} 
-        <div> <h1 className="text-2xl  mx-5 font-bold text-sky-900">Welcome,Shashi Konduru!</h1></div>
+
+        {/* Search Bar */}
+        <div>
+          <h1 className="text-2xl mx-5 font-bold text-sky-900">Welcome, Shashi Konduru!</h1>
+        </div>
         <div className="hidden md:block flex-1 max-w-md mx-4">
           <SearchBar />
         </div>
-        
+
         {/* Right Side - Icons */}
         <div className="flex items-center space-x-4">
           <button className="p-2 rounded-full hover:bg-gray-100 relative">
             <FiSearch className="text-gray-600 hover:text-gray-900 md:hidden" size={20} />
           </button>
-          
+
           {/* Messages Button */}
-          <div className="relative">
-            <button 
+          <div className="relative" ref={messagesRef}>
+            <button
               onClick={() => setIsMessagesOpen(!isMessagesOpen)}
               className="p-2 rounded-full hover:bg-gray-100 relative"
             >
@@ -59,14 +91,14 @@ const Navbar = ({ toggleSidebar }) => {
                 </span>
               )}
             </button>
-            
+
             {isMessagesOpen && (
               <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg py-2 z-50">
                 <div className="px-4 py-2 border-b border-gray-200">
                   <h3 className="font-medium text-gray-900">Messages ({messages.length})</h3>
                 </div>
                 <div className="max-h-96 overflow-y-auto">
-                  {messages.map(msg => (
+                  {messages.map((msg) => (
                     <MessageNotification
                       key={msg.id}
                       sender={msg.sender}
@@ -79,10 +111,10 @@ const Navbar = ({ toggleSidebar }) => {
               </div>
             )}
           </div>
-          
+
           {/* Notifications Button */}
-          <div className="relative">
-            <button 
+          <div className="relative" ref={notificationsRef}>
+            <button
               onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
               className="p-2 rounded-full hover:bg-gray-100 relative"
             >
@@ -93,14 +125,14 @@ const Navbar = ({ toggleSidebar }) => {
                 </span>
               )}
             </button>
-            
+
             {isNotificationsOpen && (
               <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg py-2 z-50">
                 <div className="px-4 py-2 border-b border-gray-200">
                   <h3 className="font-medium text-gray-900">Notifications ({notifications.length})</h3>
                 </div>
                 <div className="max-h-96 overflow-y-auto">
-                  {notifications.map(notification => (
+                  {notifications.map((notification) => (
                     <NotificationToast
                       key={notification.id}
                       type={notification.type}
@@ -112,21 +144,24 @@ const Navbar = ({ toggleSidebar }) => {
               </div>
             )}
           </div>
-          
-          {/* Profile Button */}
-          <div className="relative">
-            <button 
-              onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="flex  p-2 bg-gradient-to-r from-[#004a80] to-[#9ccdf3]  rounded-sm items-center space-x-2 focus:outline-none shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02]"
-            >  
-            <span className="hidden capitalize md:inline-block text-sm bord   font-medium text-white">INSIENT CONSULTING</span>
 
-              <FaUserCircle className="text-sky-800 hover:text-sky-200 text-2xl" />
+          {/* Profile Button */}
+          <div className="relative" ref={profileRef}>
+            <button
+              onClick={() => setIsProfileOpen(!isProfileOpen)}
+              className="flex items-center space-x-2 p-2 bg-sky-900 rounded-sm focus:outline-none shadow-2xl hover:bg-sky-900 transition-all duration-200 transform hover:scale-[1.02]"
+            >
+              <span
+                className="fontfor-company hidden capitalize md:inline-block text-sm font-bold text-sky-50 sp"
+              >
+                Acme Corporation
+              </span>
+              <FaUserCircle className="text-sky-100 hover:text-sky-200 text-2xl" />
             </button>
-            
-            <ProfileDropdown 
-              isOpen={isProfileOpen} 
-              onClose={() => setIsProfileOpen(false)} 
+
+            <ProfileDropdown
+              isOpen={isProfileOpen}
+              onClose={() => setIsProfileOpen(false)}
             />
           </div>
         </div>

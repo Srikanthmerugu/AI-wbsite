@@ -146,7 +146,7 @@ const charts = {
           borderWidth: 1,
         },
         {
-          label: "Net Profit", 
+          label: "Net Profit",
           data: [35000, 38000, 42000, 45000],
           backgroundColor: "rgba(139, 92, 246, 0.2)",
           borderColor: "rgba(139, 92, 246, 1)",
@@ -314,23 +314,35 @@ const FinancialOverview = () => {
 
   const filtersRef = useRef(null);
   const aiChatbotRef = useRef(null);
+  const chartTypeDropdownRefs = useRef({});
 
-  // Close filters or AI dropdown when clicking outside
+  // Close filters or dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Close filters
       if (filtersRef.current && !filtersRef.current.contains(event.target)) {
         setShowFilters(false);
       }
+      
+      // Close AI dropdown
       if (aiChatbotRef.current && !aiChatbotRef.current.contains(event.target)) {
         setShowAIDropdown(null);
       }
+      
+      // Close chart type dropdowns
+      Object.keys(showChartTypeDropdown).forEach((key) => {
+        const ref = chartTypeDropdownRefs.current[key];
+        if (ref && !ref.contains(event.target)) {
+          setShowChartTypeDropdown((prev) => ({ ...prev, [key]: false }));
+        }
+      });
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [showChartTypeDropdown]);
 
   // Toggle chart type
   const toggleChartType = (widgetId, type) => {
@@ -346,16 +358,19 @@ const FinancialOverview = () => {
 
   // Toggle chart type dropdown
   const toggleChartTypeDropdown = (widgetId) => {
-    setShowChartTypeDropdown({
-      ...showChartTypeDropdown,
-      [widgetId]: !showChartTypeDropdown[widgetId],
-    });
+    setShowChartTypeDropdown((prev) => ({
+      ...Object.keys(prev).reduce((acc, key) => {
+        acc[key] = false;
+        return acc;
+      }, {}),
+      [widgetId]: !prev[widgetId],
+    }));
   };
 
   // Handle sending AI query
   const handleSendAIQuery = (widgetId) => {
     if (aiInput.trim()) {
-      console.log(`AI Query for ${widgetId}:`, aiInput); // Replace with actual AI logic
+      console.log(`AI Query for ${widgetId}:`, aiInput);
       setAiInput("");
       setShowAIDropdown(null);
     }
@@ -394,7 +409,7 @@ const FinancialOverview = () => {
             {...provided.draggableProps}
           >
             <div className="flex justify-between items-center mb-2">
-              <h3 className="text-md font-semibold text-sky-800">{title}</h3>
+              <h3 className="text-sm font-semibold text-sky-800">{title}</h3>
               <div className="flex space-x-2 relative">
                 <div className="relative">
                   <button
@@ -406,14 +421,17 @@ const FinancialOverview = () => {
                     <BsThreeDotsVertical />
                   </button>
                   {showChartTypeDropdown[widgetId] && (
-                    <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                    <div
+                      ref={(el) => (chartTypeDropdownRefs.current[widgetId] = el)}
+                      className="absolute right-0 mt-2 w-32 bg-white rounded-md shadow-lg z-10 border border-gray-200"
+                    >
                       <div className="py-1">
                         {["line", "bar", "pie", "doughnut", "radar", "polarArea", "bubble"].map(
                           (type) => (
                             <button
                               key={type}
                               onClick={() => toggleChartType(widgetId, type)}
-                              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              className="block w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-100"
                             >
                               {type.charAt(0).toUpperCase() + type.slice(1)} Chart
                             </button>
@@ -424,7 +442,7 @@ const FinancialOverview = () => {
                   )}
                 </div>
                 <button
-                  onClick={() => setShowAIDropdown(widgetId)}
+                  onClick={() => setShowAIDropdown(showAIDropdown === widgetId ? null : widgetId)}
                   className="p-1 rounded hover:bg-gray-100"
                   data-tooltip-id="ai-tooltip"
                   data-tooltip-content="Ask AI"
@@ -434,26 +452,26 @@ const FinancialOverview = () => {
                 {showAIDropdown === widgetId && (
                   <div
                     ref={aiChatbotRef}
-                    className="absolute right-0 mt-2 w-full sm:w-64 bg-white rounded-md shadow-lg z-10 border border-gray-200 p-2"
+                    className="absolute right-0 top-5 mt-2 w-full sm:w-64 bg-white rounded-md shadow-lg z-10 border border-gray-200 py-2"
                   >
-                    <div className="flex flex-col  items-center space-x-2">
-                      <h1>Ask regarding the {title}</h1>
+                    <div className="flex flex-col items-center space-x-2">
+                      <h1 className="text-xs">Ask regarding the {title}</h1>
                       <div className="flex justify-between gap-3">
-                      <input
-                        type="text"
-                        // value={aiInput}
-                        // onChange={(e) => setAiInput(e.target.value)}
-                        placeholder="Ask AI..."
-                        className="w-full p-1 border border-gray-300 rounded text-sm"
-                      />
-                      <button
-                        onClick={() => handleSendAIQuery(widgetId)}
-                        className="p-2 bg-sky-500 text-white rounded hover:bg-sky-600"
-                        disabled={!aiInput.trim()}
-                      >
-                        <FiSend />
-                      </button>
-                    </div>
+                        <input
+                          type="text"
+                          value={aiInput}
+                          onChange={(e) => setAiInput(e.target.value)}
+                          placeholder="Ask AI..."
+                          className="w-full p-1 border border-gray-300 rounded text-xs"
+                        />
+                        <button
+                          onClick={() => handleSendAIQuery(widgetId)}
+                          className="p-2 bg-sky-500 text-white rounded hover:bg-sky-600"
+                          disabled={!aiInput.trim()}
+                        >
+                          <FiSend />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -496,11 +514,20 @@ const FinancialOverview = () => {
     // Handle sending AI query
     const handleSendAIQuery = () => {
       if (aiInput.trim()) {
-        console.log(`AI Query for ${title}:`, aiInput); // Replace with actual AI logic
+        console.log(`AI Query for ${title}:`, aiInput);
         setAiInput("");
         setShowAIDropdown(false);
       }
     };
+
+    // Determine if the metric requires a dollar sign
+    const needsDollarSign = [
+      "Revenue",
+      "grossProfit",
+      "Expenses",
+      "netProfit",
+      "cashFlow",
+    ].includes(title.replace(/ /g, ""));
 
     return (
       <motion.div
@@ -513,11 +540,11 @@ const FinancialOverview = () => {
         <div className="flex justify-between items-start">
           <div>
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-sky-600 uppercase tracking-wider truncate">
+              <p className="text-[10px] font-semibold text-sky-600 uppercase tracking-wider truncate">
                 {title}
               </p>
               <button
-                onClick={() => setShowAIDropdown(true)}
+                onClick={() => setShowAIDropdown(!showAIDropdown)}
                 className="p-1 rounded hover:bg-gray-100"
                 data-tooltip-id="ai-tooltip"
                 data-tooltip-content="Ask AI"
@@ -527,15 +554,15 @@ const FinancialOverview = () => {
               {showAIDropdown && (
                 <div
                   ref={dropdownRef}
-                  className="absolute right-0 mt-2 w-full sm:w-44 bg-white rounded-md shadow-lg z-10 border border-gray-200 p-2"
+                  className="absolute right-0 top-5 mt-2 w-full sm:w-44 bg-white rounded-md shadow-lg z-10 border border-gray-200 p-2"
                 >
                   <div className="flex items-center space-x-2">
                     <input
                       type="text"
-                      // value={aiInput}
-                      // onChange={(e) => setAiInput(e.target.value)}
+                      value={aiInput}
+                      onChange={(e) => setAiInput(e.target.value)}
                       placeholder="Ask AI..."
-                      className="w-full p-1 border border-gray-300 rounded text-sm"
+                      className="w-full p-1 border border-gray-300 rounded text-xs"
                     />
                     <button
                       onClick={handleSendAIQuery}
@@ -548,11 +575,12 @@ const FinancialOverview = () => {
                 </div>
               )}
             </div>
-            <p className="text-lg font-bold text-sky-900 mt-1">
+            <p className="text-sm font-bold text-sky-900 mt-1">
+              {needsDollarSign && "$"}
               {typeof value === "number" ? value.toLocaleString() : value}
             </p>
             <div className={`flex items-center mt-2 ${isPositive ? "text-green-500" : "text-red-500"}`}>
-              <span className="text-xs font-medium">
+              <span className="text-[10px] font-medium">
                 {change} {isPositive ? "↑" : "↓"} vs last period
               </span>
             </div>
@@ -582,8 +610,8 @@ const FinancialOverview = () => {
   // Placeholder Table Component
   const DataTable = () => (
     <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100">
-      <h3 className="text-md font-semibold text-sky-800 mb-2">Summary Table</h3>
-      <table className="w-full text-sm text-gray-700">
+      <h3 className="text-sm font-semibold text-sky-800 mb-2">Summary Table</h3>
+      <table className="w-full text-xs text-gray-700">
         <thead>
           <tr className="border-b">
             <th className="p-2 text-left">Metric</th>
@@ -592,13 +620,25 @@ const FinancialOverview = () => {
           </tr>
         </thead>
         <tbody>
-          {Object.entries(kpiData).map(([key, value], index) => (
-            <tr key={index} className="border-b">
-              <td className="p-2">{key.replace(/([A-Z])/g, " $1")}</td>
-              <td className="p-2">{typeof value.value === "number" ? value.value.toLocaleString() : value.value}</td>
-              <td className="p-2">{value.change || value.target}</td>
-            </tr>
-          ))}
+          {Object.entries(kpiData).map(([key, value], index) => {
+            const needsDollarSign = [
+              "Revenue",
+              "grossProfit",
+              "Expenses",
+              "netProfit",
+              "cashFlow",
+            ].includes(key);
+            return (
+              <tr key={index} className="border-b">
+                <td className="p-2">{key.replace(/([A-Z])/g, " $1")}</td>
+                <td className="p-2">
+                  {needsDollarSign && "$"}
+                  {typeof value.value === "number" ? value.value.toLocaleString() : value.value}
+                </td>
+                <td className="p-2">{value.change || value.target}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -606,24 +646,17 @@ const FinancialOverview = () => {
 
   return (
     <div className="space-y-6 p-4 min-h-screen relative bg-sky-50">
-      {/* AI Chatbot */}
-      {showAIChatbot && (
-        <div className="fixed right-0 top-16 h-[90%] z-50" ref={aiChatbotRef}>
-          <SmallAIChatBot onClose={() => setShowAIChatbot(false)} />
-        </div>
-      )}
-
       {/* Header */}
       <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-xl font-bold text-white">Financial Dashboard</h1>
-            <p className="text-sky-100 text-sm">{selectedCompany}</p>
+            <h1 className="text-lg font-bold text-white">Financial Dashboard</h1>
+            <p className="text-sky-100 text-xs">{selectedCompany}</p>
           </div>
           <div className="flex space-x-2">
             <button
               type="button"
-              className="flex items-center py-2 px-3 text-sm font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200"
+              className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200"
               onClick={() => setShowFilters(!showFilters)}
             >
               <FiFilter className="mr-1" />
@@ -631,7 +664,7 @@ const FinancialOverview = () => {
             </button>
             <button
               type="button"
-              className="flex items-center py-2 px-3 text-sm font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200"
+              className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200"
             >
               <FiPlus className="mr-1" />
               Add Widget
@@ -645,10 +678,10 @@ const FinancialOverview = () => {
         <div className="bg-white p-4 rounded-lg shadow-sm" ref={filtersRef}>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Date Range
               </label>
-              <select className="w-full p-2 border border-gray-300 rounded-md">
+              <select className="w-full p-2 border border-gray-300 rounded-md text-xs">
                 <option>Month</option>
                 <option>Quarter</option>
                 <option>YTD</option>
@@ -656,10 +689,10 @@ const FinancialOverview = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Business Unit
               </label>
-              <select className="w-full p-2 border border-gray-300 rounded-md">
+              <select className="w-full p-2 border border-gray-300 rounded-md text-xs">
                 <option>All</option>
                 <option>North America</option>
                 <option>Europe</option>
@@ -667,10 +700,10 @@ const FinancialOverview = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Geography
               </label>
-              <select className="w-full p-2 border border-gray-300 rounded-md">
+              <select className="w-full p-2 border border-gray-300 rounded-md text-xs">
                 <option>All</option>
                 <option>USA</option>
                 <option>UK</option>
@@ -678,10 +711,10 @@ const FinancialOverview = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Client Demographics
               </label>
-              <select className="w-full p-2 border border-gray-300 rounded-md">
+              <select className="w-full p-2 border border-gray-300 rounded-md text-xs">
                 <option>All</option>
                 <option>By Industry</option>
                 <option>By Revenue Person</option>
@@ -702,13 +735,13 @@ const FinancialOverview = () => {
             isPositive={value.change?.startsWith("+") || value.target?.startsWith("+")}
             icon={
               key === "Revenue" ? (
-                <FiTrendingUp size={20} />
+                <FiTrendingUp size={16} />
               ) : key === "grossProfit" || key === "Expenses" || key === "netProfit" ? (
-                <FiDollarSign size={20} />
+                <FiDollarSign size={16} />
               ) : key === "cashFlow" ? (
-                <FiTrendingUp size={20} />
+                <FiTrendingUp size={16} />
               ) : (
-                <FiPieChart size={20} />
+                <FiPieChart size={16} />
               )
             }
           />

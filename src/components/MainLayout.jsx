@@ -10,6 +10,7 @@ import SmallAIChatBot from '../pages/SmallAIChatBot';
 const MainLayout = () => {
   const { isOpen, toggleSidebar, isLoading } = useSidebar();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const sidebarRef = useRef(null);
   const navbarRef = useRef(null);
 
@@ -36,6 +37,12 @@ const MainLayout = () => {
     setIsDrawerOpen(!isDrawerOpen);
   };
 
+  const handleSidebarHover = (hoverState) => {
+    if (!isOpen) {
+      setIsHovered(hoverState);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-screen bg-gray-50">
@@ -48,13 +55,18 @@ const MainLayout = () => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <div ref={sidebarRef}>
-        <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      <div 
+        ref={sidebarRef}
+        onMouseEnter={() => handleSidebarHover(true)}
+        onMouseLeave={() => handleSidebarHover(false)}
+        className={`fixed h-full ${isOpen || isHovered ? 'w-60' : 'w-20'}`}
+      >
+        <Sidebar isOpen={isOpen || isHovered} toggleSidebar={toggleSidebar} />
       </div>
       
       <div 
         className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${
-          isOpen ? 'ml-60' : 'ml-20'
+          isOpen || isHovered ? 'ml-60' : 'ml-15'
         }`}
       >
         <div ref={navbarRef}>
