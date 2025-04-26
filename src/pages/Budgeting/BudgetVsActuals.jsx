@@ -155,11 +155,38 @@ const BudgetVsActuals = () => {
   ];
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Budget vs. Actuals Tracking</h1>
+    <div className="space-y-6 p-4 min-h-screen relative bg-sky-50">
+      {/* <h1 className="text-3xl font-bold text-gray-800 mb-6">Budget vs. Actuals Tracking</h1> */}
+
+       {/* Header */}
+            <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h1 className="text-lg font-bold text-white">Budget vs. Actuals Tracking</h1>
+                  {/* <p className="text-sky-100 text-xs">{selectedCompany}</p> */}
+                </div>
+                {/* <div className="flex space-x-2">
+                  <button
+                    type="button"
+                    className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200"
+                    onClick={() => setShowFilters(!showFilters)}
+                  >
+                    <FiFilter className="mr-1" />
+                    Filters
+                  </button>
+                  <button
+                    type="button"
+                    className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200"
+                  >
+                    <FiPlus className="mr-1" />
+                    Add Widget
+                  </button>
+                </div> */}
+              </div>
+            </div>
       
       {/* Overview Card */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div className="bg-white rounded-lg shadow-md mt-5 p-6 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-700 flex items-center">
             Budget vs. Actual Overview

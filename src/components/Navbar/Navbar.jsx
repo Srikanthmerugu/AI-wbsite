@@ -149,14 +149,14 @@ const Navbar = ({ toggleSidebar }) => {
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="flex items-center space-x-2 p-2 bg-sky-900 rounded-sm focus:outline-none shadow-2xl hover:bg-sky-900 transition-all duration-200 transform hover:scale-[1.02]"
+              className="flex items-center space-x-2 border-2 p-1 hover:border-sky-700 border-sky-600 bg-white rounded-sm focus:outline-none shadow-2xl hover:bg-sky-900 hover:text-sky-50  text-sky-700 transition-all duration-200 transform hover:scale-[1.02]"
             >
               <span
-                className="fontfor-company hidden capitalize md:inline-block text-sm font-bold text-sky-50 sp"
+                className=" hidden capitalize md:inline-block text-sm  sp"
               >
                 Acme Corporation
               </span>
-              <FaUserCircle className="text-sky-100 hover:text-sky-200 text-2xl" />
+              <FaUserCircle className=" text-2xl" />
             </button>
 
             <ProfileDropdown

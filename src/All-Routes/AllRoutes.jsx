@@ -24,6 +24,7 @@ import { RevenueBudgeting } from '../pages/Budgeting/RevenuebasedBudgeting';
 import { DepartmentBudgeting } from '../pages/Budgeting/DepartmentBudgeting ';
 import AICostOptimization from '../pages/Budgeting/AICostOptimization';
 import BudgetVsActuals from '../pages/Budgeting/BudgetVsActuals';
+import PLDashboard from '../pages/Financial Reports/PLDashboard';
 
 function AllRoutes() {
   return (
@@ -57,7 +58,7 @@ function AllRoutes() {
               {/* <Route path="/department-budgeting" element={<AICostOptimization />} /> */}
               <Route path="/aI-cost-optimization" element={<AICostOptimization />} />
               <Route path="/budget-vs-actuals" element={<BudgetVsActuals />} />
-              <Route path="/budget-vs-actuals" element={<BudgetVsActuals />} />
+              <Route path="/p&l-Dashboard" element={<PLDashboard />} />
               {/* <Route path='/AICostOptimization' element={<AICostOptimization />} /> */}
 
             </Route>

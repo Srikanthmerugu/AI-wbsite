@@ -85,6 +85,7 @@ const MENUITEMS = [
         active: false,
         children: [
           { path: "/financial-core-reports", type: "link", title: "Core & Custom Reports", icon: { name: "FiFile" } },
+          // { path: "/p&l-Dashboard", type: "link", title: "Core & Custom Reports", icon: { name: "FiFile" } },
         ],
       },
       {
@@ -519,13 +520,13 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       }`}
     >
       {/* Sidebar Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-100">
+      <div className="flex items-center justify-between p-2  border-b border-gray-100">
         {isOpen ? (
           <div className="flex items-center">
-            <Link to="/"><img src={mainLogo} alt="FinSightAI" className="h-10" /></Link>
+            <Link to="/"><img src={mainLogo} alt="FinSightAI" className="h-13" /></Link>
           </div>
         ) : (
-          <img src={fevicon} alt="FinSightAI" className="h-6 mx-auto" />
+          <img src={fevicon} alt="FinSightAI" className="h-6 mx-auto px-2 " />
         )}
         <button
           onClick={toggleSidebar}
