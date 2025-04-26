@@ -25,6 +25,9 @@ import { DepartmentBudgeting } from '../pages/Budgeting/DepartmentBudgeting ';
 import AICostOptimization from '../pages/Budgeting/AICostOptimization';
 import BudgetVsActuals from '../pages/Budgeting/BudgetVsActuals';
 import PLDashboard from '../pages/Financial Reports/PLDashboard';
+import CapitalInvestmentPlan from '../pages/Budgeting/CAPEX-Budgeting/CapitalInvestPlan';
+import ROIAllocation from '../pages/Budgeting/CAPEX-Budgeting/ROIAllocation';
+import DepreciationForecast from '../pages/Budgeting/CAPEX-Budgeting/DepreciationForecast';
 
 function AllRoutes() {
   return (
@@ -59,6 +62,9 @@ function AllRoutes() {
               <Route path="/aI-cost-optimization" element={<AICostOptimization />} />
               <Route path="/budget-vs-actuals" element={<BudgetVsActuals />} />
               <Route path="/p&l-Dashboard" element={<PLDashboard />} />
+              <Route path="/budget-capital-investment" element={<CapitalInvestmentPlan />} />
+              <Route path="/budget-roi-allocation" element={<ROIAllocation />} />
+              <Route path="/budget-depreciation-forecast" element={<DepreciationForecast  />} />
               {/* <Route path='/AICostOptimization' element={<AICostOptimization />} /> */}
 
             </Route>

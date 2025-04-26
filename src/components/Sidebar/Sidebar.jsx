@@ -148,9 +148,9 @@ const MENUITEMS = [
             title: "Capital Expenditure (CAPEX) Budgeting  ",
             icon: { name: "FiFile" },
             children: [
-              { path: "#", type: "link", title: "Capital Investment Planning", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "ROI-Based CAPEX Allocation", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Depreciation & Amortization Forecasting ", icon: { name: "FiFile" } },
+              { path: "/budget-capital-investment", type: "link", title: "Capital Investment Planning", icon: { name: "FiFile" } },
+              { path: "/budget-roi-allocation", type: "link", title: "ROI-Based CAPEX Allocation", icon: { name: "FiFile" } },
+              { path: "/budget-depreciation-forecast", type: "link", title: "Depreciation & Amortization Forecasting ", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Scenario-Based CAPEX Modeling", icon: { name: "FiFile" } },
             ],
           },
