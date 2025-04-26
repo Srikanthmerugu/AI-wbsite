@@ -15,30 +15,22 @@ const MenuItem = ({ item, isSidebarOpen, level = 0, isLastChild = false }) => {
   // Single Link Item
   if (item.type === "link" && !hasChildren) {
     return (
-      <li className={`relative pl-${level * 4}`}>
-        {/* Vertical connector line */}
-        {level > 0 && (
-          <div className={`absolute left-5 top-0 h-full w-px bg-gray-300 ${isLastChild ? 'h-1/2' : 'h-full'}`}></div>
-        )}
+      <li className={`relative ${level > 0 ? 'pl-6' : ''}`}>
         <NavLink
           to={item.path}
           className={({ isActive }) =>
-            `flex items-center py-2 pl-8 text-sm transition-all duration-200 hover:bg-blue-50 hover:text-blue-600 group relative ${
+            `flex items-center py-1.5 text-xs transition-all duration-200 hover:bg-blue-50 hover:text-blue-600 group ${
               isActive ? "text-sky-900 bg-blue-50" : "text-gray-700 hover:text-blue-600"
-            }`
+            } ${level > 0 ? 'pl-6' : 'pl-4'}`
           }
         >
-          {/* Horizontal connector line */}
-          {level > 0 && (
-            <div className="absolute left-0 top-1/2 h-px w-3 bg-gray-300 transform -translate-y-1/2"></div>
-          )}
-          {level > 0 && <BsArrowBarRight className="absolute left-3 text-gray-400 text-xs" />}
+          {level > 0 && <BsArrowBarRight className="absolute left-2 text-gray-400 text-xs" />}
           {Icon && level === 0 && (
-            <span className="icon-container group-hover:animate-pop mr-2">
-              <Icon size="1.2rem" className="transition-all duration-200" />
+            <span className="mr-2">
+              <Icon size="1rem" className="transition-all duration-200" />
             </span>
           )}
-          <span className="font-medium">{item.title}</span>
+          <span className={`${level > 0 ? 'text-xs' : 'text-sm'}`}>{item.title}</span>
         </NavLink>
       </li>
     );
@@ -46,49 +38,35 @@ const MenuItem = ({ item, isSidebarOpen, level = 0, isLastChild = false }) => {
 
   // Submenu Item
   return (
-    <li className={`relative pl-${level * 4}`}>
-      {/* Vertical connector line for parent */}
-      {level > 0 && (
-        <div className={`absolute left-5 top-0 h-full w-px bg-gray-300 ${isLastChild ? 'h-1/2' : 'h-full'}`}></div>
-      )}
-
+    <li className={`relative ${level > 0 ? 'pl-6' : ''}`}>
       <div
         onClick={toggleSubmenu}
-        className={`flex items-center justify-between w-full py-2 pl-8 text-sm transition-all duration-200 hover:bg-blue-50 hover:text-gray-900 cursor-pointer relative ${
+        className={`flex items-center justify-between w-full py-1.5 text-xs transition-all duration-200 hover:bg-blue-50 hover:text-gray-900 cursor-pointer ${
           isOpen ? "text-sky-700 bg-sky-50" : "text-sky-900"
-        }`}
+        } ${level > 0 ? 'pl-6' : 'pl-4'}`}
       >
-        {/* Horizontal connector line */}
-        {level > 0 && (
-          <div className="absolute left-0 top-1/2 h-px w-3 bg-gray-300 transform -translate-y-1/2"></div>
-        )}
-        {level > 0 && <BsArrowBarRight className="absolute left-3 text-gray-400 text-xs" />}
-        
         <div className="flex items-center">
           {Icon && level === 0 && (
-            <span className="icon-container group-hover:animate-pop mr-2">
-              <Icon size="1.2rem" className="transition-all duration-200" />
+            <span className="mr-2">
+              <Icon size="1rem" className="transition-all duration-200" />
             </span>
           )}
-          <span className="font-medium">{item.title}</span>
-          {item.badgetxt && (
-            <span className={`ml-2 ${item.badge}`}>{item.badgetxt}</span>
-          )}
+          <span className={`${level > 0 ? 'text-xs' : 'text-sm'}`}>{item.title}</span>
         </div>
         
         {hasChildren && (
           <span>
             {isOpen ? (
-              <FiChevronDown className="ml-2" size={16} />
+              <FiChevronDown className="ml-1" size={14} />
             ) : (
-              <FiChevronRight className="ml-2" size={16} />
+              <FiChevronRight className="ml-1" size={14} />
             )}
           </span>
         )}
       </div>
 
       {hasChildren && isOpen && (
-        <ul className={`relative ${level > 0 ? 'pl-2' : 'pl-4'}`}>
+        <ul className={`${level > 0 ? 'pl-2' : 'pl-4'}`}>
           {item.children.map((child, childIndex) => (
             <MenuItem
               key={childIndex}

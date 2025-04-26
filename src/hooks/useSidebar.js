@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 
 export const useSidebar = () => {
-  const [isOpen, setIsOpen] = useState(true); // Default to open
+  const [isOpen, setIsOpen] = useState(true); 
   
   useEffect(() => {
-    // Only attempt to read localStorage after component mounts
     const saved = localStorage.getItem('sidebar-open');
     if (saved !== null) {
       setIsOpen(JSON.parse(saved));
