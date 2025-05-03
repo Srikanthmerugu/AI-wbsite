@@ -1,46 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
+
 import {
-  FiChevronDown,
-  FiChevronRight,
   FiDownload,
   FiPrinter,
-  FiFilter,
   FiSend,
-  FiX,
-  FiTable,
-  FiDollarSign,
+  FiChevronRight,
+  FiChevronLeft,
+  FiFilter
 } from 'react-icons/fi';
 import { BsStars } from 'react-icons/bs';
-import { Bar, Pie, Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  LineElement,
-  PointElement,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import { motion, AnimatePresence } from 'framer-motion';
 import { CSVLink } from 'react-csv';
-import { Link } from 'react-router-dom';
-import { GrLinkNext } from 'react-icons/gr';
 
-// Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  LineElement,
-  PointElement,
-  Tooltip,
-  Legend
-);
-
-// Sample Data (Unchanged)
+// Embedded Sample Data (same as your original file)
 const sampleData = {
   pnl: {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
@@ -48,7 +20,7 @@ const sampleData = {
       {
         label: 'Actual',
         data: [12000, 19000, 15000, 18000, 22000, 24000],
-        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+        backgroundColor: 'rgba(0, 120, 201, 0.7)',
         borderColor: 'rgba(54, 162, 235, 1)',
       },
       {
@@ -95,13 +67,13 @@ const sampleData = {
       },
     ],
     tableData: [
-      { account: 'Cash', current: 45000, previous: 38000, positive: true },
-      { account: 'Accounts Receivable', current: 32000, previous: 28000, positive: true },
-      { account: 'Inventory', current: 28000, previous: 31000, positive: false },
-      { account: 'Total Assets', current: 185000, previous: 172000, positive: true },
-      { account: 'Accounts Payable', current: 22000, previous: 18000, positive: false },
-      { account: 'Total Liabilities', current: 85000, previous: 78000, positive: false },
-      { account: 'Retained Earnings', current: 100000, previous: 94000, positive: true },
+      { account: 'Cash', current: 45000, previous: 38000, },
+      { account: 'Accounts Receivable', current: 32000, previous: 28000,  },
+      { account: 'Inventory', current: 28000, previous: 31000,  },
+      { account: 'Total Assets', current: 185000, previous: 172000,  },
+      { account: 'Accounts Payable', current: 22000, previous: 18000,  },
+      { account: 'Total Liabilities', current: 85000, previous: 78000,  },
+      { account: 'Retained Earnings', current: 100000, previous: 94000,  },
     ],
     metrics: {
       totalAssets: 185000,
@@ -240,10 +212,10 @@ const sampleData = {
       },
     ],
     tableData: [
-      { ratio: 'Current Ratio', value: 2.5, benchmark: 1.5, goodAbove: true },
-      { ratio: 'Debt-to-Equity', value: 0.8, benchmark: 1.0, goodBelow: true },
-      { ratio: 'ROE', value: 18, benchmark: 15, goodAbove: true },
-      { ratio: 'Gross Margin', value: 35, benchmark: 30, goodAbove: true },
+      { ratio: 'Current Ratio', value: 2.5, benchmark: 1.5,  },
+      { ratio: 'Debt-to-Equity', value: 0.8, benchmark: 1.0,  },
+      { ratio: 'ROE', value: 18, benchmark: 15,  },
+      { ratio: 'Gross Margin', value: 35, benchmark: 30,  },
     ],
     metrics: {
       averageRatio: 2.5,
@@ -329,272 +301,84 @@ const sampleData = {
   },
 };
 
-// Animation Variants for Sequential Card Entry
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.2,
-    },
-  },
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-};
+const reports = [
+  { id: 'pnl', title: 'Profit & Loss Statement', desc: 'Actual vs. Budget vs. Forecast' },
+  { id: 'balanceSheet', title: 'Balance Sheet', desc: 'Assets, Liabilities, and Equity Summary' },
+  { id: 'cashFlow', title: 'Cash Flow Statement', desc: 'Operational, Investing, and Financing Cash Flow' },
+  { id: 'arAging', title: 'AR Aging Reports', desc: 'Overdue Receivables Breakdown' },
+  { id: 'apAging', title: 'AP Aging Reports', desc: 'Overdue Payments Breakdown' },
+  { id: 'budgetVsActuals', title: 'Budget vs. Actuals', desc: 'Variance Analysis & Cost Overruns' },
+  { id: 'financialRatios', title: 'Financial Ratio Analysis', desc: 'Liquidity, Profitability, and Efficiency Ratios' },
+  { id: 'departmental', title: 'Departmental Performance Reports', desc: 'Cost Centers, P&L by Business Unit' },
+  { id: 'custom1', title: 'Custom Revenue Report', desc: 'Revenue vs. Expenses by Quarter' },
+  { id: 'custom2', title: 'Regional Sales Report', desc: 'Sales by Region' },
+];
 
 const FinancialReports = () => {
-  const [activeTab, setActiveTab] = useState('core');
-  const [expandedReports, setExpandedReports] = useState({});
-  const [chartTypes, setChartTypes] = useState({});
-  const [viewModes, setViewModes] = useState({}); // New state for chart/table view
-  const [timeRange, setTimeRange] = useState('6M');
-  const [filters, setFilters] = useState({
-    dateRange: 'Month',
-    category: 'All',
-    department: 'All',
-  });
+  const [selectedReport, setSelectedReport] = useState('pnl');
   const [aiInputs, setAiInputs] = useState({});
   const [aiHistory, setAiHistory] = useState({});
   const [showAIDropdown, setShowAIDropdown] = useState(null);
-  const [showFilters, setShowFilters] = useState(false);
-  const filtersRef = useRef(null);
-  const aiChatbotRef = useRef(null);
+  const [drillDownData, setDrillDownData] = useState(null);
+  const [filters, setFilters] = useState({
+    period: 'Current Month',
+    entity: 'All Entities',
+    hierarchy: 'Group Level'
+  });
 
-  // Toggle report expansion
-  const toggleReport = (reportId) => {
-    setExpandedReports((prev) => ({
-      ...prev,
-      [reportId]: !prev[reportId],
-    }));
-  };
+  const data = sampleData[selectedReport];
+  const currentReport = reports.find(r => r.id === selectedReport);
 
-  // Handle chart type change
-  const handleChartTypeChange = (reportId, type) => {
-    setChartTypes((prev) => ({ ...prev, [reportId]: type }));
-  };
-
-  // Handle view mode change (chart/table)
-  const handleViewModeChange = (reportId) => {
-    setViewModes((prev) => ({
-      ...prev,
-      [reportId]: prev[reportId] === 'table' ? 'chart' : 'table',
-    }));
-  };
-
-  // Handle AI input and send
-  const handleSendAIQuery = (reportId) => {
-    const input = aiInputs[reportId] || '';
+  const handleSendAIQuery = () => {
+    const input = aiInputs[selectedReport] || '';
     if (input.trim()) {
-      const response = `AI Insight for ${reportId}: ${input} (e.g., variance due to seasonal trends)`;
-      setAiHistory((prev) => ({
-        ...prev,
-        [reportId]: [...(prev[reportId] || []), { query: input, response }],
-      }));
-      setAiInputs((prev) => ({ ...prev, [reportId]: '' }));
+      const response = `AI Insight for ${selectedReport}: ${input} (mock insight)`;
+      setAiHistory((prev) => ({ ...prev, [selectedReport]: [...(prev[selectedReport] || []), { query: input, response }] }));
+      setAiInputs((prev) => ({ ...prev, [selectedReport]: '' }));
       setShowAIDropdown(null);
     }
   };
 
-  // Handle filter changes
-  const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+  const handleDrillDown = (rowData) => {
+    setDrillDownData({
+      title: ` ${Object.values(rowData)[0]}`,
+      data: Object.entries(rowData).map(([key, value]) => ({
+        field: key,
+        value: typeof value === 'number' ? `$${value.toLocaleString()}` : value
+      }))
+    });
   };
 
-  // Reset filters
-  const resetFilters = () => {
-    setFilters({ dateRange: 'Month', category: 'All', department: 'All' });
-  };
-
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (filtersRef.current && !filtersRef.current.contains(event.target)) {
-        setShowFilters(false);
-      }
-      if (aiChatbotRef.current && !aiChatbotRef.current.contains(event.target)) {
-        setShowAIDropdown(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Report Definitions
-  const coreReports = [
-    {
-      id: 'pnl',
-      title: 'Profit & Loss Statement',
-      description: 'Actual vs. Budget vs. Forecast',
-    },
-    {
-      id: 'balanceSheet',
-      title: 'Balance Sheet',
-      description: 'Assets, Liabilities, and Equity Summary',
-    },
-    {
-      id: 'cashFlow',
-      title: 'Cash Flow Statement',
-      description: 'Operational, Investing, and Financing Cash Flow',
-    },
-    {
-      id: 'arAging',
-      title: 'AR Aging Reports',
-      description: 'Overdue Receivables Breakdown',
-    },
-    {
-      id: 'apAging',
-      title: 'AP Aging Reports',
-      description: 'Overdue Payments Breakdown',
-    },
-    {
-      id: 'budgetVsActuals',
-      title: 'Budget vs. Actuals',
-      description: 'Variance Analysis & Cost Overruns',
-    },
-    {
-      id: 'financialRatios',
-      title: 'Financial Ratio Analysis',
-      description: 'Liquidity, Profitability, and Efficiency Ratios',
-    },
-    {
-      id: 'departmental',
-      title: 'Departmental Performance Reports',
-      description: 'Cost Centers, P&L by Business Unit',
-    },
-  ];
-
-  const customReports = [
-    {
-      id: 'custom1',
-      title: 'Custom Revenue Report',
-      description: 'Revenue vs. Expenses by Quarter',
-    },
-    {
-      id: 'custom2',
-      title: 'Regional Sales Report',
-      description: 'Sales by Region',
-    },
-  ];
-
-  // Render Chart or Table
-  const renderChart = (reportId) => {
-    const data = sampleData[reportId];
-    if (!data || !data.tableData) {
-      return (
-        <div className="flex items-center justify-center h-48 bg-sky-50 rounded-lg">
-          <p className="text-sky-600 text-sm">No data available</p>
-        </div>
-      );
-    }
-
-    const viewMode = viewModes[reportId] || 'chart';
-
-    if (viewMode === 'table') {
-      return (
-        <div className="h-48 overflow-y-auto bg-white/50 rounded-lg border border-sky-100">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="bg-sky-100 text-sky-800">
-                {Object.keys(data.tableData[0]).map((key) => (
-                  <th key={key} className="px-2 py-1 text-left capitalize">
-                    {key}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.tableData.map((row, index) => (
-                <tr key={index} className="border-b border-sky-200">
-                  {Object.entries(row).map(([key, value], i) => (
-                    <td key={i} className="px-2 py-1 text-sky-700">
-                      {typeof value === 'number' ? `$${value.toLocaleString()}` : value}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      );
-    }
-
-    const chartType = chartTypes[reportId] || (
-      reportId === 'arAging' || reportId === 'apAging' || reportId === 'custom2' || reportId === 'financialRatios' ? 'pie' :
-      reportId === 'custom1' ? 'line' : 'bar'
-    );
-
-    const options = {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top', labels: { font: { size: 10 } } },
-        tooltip: { mode: 'index', intersect: false },
-      },
-      scales: chartType !== 'pie' ? {
-        x: { ticks: { font: { size: 8 } } },
-        y: { ticks: { font: { size: 8 }, callback: (value) => `$${value.toLocaleString()}` } },
-      } : undefined,
-    };
-
+  const renderTable = () => {
+    if (!data || !data.tableData) return <p>No data available</p>;
+    
     return (
-      <div className="h-48 relative group">
-        <motion.div
-          className="transition-transform duration-300 group-hover:scale-105"
-        >
-          {chartType === 'pie' ? (
-            <Pie data={data} options={options} />
-          ) : chartType === 'line' ? (
-            <Line data={data} options={options} />
-          ) : (
-            <Bar data={data} options={options} />
-          )}
-        </motion.div>
-      </div>
-    );
-  };
-
-  // Render Related Data
-  const renderRelatedData = (reportId) => {
-    const data = sampleData[reportId];
-    if (!data) return null;
-
-    if (data.metrics) {
-      return (
-        <div className="space-y-2">
-          {Object.entries(data.metrics).map(([key, value]) => (
-            <div key={key} className="flex justify-between text-xs">
-              <span className="text-sky-700 capitalize">{key.replace(/([A-Z])/g, ' $1')}:</span>
-              <span className={`text-sky-900 font-medium ${value < 0 ? 'text-red-600' : ''}`}>
-                {typeof value === 'number' ? `$${Math.abs(value).toLocaleString()}` : value}
-              </span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    // Fallback to mini-table
-    return (
-      <div className="max-h-32 overflow-y-auto">
+      <div className="overflow-y-auto bg-white/50 rounded-lg border border-sky-100 h-56">
         <table className="w-full text-xs">
           <thead>
-            <tr className="bg-sky-100 text-sky-800">
+            <tr className="bg-sky-100 text-sky-900">
               {Object.keys(data.tableData[0]).map((key) => (
-                <th key={key} className="px-2 py-1 text-left">{key}</th>
+                <th key={key} className="px-2 py-1 text-left capitalize">{key}</th>
               ))}
+              <th className="px-2 py-1 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {data.tableData.slice(0, 3).map((row, index) => (
-              <tr key={index} className="border-b border-sky-200">
-                {Object.values(row).map((value, i) => (
-                  <td key={i} className="px-2 py-1 text-sky-700">
-                    {typeof value === 'boolean' ? (value ? '↑' : '↓') : value}
+            {data.tableData.map((row, index) => (
+              <tr key={index} className="border-b border-sky-200 hover:bg-sky-50">
+                {Object.entries(row).map(([key, value], i) => (
+                  <td key={i} className="px-2 py-1 text-black">
+                    {typeof value === 'number' ? `$${value.toLocaleString()}` : value}
                   </td>
                 ))}
+                <td className="px-2 py-1">
+                  <button 
+                    onClick={() => handleDrillDown(row)}
+                    className="text-sky-600 hover:text-sky-800 text-xs flex items-center"
+                  >
+                    View in detail <FiChevronRight className="ml-1" />
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -603,352 +387,250 @@ const FinancialReports = () => {
     );
   };
 
-  return (
-    <div className="space-y-6 p-4 min-h-screen relative bg-sky-50">
-      <nav className="flex" aria-label="Breadcrumb">
-        <ol className="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
-          <li className="inline-flex text-sky-900 items-center">
-            <a
-              href="/"
-              className="inline-flex items-center text-sm font-medium text-sky-900 hover:text-blue-600 dark:text-gray-400 dark:hover:text-gray-600"
-            >
-              <svg
-                className="w-3 h-3 me-2.5 text-sky-900"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z" />
-              </svg>
-              <span className="text-sky-900">Dashboard</span>
-            </a>
-          </li>
-          {/* <li>
-            <div className="flex items-center">
-              <svg
-                className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 6 10"
-              >
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="m1 9 4-4-4-4"
-                />
-              </svg>
-              <a
-                href="/p&l-Dashboard"
-                className="ms-1 text-sm font-medium text-sky-900 hover:text-blue-600 md:ms-2"
-              >
-                Profit & Loss
-              </a>
-            </div>
-          </li> */}
-        </ol>
-      </nav>
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-lg font-bold text-white">Financial Reports</h1>
-              <p className="text-sky-100 text-xs">Discover actionable financial insights</p>
-            </div>
-            <div className="flex space-x-2">
-              <select
-                value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value)}
-                className="py-2 px-4 text-sm font-medium cursor-pointer text-sky-50 bg-sky-800 rounded-lg hover:bg-sky-50 hover:text-sky-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
-              >
-                <option value="3M">Last 3 Months</option>
-                <option value="6M">Last 6 Months</option>
-                <option value="12M">Last 12 Months</option>
-                <option value="YTD">Year to Date</option>
-              </select>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center py-2 px-4 text-sm font-medium text-sky-50 bg-sky-800 rounded-lg hover:bg-sky-50 hover:text-sky-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
-              >
-                <FiFilter className="mr-2" /> Filters
-              </button>
-            </div>
-          </div>
+  const renderDrillDownView = () => {
+    return (
+      <div className="bg-white/50 rounded-lg border border-sky-100 p-4 h-96">
+        <div className="flex justify-end items-center mb-4">
+          <button 
+            onClick={() => setDrillDownData(null)}
+            className="flex items-center text-sky-600 hover:text-sky-800 text-xs"
+          >
+            <FiChevronLeft className="mr-1" /> Back to Report
+          </button>
         </div>
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="bg-sky-100 text-sky-800">
+              <th className="px-2 py-1 text-left">Field</th>
+              <th className="px-2 py-1 text-left">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {drillDownData.data.map((item, index) => (
+              <tr key={index} className="border-b border-sky-200">
+                <td className="px-2 py-1 text-black capitalize">{item.field}</td>
+                <td className="px-2 py-1 text-black">{item.value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
 
-        {/* Filters (Collapsible) */}
-        <AnimatePresence>
-          {showFilters && (
-            <motion.div
-              className="bg-white/90 backdrop-blur-md p-6 rounded-xl shadow-md mt-6 border border-sky-100"
-              ref={filtersRef}
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-sky-900">Filters</h3>
-                <button
-                  onClick={resetFilters}
-                  className="text-sm text-sky-600 hover:text-sky-800 flex items-center"
-                >
-                  <FiX className="mr-1" /> Reset
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-sky-700 mb-2">
-                    Date Range
-                  </label>
-                  <select
-                    value={filters.dateRange}
-                    onChange={(e) => handleFilterChange('dateRange', e.target.value)}
-                    className="w-full p-2 border border-sky-300 rounded-lg bg-sky-50 text-sky-900 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                  >
-                    <option>Month</option>
-                    <option>Quarter</option>
-                    <option>YTD</option>
-                    <option>Custom</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-sky-700 mb-2">
-                    Category
-                  </label>
-                  <select
-                    value={filters.category}
-                    onChange={(e) => handleFilterChange('category', e.target.value)}
-                    className="w-full p-2 border border-sky-300 rounded-lg bg-sky-50 text-sky-900 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                  >
-                    <option>All</option>
-                    <option>Revenue</option>
-                    <option>Expenses</option>
-                    <option>Assets</option>
-                    <option>Liabilities</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-sky-700 mb-2">
-                    Department
-                  </label>
-                  <select
-                    value={filters.department}
-                    onChange={(e) => handleFilterChange('department', e.target.value)}
-                    className="w-full p-2 border border-sky-300 rounded-lg bg-sky-50 text-sky-900 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                  >
-                    <option>All</option>
-                    <option>Sales</option>
-                    <option>Marketing</option>
-                    <option>Operations</option>
-                    <option>R&D</option>
-                    <option>HR</option>
-                  </select>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+  const handleFilterChange = (filterType, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterType]: value
+    }));
+  };
 
-        {/* Tab Navigation */}
-        <motion.div
-          className="bg-white/90 backdrop-blur-md rounded-lg p-4 mt-6 shadow-sm border border-sky-100"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <nav className="flex space-x-2">
-            {['core', 'custom'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 text-sm font-medium rounded-full transition-colors ${
-                  activeTab === tab
-                    ? 'bg-sky-600 text-white'
-                    : 'text-sky-600 bg-sky-100 hover:bg-sky-200'
+  const aiChatbotRef = useRef(null);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        aiChatbotRef.current &&
+        !aiChatbotRef.current.contains(event.target)
+      ) {
+        setShowAIDropdown(null);
+      }
+    };
+  
+    if (showAIDropdown !== null) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+  
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showAIDropdown]);
+  
+
+  // Render AI Dropdown for the current report
+  const renderAIDropdown = () => {
+    if (showAIDropdown !== selectedReport) return null;
+    
+    return (
+      <div
+        ref={aiChatbotRef}
+      >
+        {aiHistory[selectedReport]?.length > 0 && (
+          <div className="space-y-2 max-h-32 overflow-y-auto text-xs text-sky-700">
+            {aiHistory[selectedReport].map((entry, index) => (
+              <div key={index}>
+                <strong>Q:</strong> {entry.query}
+                <br />
+                <strong>A:</strong> {entry.response}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-sky-50 p-6">
+      <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg mb-6">
+        <h1 className="text-lg font-bold text-white">Financial Reports</h1>
+        <p className="text-sky-100 text-xs">Discover actionable financial insights</p>
+      </div>
+
+      <div className="flex gap-6">
+        <aside className="w-1/4 bg-white p-4 rounded-xl shadow-md">
+          <h2 className="text-sky-800 text-md font-semibold mb-4">Reports</h2>
+          <ul className="space-y-2">
+            {reports.map((r) => (
+              <li
+                key={r.id}
+                onClick={() => {
+                  setSelectedReport(r.id);
+                  setDrillDownData(null);
+                }}
+                className={`px-3 py-2 rounded-md text-sm cursor-pointer transition ${
+                  selectedReport === r.id ? 'bg-sky-100 text-sky-800 font-semibold' : 'text-sky-700 hover:bg-sky-50'
                 }`}
               >
-                {tab === 'core' ? 'Core Reports' : 'Custom Reports'}
-              </button>
+                {r.title}
+              </li>
             ))}
-          </nav>
-        </motion.div>
+          </ul>
+        </aside>
 
-        {/* Report List */}
-        <motion.div
-          className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
+        <main className="w-3/4 bg-white p-6 rounded-xl shadow-md">
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-sky-900">
+              {drillDownData ? drillDownData.title : currentReport?.title}
+            </h2>
+            <p className="text-sky-600 text-sm mb-2">
+              {drillDownData ? 'Detailed view of selected item' : currentReport?.desc}
+            </p>
+          </div>
+
+          {!drillDownData && (
+            <div className="mb-4 flex flex-wrap gap-2 justify-between items-center">
+              <div className="flex gap-2">
+                <div className="flex items-center bg-sky-100 rounded-lg px-3 py-1">
+                  <FiFilter className="mr-2 text-sky-600" />
+                  <select 
+                    value={filters.period}
+                    onChange={(e) => handleFilterChange('period', e.target.value)}
+                    className="bg-transparent text-sky-800 text-xs border-none focus:ring-0"
+                  >
+                    <option>Current Month</option>
+                    <option>Last Month</option>
+                    <option>Quarter to Date</option>
+                    <option>Year to Date</option>
+                    <option>Custom Range</option>
+                  </select>
+                </div>
+              </div>
+            
+              {/* Moved Buttons */}
+              <div className="flex gap-2">
+                <CSVLink
+                  data={data.tableData || []}
+                  filename={`${selectedReport}.csv`}
+                  className="flex items-center px-3 py-2 bg-sky-100 text-sky-800 rounded-lg text-xs hover:bg-sky-200"
+                >
+                  <FiDownload className="mr-1" /> CSV
+                </CSVLink>
+                <button
+                  onClick={() => window.print()}
+                  className="flex items-center px-3 py-2 bg-sky-100 text-sky-800 rounded-lg text-xs hover:bg-sky-200"
+                >
+                  <FiPrinter className="mr-1" /> Print
+                </button>
+                <div className="relative">
+  <button
+    onClick={() => setShowAIDropdown(selectedReport)}
+    className="flex items-center px-3 py-2 text-sky-800 rounded-lg bg-sky-100 hover:bg-sky-200 text-xs"
+  >
+    <BsStars className="mr-1" /> Ask AI
+  </button>
+
+  {showAIDropdown === selectedReport && currentReport && (
+    <motion.div
+      ref={aiChatbotRef}
+      className="absolute z-50 mt-2 right-0 w-80 bg-white/90 backdrop-blur-md rounded-lg shadow-lg border border-sky-200 p-2"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+    >
+      <h1 className="text-sm font-semibold text-sky-900 mb-2">
+        Ask about {currentReport.title}
+      </h1>
+      <div className="flex items-center space-x-2 mb-4">
+        <input
+          type="text"
+          value={aiInputs[selectedReport] || ''}
+          onChange={(e) =>
+            setAiInputs((prev) => ({
+              ...prev,
+              [selectedReport]: e.target.value,
+            }))
+          }
+          placeholder="Ask AI about this report..."
+          className="w-full p-2 border border-sky-300 rounded-lg bg-sky-50 text-sky-900 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+          onClick={(e) => e.stopPropagation()}
+        />
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleSendAIQuery();
+          }}
+          className="p-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50"
+          disabled={!aiInputs[selectedReport]?.trim()}
         >
-          {(activeTab === 'core' ? coreReports : customReports).map((report) => (
-            <motion.div
-              key={report.id}
-              className="bg-white/90 backdrop-blur-md rounded-xl shadow-md border border-sky-100 hover:shadow-xl transition-all duration-300"
-              variants={cardVariants}
-            >
-              <button
-                onClick={() => toggleReport(report.id)}
-                className="w-full flex justify-between items-center p-4 text-left focus:outline-none hover:bg-sky-50/50"
-              >
-                <div>
-                  <h3 className="text-base font-semibold text-sky-900 flex items-center gap-2">
-                    {report.title}
-                    {report.id === 'pnl' && (
-                      <Link
-                        to="/p&l-Dashboard"
-                        className="text-sky-500 hover:text-sky-700 hover:pl-2"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {/* <FiDollarSign className="w-5 h-5" /> */}
-                        <GrLinkNext className="w-5 h-5" hover:w-7 h-7/>
-
-                      </Link>
-                    )}
-                  </h3>
-                  <p className="text-xs text-sky-600 mt-1">{report.description}</p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="px-2 py-1 bg-sky-100 text-sky-800 rounded-full text-xs font-medium">
-                    {report.id.includes('aging') ? 'Monthly' : 'Quarterly'}
-                  </span>
-                  {expandedReports[report.id] ? (
-                    <FiChevronDown className="text-sky-500 w-5 h-5" />
-                  ) : (
-                    <FiChevronRight className="text-sky-500 w-5 h-5" />
-                  )}
-                </div>
-              </button>
-              {expandedReports[report.id] && (
-                <div className="p-4 border-t border-sky-200">
-                  <div className="flex justify-between items-center mb-4">
-                    <div className="flex gap-2">
-                      {['bar', 'pie', 'line'].map((type) => (
-                        <button
-                          key={type}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleChartTypeChange(report.id, type);
-                          }}
-                          className={`px-3 py-1 text-xs font-medium rounded-full ${
-                            (chartTypes[report.id] || (
-                              report.id === 'arAging' || report.id === 'apAging' || report.id === 'custom2' || report.id === 'financialRatios' ? 'pie' :
-                              report.id === 'custom1' ? 'line' : 'bar'
-                            )) === type
-                              ? 'bg-sky-600 text-white'
-                              : 'bg-sky-100 text-sky-800 hover:bg-sky-200'
-                          } ${viewModes[report.id] === 'table' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          disabled={viewModes[report.id] === 'table'}
-                        >
-                          {type.charAt(0).toUpperCase() + type.slice(1)}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="flex gap-2">
-                      <CSVLink
-                        data={sampleData[report.id]?.tableData || []}
-                        filename={`${report.title}.csv`}
-                        className="flex items-center px-3 py-1 bg-sky-100 text-sky-800 rounded-lg hover:bg-sky-200 text-xs"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <FiDownload className="mr-1" /> CSV
-                      </CSVLink>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.print();
-                        }}
-                        className="flex items-center px-3 py-1 bg-sky-100 text-sky-800 rounded-lg hover:bg-sky-200 text-xs"
-                      >
-                        <FiPrinter className="mr-1" /> Print
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleViewModeChange(report.id);
-                        }}
-                        className="flex items-center px-3 py-1 bg-sky-100 text-sky-800 rounded-lg hover:bg-sky-200 text-xs"
-                      >
-                        <FiTable className="mr-1" /> {viewModes[report.id] === 'table' ? 'Chart' : 'Table'}
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowAIDropdown(report.id);
-                        }}
-                        className="flex items-center px-3 py-1 text-sky-800 rounded-lg hover:bg-sky-200 text-xs"
-                      >
-                        <BsStars className="mr-1" /> Ask AI
-                      </button>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-white/50 p-3 rounded-lg border border-sky-100">
-                      {renderChart(report.id)}
-                    </div>
-                    <div className="bg-white/50 p-3 ml-35 rounded-lg border border-sky-100">
-                      <h4 className="text-xs font-semibold text-sky-900 mb-2">Key Metrics</h4>
-                      {renderRelatedData(report.id)}
-                    </div>
-                  </div>
-                  {showAIDropdown === report.id && (
-                    <motion.div
-                      ref={aiChatbotRef}
-                      className="mt-4 absolute top-28 right-3 bg-white/90 backdrop-blur-md rounded-lg shadow-lg border border-sky-200 p-2"
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                    >
-                      <h1 className="text-sm font-semibold text-sky-900 mb-2">
-                        Ask about {report.title}
-                      </h1>
-                      <div className="flex items-center space-x-2 mb-4">
-                        <input
-                          type="text"
-                          value={aiInputs[report.id] || ''}
-                          onChange={(e) =>
-                            setAiInputs((prev) => ({
-                              ...prev,
-                              [report.id]: e.target.value,
-                            }))
-                          }
-                          placeholder="Ask AI about this report..."
-                          className="w-full p-2 border border-sky-300 rounded-lg bg-sky-50 text-sky-900 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSendAIQuery(report.id);
-                          }}
-                          className="p-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50"
-                          disabled={!aiInputs[report.id]?.trim()}
-                        >
-                          <FiSend className="w-5 h-5" />
-                        </button>
-                      </div>
-                      {aiHistory[report.id]?.length > 0 && (
-                        <div className="space-y-2 max-h-32 overflow-y-auto text-xs text-sky-700">
-                          {aiHistory[report.id].map((entry, index) => (
-                            <div key={index}>
-                              <strong>Q:</strong> {entry.query}
-                              <br />
-                              <strong>A:</strong> {entry.response}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
-                </div>
-              )}
-            </motion.div>
+          <FiSend className="w-5 h-5" />
+        </button>
+      </div>
+      {aiHistory[selectedReport]?.length > 0 && (
+        <div className="space-y-2 max-h-32 overflow-y-auto text-xs text-sky-700">
+          {aiHistory[selectedReport].map((entry, index) => (
+            <div key={index}>
+              <strong>Q:</strong> {entry.query}
+              <br />
+              <strong>A:</strong> {entry.response}
+            </div>
           ))}
-        </motion.div>
+        </div>
+      )}
+    </motion.div>
+  )}
+</div>
+
+              </div>
+            </div>
+          )}
+
+          <div className="mb-6">
+            {drillDownData ? renderDrillDownView() : renderTable()}
+          </div>
+
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              {!drillDownData && (
+                <>
+                  <h3 className="text-sm font-semibold text-sky-900 mb-2">Key Metrics</h3>
+                  <ul className="text-sm text-black space-y-1">
+                    {Object.entries(data.metrics || {}).map(([key, val]) => (
+                      <li key={key} className="flex justify-between">
+                        <span>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</span>
+                        <span className="font-medium">
+                          {typeof val === 'number' ? `$${val.toLocaleString()}` : val}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Render AI Dropdown */}
+          {renderAIDropdown()}
+        </main>
       </div>
     </div>
   );
