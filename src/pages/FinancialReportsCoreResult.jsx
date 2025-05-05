@@ -749,7 +749,7 @@ const FinancialReports = () => {
                       </div>
                       <div>
                         <p className="font-medium">Overall Performance</p>
-                        <p>
+                        <p className="text-black">
                           {filteredData.metrics.variance >= 0 ? 'Surplus' : 'Deficit'} of ${Math.abs(filteredData.metrics.variance).toLocaleString()} (
                           {filteredData.metrics.variancePercentage}%) compared to budget
                         </p>
@@ -761,7 +761,7 @@ const FinancialReports = () => {
                       </div>
                       <div>
                         <p className="font-medium">Top Impact Area</p>
-                        <p>February showed highest positive variance (+26.7%) due to seasonal sales</p>
+                        <p className="text-xs text-black">February showed highest positive variance (+26.7%) due to seasonal sales</p>
                       </div>
                     </div>
                   </>
