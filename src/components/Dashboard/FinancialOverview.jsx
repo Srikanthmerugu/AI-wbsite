@@ -643,7 +643,7 @@ const FinancialOverview = () => {
       </table>
     </div>
   );
-
+ 
   return (
     <div className="space-y-6 p-4 min-h-screen relative bg-sky-50">
       {/* Header */}

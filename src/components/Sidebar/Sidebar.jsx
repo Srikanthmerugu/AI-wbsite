@@ -55,8 +55,8 @@ const MENUITEMS = [
             title: "Financial Overview",
             icon: { name: "FiFile" },
             children: [
-              { path: "#", type: "link", title: "Revenue", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Expenses", icon: { name: "FiFile" } },
+              { path: "/revenue-component", type: "link", title: "Revenue", icon: { name: "FiFile" } },
+              { path: "/expense-component", type: "link", title: "Expenses", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Gross Profit", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "EBITDA", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Cashflow", icon: { name: "FiFile" } },
@@ -492,6 +492,12 @@ const MENUITEMS = [
         title: "Ask AI",
         type: "link",
       },
+      {
+        path: "organizations-list-screen",
+        icon: { name: "FiUsers" },
+        title: "Organizations-List",
+        type: "link",
+      },
     ],
   },
 ];
@@ -520,13 +526,13 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       }`}
     >
       {/* Sidebar Header */}
-      <div className="flex items-center justify-between p-2  border-b border-gray-100">
+      <div className="flex items-center justify-between p-2 pt-2  border-b border-gray-100">
         {isOpen ? (
           <div className="flex items-center">
-            <Link to="/"><img src={mainLogo} alt="FinSightAI" className="h-13" /></Link>
+            <Link to="/"><img src={mainLogo} alt="FinSightAI" className="h-15" /></Link>
           </div>
         ) : (
-          <img src={fevicon} alt="FinSightAI" className="h-6 mx-auto px-2 " />
+          <img src={fevicon} alt="FinSightAI" className="h-8 mx-auto px-2 " />
         )}
         <button
           onClick={toggleSidebar}

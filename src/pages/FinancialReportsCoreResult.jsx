@@ -27,6 +27,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CSVLink } from 'react-csv';
 import { Link } from 'react-router-dom';
 import { GrLinkNext } from 'react-icons/gr';
+import { MdOutlineFileUpload } from 'react-icons/md';
 
 // Register Chart.js components
 ChartJS.register(
@@ -676,6 +677,15 @@ const FinancialReports = () => {
               >
                 <FiFilter className="mr-2" /> Filters
               </button>
+              <Link to='/financial-gl-upload'><p
+                
+                className="flex items-center py-2 px-4 text-sm font-medium text-sky-50 bg-sky-800 rounded-lg hover:bg-sky-50 hover:text-sky-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              >
+                {/* <FiFilter className="mr-2" /> */}
+                <MdOutlineFileUpload className="mr-2"  size={20} />
+                
+                 Upload GL file
+              </p></Link>
             </div>
           </div>
         </div>
