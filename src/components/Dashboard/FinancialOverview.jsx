@@ -282,6 +282,7 @@ const FinancialOverview = () => {
   const [showAIChatbot, setShowAIChatbot] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState("Acme Corporation");
+  const [analyzedWidgets, setAnalyzedWidgets] = useState([]);
   const [activeWidgets, setActiveWidgets] = useState([
     "revenueTrend",
     "expenseBreakdown",
@@ -300,78 +301,50 @@ const FinancialOverview = () => {
     netProfit: "bar",
     headcount: "line",
   });
-  const [showChartTypeDropdown, setShowChartTypeDropdown] = useState({
-    revenueTrend: false,
-    expenseBreakdown: false,
-    profitAnalysis: false,
-    cashFlow: false,
-    Expenses: false,
-    netProfit: false,
-    headcount: false,
-  });
-  const [aiInput, setAiInput] = useState("");
+
+  const [dropdownWidget, setDropdownWidget] = useState(null);
+  const [hoveredChartType, setHoveredChartType] = useState(null);
+  const [aiInputs, setAiInputs] = useState({});
   const [showAIDropdown, setShowAIDropdown] = useState(null);
+  const [showChartTypeDropdown, setShowChartTypeDropdown] = useState({});
 
   const filtersRef = useRef(null);
   const aiChatbotRef = useRef(null);
-  const chartTypeDropdownRefs = useRef({});
 
-  // Close filters or dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      // Close filters
-      if (filtersRef.current && !filtersRef.current.contains(event.target)) {
-        setShowFilters(false);
-      }
-      
-      // Close AI dropdown
-      if (aiChatbotRef.current && !aiChatbotRef.current.contains(event.target)) {
-        setShowAIDropdown(null);
-      }
-      
-      // Close chart type dropdowns
-      Object.keys(showChartTypeDropdown).forEach((key) => {
-        const ref = chartTypeDropdownRefs.current[key];
-        if (ref && !ref.contains(event.target)) {
-          setShowChartTypeDropdown((prev) => ({ ...prev, [key]: false }));
-        }
-      });
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [showChartTypeDropdown]);
-
+  const toggleAnalyze = (widgetId) => {
+    setAnalyzedWidgets((prev) =>
+      prev.includes(widgetId)
+        ? prev.filter((id) => id !== widgetId)
+        : [...prev, widgetId]
+    );
+  };
+  
+  
   // Toggle chart type
   const toggleChartType = (widgetId, type) => {
-    setChartTypes({
-      ...chartTypes,
+    setChartTypes((prev) => ({
+      ...prev,
       [widgetId]: type,
-    });
-    setShowChartTypeDropdown({
-      ...showChartTypeDropdown,
-      [widgetId]: false,
-    });
+    }));
   };
+  
 
   // Toggle chart type dropdown
   const toggleChartTypeDropdown = (widgetId) => {
     setShowChartTypeDropdown((prev) => ({
-      ...Object.keys(prev).reduce((acc, key) => {
-        acc[key] = false;
-        return acc;
-      }, {}),
+      ...prev,
       [widgetId]: !prev[widgetId],
     }));
   };
 
   // Handle sending AI query
   const handleSendAIQuery = (widgetId) => {
-    if (aiInput.trim()) {
-      console.log(`AI Query for ${widgetId}:`, aiInput);
-      setAiInput("");
+    if (aiInputs[widgetId]?.trim()) {
+      console.log(`AI Query for ${widgetId}:`, aiInputs[widgetId]);
+      setAiInputs((prev) => ({
+        ...prev,
+        [widgetId]: ""
+      }));
       setShowAIDropdown(null);
     }
   };
@@ -399,7 +372,36 @@ const FinancialOverview = () => {
   };
 
   // Enhanced ChartCard component with drag handle and AI dropdown
-  const EnhancedChartCard = ({ title, chartType, chartData, widgetId, index }) => {
+  const EnhancedChartCard = ({ title, chartType, chartData, widgetId, index, analyzedWidgets, toggleAnalyze}) => {
+    
+    const isAnalyzing = analyzedWidgets.includes(widgetId);
+
+    const exportToCSV = () => {
+      const rows = [];
+      const headers = ["Label", ...chartData.data.datasets.map((ds) => ds.label)];
+      rows.push(headers);
+  
+      chartData.data.labels.forEach((label, idx) => {
+        const row = [label];
+        chartData.data.datasets.forEach((ds) => {
+          row.push(ds.data[idx]);
+        });
+        rows.push(row);
+      });
+  
+      const csvContent =
+        "data:text/csv;charset=utf-8," +
+        rows.map((e) => e.join(",")).join("\n");
+  
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `${widgetId}_analysis.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
     return (
       <Draggable draggableId={widgetId} index={index}>
         {(provided) => (
@@ -411,36 +413,69 @@ const FinancialOverview = () => {
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-sm font-semibold text-sky-800">{title}</h3>
               <div className="flex space-x-2 relative">
-                <div className="relative">
-                  <button
-                    onClick={() => toggleChartTypeDropdown(widgetId)}
-                    className="p-1 rounded hover:bg-gray-100"
-                    data-tooltip-id="chart-type-tooltip"
-                    data-tooltip-content="Change chart type"
-                  >
-                    <BsThreeDotsVertical />
-                  </button>
-                  {showChartTypeDropdown[widgetId] && (
-                    <div
-                      ref={(el) => (chartTypeDropdownRefs.current[widgetId] = el)}
-                      className="absolute right-0 mt-2 w-32 bg-white rounded-md shadow-lg z-10 border border-gray-200"
-                    >
-                      <div className="py-1">
-                        {["line", "bar", "pie", "doughnut", "radar", "polarArea", "bubble"].map(
-                          (type) => (
-                            <button
-                              key={type}
-                              onClick={() => toggleChartType(widgetId, type)}
-                              className="block w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-100"
-                            >
-                              {type.charAt(0).toUpperCase() + type.slice(1)} Chart
-                            </button>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
+              <div className="relative chart-dropdown">
+  <button
+    onClick={(e) => {
+      e.stopPropagation();
+      setDropdownWidget(dropdownWidget === widgetId ? null : widgetId);
+    }}
+    className="p-1 rounded hover:bg-gray-100"
+    data-tooltip-id="chart-type-tooltip"
+    data-tooltip-content="Options"
+  >
+    <BsThreeDotsVertical />
+  </button>
+
+  {dropdownWidget === widgetId && (
+    <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+      <div className="py-1 text-xs text-gray-800">
+      
+      <div className="relative" onMouseEnter={() => setHoveredChartType(widgetId)} onMouseLeave={() => setHoveredChartType(null)}>
+  <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex justify-between items-center">
+    All Chart Types
+    <FiChevronDown className="ml-1 text-xs" />
+  </div>
+
+  {hoveredChartType === widgetId && (
+    <div
+      className="absolute top-0 left-full w-40 bg-white rounded-md shadow-lg border border-gray-200 z-20 py-1"
+      style={{ marginLeft: "-1px" }}
+    >
+      {["line", "bar", "pie", "doughnut", "radar", "polarArea", "bubble"].map((type) => (
+        <button
+          key={type}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleChartType(widgetId, type);
+            setDropdownWidget(null);
+            setHoveredChartType(null);
+          }}
+          className="block w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-100 transition"
+        >
+          {type.charAt(0).toUpperCase() + type.slice(1)} Chart
+        </button>
+      ))}
+    </div>
+  )}
+</div>
+
+
+
+<div
+  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+  onClick={(e) => {
+    e.stopPropagation();
+    toggleAnalyze(widgetId);
+    setDropdownWidget(null);
+  }}
+>
+  {analyzedWidgets.includes(widgetId) ? "Hide Analysis" : "Analyze"}
+</div>
+      </div>
+    </div>
+  )}
+</div>
+
                 <button
                   onClick={() => setShowAIDropdown(showAIDropdown === widgetId ? null : widgetId)}
                   className="p-1 rounded hover:bg-gray-100"
@@ -457,13 +492,16 @@ const FinancialOverview = () => {
                     <div className="flex flex-col items-center space-x-2">
                       <h1 className="text-xs">Ask regarding the {title}</h1>
                       <div className="flex justify-between gap-3">
-                        <input
-                          type="text"
-                          value={aiInput}
-                          onChange={(e) => setAiInput(e.target.value)}
-                          placeholder="Ask AI..."
-                          className="w-full p-1 border border-gray-300 rounded text-xs"
-                        />
+                      <input
+  type="text"
+  value={aiInputs[widgetId] || ""}
+  onChange={(e) => setAiInputs((prev) => ({
+    ...prev,
+    [widgetId]: e.target.value
+  }))}
+  placeholder="Ask AI..."
+  className="w-full p-1 border border-gray-300 rounded text-xs"
+/>
                         <button
                           onClick={() => handleSendAIQuery(widgetId)}
                           className="p-2 bg-sky-500 text-white rounded hover:bg-sky-600"
@@ -483,9 +521,56 @@ const FinancialOverview = () => {
                 </div>
               </div>
             </div>
-            <div className="h-48">
-              {renderChart(chartType, chartData.data, chartData.options)}
-            </div>
+            {!isAnalyzing && (
+  <div className="h-48">
+    {renderChart(chartType, chartData.data, chartData.options)}
+  </div>
+)}
+
+{isAnalyzing && (
+  <div className="mt-3 border rounded overflow-hidden">
+    <div className="flex justify-between items-center bg-sky-50 p-2 border-b">
+      <button
+        onClick={() => toggleAnalyze(widgetId)}
+        className="text-xs text-sky-700 border border-sky-300 px-2 py-1 rounded hover:bg-sky-100 transition"
+      >
+        Hide Analysis
+      </button>
+      <button
+        onClick={exportToCSV}
+        className="text-xs text-green-700 border border-green-200 px-2 py-1 rounded hover:bg-green-50 transition"
+      >
+        Export CSV
+      </button>
+    </div>
+    <div className="overflow-x-auto">
+      <table className="min-w-full text-xs text-left border-collapse">
+        <thead className="bg-sky-100 text-sky-800">
+          <tr>
+            <th className="p-2 border">Label</th>
+            {chartData.data.datasets.map((ds, i) => (
+              <th key={i} className="p-2 border">{ds.label}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {chartData.data.labels.map((label, rowIndex) => (
+            <tr key={rowIndex} className="hover:bg-gray-50">
+              <td className="p-2 border">{label}</td>
+              {chartData.data.datasets.map((ds, i) => (
+                <td key={i} className="p-2 border">
+                  {ds.data[rowIndex]}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
+
+
           </div>
         )}
       </Draggable>
@@ -513,9 +598,12 @@ const FinancialOverview = () => {
 
     // Handle sending AI query
     const handleSendAIQuery = () => {
-      if (aiInput.trim()) {
-        console.log(`AI Query for ${title}:`, aiInput);
-        setAiInput("");
+      if (aiInputs[title]?.trim()) {
+        console.log(`AI Query for ${title}:`, aiInputs[title]);
+        setAiInputs((prev) => ({
+          ...prev,
+          [title]: ""
+        }));
         setShowAIDropdown(false);
       }
     };
@@ -557,13 +645,16 @@ const FinancialOverview = () => {
                   className="absolute right-0 top-5 mt-2 w-full sm:w-44 bg-white rounded-md shadow-lg z-10 border border-gray-200 p-2"
                 >
                   <div className="flex items-center space-x-2">
-                    <input
-                      type="text"
-                      value={aiInput}
-                      onChange={(e) => setAiInput(e.target.value)}
-                      placeholder="Ask AI..."
-                      className="w-full p-1 border border-gray-300 rounded text-xs"
-                    />
+                  <input
+  type="text"
+  value={aiInputs[title] || ""}
+  onChange={(e) => setAiInputs((prev) => ({
+    ...prev,
+    [title]: e.target.value
+  }))}
+  placeholder="Ask AI..."
+  className="w-full p-1 border border-gray-300 rounded text-xs"
+/>
                     <button
                       onClick={handleSendAIQuery}
                       className="p-1 bg-sky-500 text-white rounded hover:bg-sky-600"
@@ -643,7 +734,7 @@ const FinancialOverview = () => {
       </table>
     </div>
   );
- 
+
   return (
     <div className="space-y-6 p-4 min-h-screen relative bg-sky-50">
       {/* Header */}
@@ -758,13 +849,15 @@ const FinancialOverview = () => {
               ref={provided.innerRef}
             >
               {/* Row 1: 3 charts (2 vertical + 1 spanning 2 columns) */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                 <EnhancedChartCard
                   title={charts.revenueTrend.title}
                   chartType={chartTypes.revenueTrend}
                   chartData={charts.revenueTrend}
                   widgetId="revenueTrend"
                   index={0}
+                  analyzedWidgets={analyzedWidgets}
+                  toggleAnalyze={toggleAnalyze}
                 />
                 <EnhancedChartCard
                   title={charts.expenseBreakdown.title}
@@ -772,6 +865,8 @@ const FinancialOverview = () => {
                   chartData={charts.expenseBreakdown}
                   widgetId="expenseBreakdown"
                   index={1}
+                  analyzedWidgets={analyzedWidgets}
+                  toggleAnalyze={toggleAnalyze}
                 />
                 <EnhancedChartCard
                   title={charts.profitAnalysis.title}
@@ -779,17 +874,21 @@ const FinancialOverview = () => {
                   chartData={charts.profitAnalysis}
                   widgetId="profitAnalysis"
                   index={2}
+                  analyzedWidgets={analyzedWidgets}
+                  toggleAnalyze={toggleAnalyze}
                 />
               </div>
 
               {/* Row 2: 2 charts side by side */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                 <EnhancedChartCard
                   title={charts.cashFlow.title}
                   chartType={chartTypes.cashFlow}
                   chartData={charts.cashFlow}
                   widgetId="cashFlow"
                   index={3}
+                  analyzedWidgets={analyzedWidgets}
+                  toggleAnalyze={toggleAnalyze}
                 />
                 <EnhancedChartCard
                   title={charts.Expenses.title}
@@ -797,17 +896,21 @@ const FinancialOverview = () => {
                   chartData={charts.Expenses}
                   widgetId="Expenses"
                   index={4}
+                  analyzedWidgets={analyzedWidgets}
+                  toggleAnalyze={toggleAnalyze}
                 />
               </div>
 
               {/* Row 3: 2 charts + 1 table */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                 <EnhancedChartCard
                   title={charts.netProfit.title}
                   chartType={chartTypes.netProfit}
                   chartData={charts.netProfit}
                   widgetId="netProfit"
                   index={5}
+                  analyzedWidgets={analyzedWidgets}
+                  toggleAnalyze={toggleAnalyze}
                 />
                 <EnhancedChartCard
                   title={charts.headcount.title}
@@ -815,6 +918,8 @@ const FinancialOverview = () => {
                   chartData={charts.headcount}
                   widgetId="headcount"
                   index={6}
+                  analyzedWidgets={analyzedWidgets}
+                  toggleAnalyze={toggleAnalyze}
                 />
                 <DataTable />
               </div>

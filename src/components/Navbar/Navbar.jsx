@@ -154,8 +154,7 @@ const Navbar = ({ toggleSidebar }) => {
               <span
                 className=" hidden capitalize md:inline-block text-sm  sp"
               >
-                {/* Acme Corporation */}
-                FPnAInsights
+                Acme Corporation
               </span>
               <FaUserCircle className=" text-2xl" />
             </button>
