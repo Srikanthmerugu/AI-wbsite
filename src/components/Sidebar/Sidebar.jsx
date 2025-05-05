@@ -54,13 +54,13 @@ const MENUITEMS = [
             type: "link",
             title: "Financial Overview",
             icon: { name: "FiFile" },
-            children: [
-              { path: "#", type: "link", title: "Revenue", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Expenses", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Gross Profit", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "EBITDA", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Cashflow", icon: { name: "FiFile" } },
-            ],
+            // children: [
+            //   { path: "#", type: "link", title: "Revenue", icon: { name: "FiFile" } },
+            //   { path: "#", type: "link", title: "Expenses", icon: { name: "FiFile" } },
+            //   { path: "#", type: "link", title: "Gross Profit", icon: { name: "FiFile" } },
+            //   { path: "#", type: "link", title: "EBITDA", icon: { name: "FiFile" } },
+            //   { path: "#", type: "link", title: "Cashflow", icon: { name: "FiFile" } },
+            // ],
           },
           {
             path: "/key-financial",
