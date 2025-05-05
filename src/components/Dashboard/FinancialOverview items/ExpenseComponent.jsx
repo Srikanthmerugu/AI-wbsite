@@ -523,7 +523,7 @@ const ExpenseComponent = () => {
               </li>
             </ul>
           </div>
-        </div>
+        </div> 
         
       </div>
     </motion.div>
