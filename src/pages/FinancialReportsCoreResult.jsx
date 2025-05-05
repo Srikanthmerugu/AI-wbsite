@@ -1,70 +1,26 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import {
-  FiChevronDown,
-  FiChevronRight,
   FiDownload,
   FiPrinter,
-  FiFilter,
   FiSend,
-  FiX,
+  FiChevronRight,
+  FiChevronLeft,
+  FiFilter,
+  FiChevronDown,
   FiTable,
-  FiDollarSign,
+  FiTrendingUp,
+  FiTrendingDown,
+  FiAlertCircle
 } from 'react-icons/fi';
 import { BsStars } from 'react-icons/bs';
-import { Bar, Pie, Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  LineElement,
-  PointElement,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import { motion, AnimatePresence } from 'framer-motion';
 import { CSVLink } from 'react-csv';
-import { Link } from 'react-router-dom';
 import { GrLinkNext } from 'react-icons/gr';
-import { MdOutlineFileUpload } from 'react-icons/md';
 
-// Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  LineElement,
-  PointElement,
-  Tooltip,
-  Legend
-);
-
-// Sample Data (Unchanged)
+// Embedded Sample Data with enhanced metrics
 const sampleData = {
   pnl: {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [
-      {
-        label: 'Actual',
-        data: [12000, 19000, 15000, 18000, 22000, 24000],
-        backgroundColor: 'rgba(54, 162, 235, 0.7)',
-        borderColor: 'rgba(54, 162, 235, 1)',
-      },
-      {
-        label: 'Budget',
-        data: [15000, 15000, 17000, 20000, 21000, 23000],
-        backgroundColor: 'rgba(255, 99, 132, 0.7)',
-        borderColor: 'rgba(255, 99, 132, 1)',
-      },
-      {
-        label: 'Forecast',
-        data: [13000, 17000, 16000, 19000, 23000, 25000],
-        backgroundColor: 'rgba(75, 192, 192, 0.7)',
-        borderColor: 'rgba(75, 192, 192, 1)',
-      },
-    ],
     tableData: [
       { month: 'Jan', Actual: 12000, Budget: 15000, Forecast: 13000 },
       { month: 'Feb', Actual: 19000, Budget: 15000, Forecast: 17000 },
@@ -74,64 +30,41 @@ const sampleData = {
       { month: 'Jun', Actual: 24000, Budget: 23000, Forecast: 25000 },
     ],
     metrics: {
-      totalActual: 100000,
-      totalBudget: 101000,
+      totalActual: 110000,
+      totalBudget: 111000,
       variance: -1000,
+      variancePercentage: -0.9,
+      insights: [
+        "Revenue exceeded forecast in Q2 due to seasonal demand",
+        "Higher marketing spend impacted March profits",
+        "Cost savings in operations improved May results"
+      ]
     },
   },
   balanceSheet: {
-    labels: ['Cash', 'A/R', 'Inventory', 'Assets', 'A/P', 'Liabilities', 'Equity'],
-    datasets: [
-      {
-        label: 'Current',
-        data: [45000, 32000, 28000, 185000, 22000, 85000, 100000],
-        backgroundColor: 'rgba(54, 162, 235, 0.7)',
-        borderColor: 'rgba(54, 162, 235, 1)',
-      },
-      {
-        label: 'Previous',
-        data: [38000, 28000, 31000, 172000, 18000, 78000, 94000],
-        backgroundColor: 'rgba(255, 99, 132, 0.7)',
-        borderColor: 'rgba(255, 99, 132, 1)',
-      },
-    ],
     tableData: [
-      { account: 'Cash', current: 45000, previous: 38000, positive: true },
-      { account: 'Accounts Receivable', current: 32000, previous: 28000, positive: true },
-      { account: 'Inventory', current: 28000, previous: 31000, positive: false },
-      { account: 'Total Assets', current: 185000, previous: 172000, positive: true },
-      { account: 'Accounts Payable', current: 22000, previous: 18000, positive: false },
-      { account: 'Total Liabilities', current: 85000, previous: 78000, positive: false },
-      { account: 'Retained Earnings', current: 100000, previous: 94000, positive: true },
+      { account: 'Cash', current: 45000, previous: 38000 },
+      { account: 'Accounts Receivable', current: 32000, previous: 28000 },
+      { account: 'Inventory', current: 28000, previous: 31000 },
+      { account: 'Total Assets', current: 185000, previous: 172000 },
+      { account: 'Accounts Payable', current: 22000, previous: 18000 },
+      { account: 'Total Liabilities', current: 85000, previous: 78000 },
+      { account: 'Retained Earnings', current: 100000, previous: 94000 },
     ],
     metrics: {
       totalAssets: 185000,
       totalLiabilities: 85000,
       netEquity: 100000,
+      assetGrowth: 7.6,
+      liabilityGrowth: 9.0,
+      insights: [
+        "15% increase in cash reserves from improved collections",
+        "Inventory reduction of 9.7% reflects better stock management",
+        "Increased liabilities due to new equipment financing"
+      ]
     },
   },
   cashFlow: {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [
-      {
-        label: 'Operational',
-        data: [5000, 6000, 7000, 8000, 9000, 10000],
-        backgroundColor: 'rgba(54, 162, 235, 0.7)',
-        borderColor: 'rgba(54, 162, 235, 1)',
-      },
-      {
-        label: 'Investing',
-        data: [-2000, -1500, -1000, -500, 0, -200],
-        backgroundColor: 'rgba(255, 99, 132, 0.7)',
-        borderColor: 'rgba(255, 99, 132, 1)',
-      },
-      {
-        label: 'Financing',
-        data: [3000, 2500, 2000, 1500, 1000, 800],
-        backgroundColor: 'rgba(75, 192, 192, 0.7)',
-        borderColor: 'rgba(75, 192, 192, 1)',
-      },
-    ],
     tableData: [
       { month: 'Jan', Operational: 5000, Investing: -2000, Financing: 3000 },
       { month: 'Feb', Operational: 6000, Investing: -1500, Financing: 2500 },
@@ -143,22 +76,16 @@ const sampleData = {
     metrics: {
       netCashFlow: 42000,
       operationalTotal: 41000,
+      investingTotal: -5200,
+      financingTotal: 10800,
+      insights: [
+        "Positive operational cash flow throughout all months",
+        "Investing activities show consistent capital expenditure",
+        "Financing activities indicate steady funding"
+      ]
     },
   },
   arAging: {
-    labels: ['Current', '1-30 days', '31-60 days', '61-90 days', '90+ days'],
-    datasets: [
-      {
-        data: [45000, 12000, 8000, 5000, 3000],
-        backgroundColor: [
-          'rgba(54, 162, 235, 0.7)',
-          'rgba(75, 192, 192, 0.7)',
-          'rgba(255, 206, 86, 0.7)',
-          'rgba(255, 159, 64, 0.7)',
-          'rgba(255, 99, 132, 0.7)',
-        ],
-      },
-    ],
     tableData: [
       { category: 'Current', amount: 45000 },
       { category: '1-30 days', amount: 12000 },
@@ -169,22 +96,15 @@ const sampleData = {
     metrics: {
       totalReceivables: 73000,
       overdue: 28000,
+      overduePercentage: 38.4,
+      insights: [
+        "90+ days overdue accounts represent 4.1% of total receivables",
+        "Current accounts show healthy 61.6% of total",
+        "Focus needed on 31-60 days bracket to prevent further aging"
+      ]
     },
   },
   apAging: {
-    labels: ['Current', '1-30 days', '31-60 days', '61-90 days', '90+ days'],
-    datasets: [
-      {
-        data: [35000, 10000, 6000, 4000, 2000],
-        backgroundColor: [
-          'rgba(54, 162, 235, 0.7)',
-          'rgba(75, 192, 192, 0.7)',
-          'rgba(255, 206, 86, 0.7)',
-          'rgba(255, 159, 64, 0.7)',
-          'rgba(255, 99, 132, 0.7)',
-        ],
-      },
-    ],
     tableData: [
       { category: 'Current', amount: 35000 },
       { category: '1-30 days', amount: 10000 },
@@ -195,24 +115,15 @@ const sampleData = {
     metrics: {
       totalPayables: 57000,
       overdue: 22000,
+      overduePercentage: 38.6,
+      insights: [
+        "Vendor payments mostly current (61.4%)",
+        "90+ days overdue payables represent 3.5% of total",
+        "Review needed for 1-30 days bracket to maintain good relationships"
+      ]
     },
   },
   budgetVsActuals: {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [
-      {
-        label: 'Actual',
-        data: [12000, 19000, 15000, 18000, 22000, 24000],
-        backgroundColor: 'rgba(54, 162, 235, 0.7)',
-        borderColor: 'rgba(54, 162, 235, 1)',
-      },
-      {
-        label: 'Budget',
-        data: [15000, 15000, 17000, 20000, 21000, 23000],
-        backgroundColor: 'rgba(255, 99, 132, 0.7)',
-        borderColor: 'rgba(255, 99, 132, 1)',
-      },
-    ],
     tableData: [
       { month: 'Jan', Actual: 12000, Budget: 15000 },
       { month: 'Feb', Actual: 19000, Budget: 15000 },
@@ -222,50 +133,38 @@ const sampleData = {
       { month: 'Jun', Actual: 24000, Budget: 23000 },
     ],
     metrics: {
-      totalActual: 100000,
-      totalBudget: 101000,
+      totalActual: 110000,
+      totalBudget: 111000,
       variance: -1000,
+      variancePercentage: -0.9,
+      favorableVariance: 13000,
+      unfavorableVariance: -14000,
+      insights: [
+        "February showed highest positive variance (+26.7%)",
+        "April had largest negative variance (-10.0%)",
+        "Overall performance within 1% of budget"
+      ]
     },
   },
   financialRatios: {
-    labels: ['Current Ratio', 'Debt-to-Equity', 'ROE', 'Gross Margin'],
-    datasets: [
-      {
-        label: 'Value',
-        data: [2.5, 0.8, 18, 35],
-      },
-      {
-        label: 'Benchmark',
-        data: [1.5, 1.0, 15, 30],
-        backgroundColor: 'rgba(255, 99, 132, 0.5)',
-      },
-    ],
     tableData: [
-      { ratio: 'Current Ratio', value: 2.5, benchmark: 1.5, goodAbove: true },
-      { ratio: 'Debt-to-Equity', value: 0.8, benchmark: 1.0, goodBelow: true },
-      { ratio: 'ROE', value: 18, benchmark: 15, goodAbove: true },
-      { ratio: 'Gross Margin', value: 35, benchmark: 30, goodAbove: true },
+      { ratio: 'Current Ratio', value: 2.5, benchmark: 1.5 },
+      { ratio: 'Debt-to-Equity', value: 0.8, benchmark: 1.0 },
+      { ratio: 'ROE', value: 18, benchmark: 15 },
+      { ratio: 'Gross Margin', value: 35, benchmark: 30 },
     ],
     metrics: {
       averageRatio: 2.5,
+      aboveBenchmark: 3,
+      belowBenchmark: 1,
+      insights: [
+        "All ratios except one are above industry benchmarks",
+        "Strong current ratio indicates good liquidity position",
+        "ROE of 18% shows effective use of equity"
+      ]
     },
   },
   departmental: {
-    labels: ['Sales', 'Marketing', 'Operations', 'R&D', 'HR'],
-    datasets: [
-      {
-        label: 'Cost',
-        data: [50000, 30000, 40000, 25000, 20000],
-        backgroundColor: 'rgba(54, 162, 235, 0.7)',
-        borderColor: 'rgba(54, 162, 235, 1)',
-      },
-      {
-        label: 'Profit',
-        data: [20000, 15000, 18000, 12000, 10000],
-        backgroundColor: 'rgba(75, 192, 192, 0.7)',
-        borderColor: 'rgba(75, 192, 192, 1)',
-      },
-    ],
     tableData: [
       { department: 'Sales', cost: 50000, profit: 20000 },
       { department: 'Marketing', cost: 30000, profit: 15000 },
@@ -276,26 +175,17 @@ const sampleData = {
     metrics: {
       totalCost: 165000,
       totalProfit: 75000,
+      profitMargin: 31.3,
+      mostProfitable: 'Sales',
+      leastProfitable: 'HR',
+      insights: [
+        "Sales department generates highest absolute profit",
+        "Marketing shows best profit margin at 33.3%",
+        "R&D investment showing good returns at 32.4% margin"
+      ]
     },
   },
   custom1: {
-    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-    datasets: [
-      {
-        label: 'Revenue',
-        data: [50000, 55000, 60000, 65000],
-        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-        borderColor: 'rgba(54, 162, 235, 1)',
-        fill: true,
-      },
-      {
-        label: 'Expenses',
-        data: [30000, 32000, 34000, 36000],
-        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-        borderColor: 'rgba(255, 99, 132, 1)',
-        fill: true,
-      },
-    ],
     tableData: [
       { quarter: 'Q1', Revenue: 50000, Expenses: 30000 },
       { quarter: 'Q2', Revenue: 55000, Expenses: 32000 },
@@ -305,20 +195,16 @@ const sampleData = {
     metrics: {
       totalRevenue: 230000,
       totalExpenses: 132000,
+      netProfit: 98000,
+      growthRate: 9.1,
+      insights: [
+        "Consistent quarter-over-quarter revenue growth",
+        "Expenses growing at slower rate than revenue (6.7% vs 9.1%)",
+        "Q4 shows highest profitability margin"
+      ]
     },
   },
   custom2: {
-    labels: ['Region A', 'Region B', 'Region C'],
-    datasets: [
-      {
-        data: [40000, 35000, 30000],
-        backgroundColor: [
-          'rgba(54, 162, 235, 0.7)',
-          'rgba(75, 192, 192, 0.7)',
-          'rgba(255, 99, 132, 0.7)',
-        ],
-      },
-    ],
     tableData: [
       { region: 'Region A', amount: 40000 },
       { region: 'Region B', amount: 35000 },
@@ -326,276 +212,186 @@ const sampleData = {
     ],
     metrics: {
       totalSales: 105000,
+      topRegion: 'Region A',
+      topRegionPercentage: 38.1,
+      growthPotential: 22.2,
+      insights: [
+        "Region A accounts for 38.1% of total sales",
+        "Region C shows highest growth potential at 22.2%",
+        "Balanced regional distribution reduces market risk"
+      ]
     },
-  },
+  }
 };
 
-// Animation Variants for Sequential Card Entry
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.2,
-    },
-  },
-};
+const reports = [
+  { id: 'pnl', title: 'Profit & Loss Statement', desc: 'Actual vs. Budget vs. Forecast' },
+  { id: 'balanceSheet', title: 'Balance Sheet', desc: 'Assets, Liabilities, and Equity Summary' },
+  { id: 'cashFlow', title: 'Cash Flow Statement', desc: 'Operational, Investing, and Financing Cash Flow' },
+  { id: 'arAging', title: 'AR Aging Reports', desc: 'Overdue Receivables Breakdown' },
+  { id: 'apAging', title: 'AP Aging Reports', desc: 'Overdue Payments Breakdown' },
+  { id: 'budgetVsActuals', title: 'Budget vs. Actuals', desc: 'Variance Analysis & Cost Overruns' },
+  { id: 'financialRatios', title: 'Financial Ratio Analysis', desc: 'Liquidity, Profitability, and Efficiency Ratios' },
+  { id: 'departmental', title: 'Departmental Performance Reports', desc: 'Cost Centers, P&L by Business Unit' },
+  { id: 'custom1', title: 'Custom Revenue Report', desc: 'Revenue vs. Expenses by Quarter' },
+  { id: 'custom2', title: 'Regional Sales Report', desc: 'Sales by Region' }
+];
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-};
+const timePeriods = [
+  { id: 'all', name: 'All Months' },
+  { id: 'current', name: 'Current Month' },
+  { id: 'last', name: 'Last Month' },
+  { id: 'qtd', name: 'Quarter to Date' },
+  { id: 'ytd', name: 'Year to Date' },
+  { id: 'custom', name: 'Custom Range' }
+];
+
+const entities = [
+  { id: 'all', name: 'All Entities' },
+  { id: 'ny', name: 'New York Branch' },
+  { id: 'sf', name: 'San Francisco Branch' },
+  { id: 'tx', name: 'Texas Branch' }
+];
+
+const hierarchies = [
+  { id: 'group', name: 'Group Level' },
+  { id: 'department', name: 'Department Level' },
+  { id: 'product', name: 'Product Level' }
+];
 
 const FinancialReports = () => {
-  const [activeTab, setActiveTab] = useState('core');
-  const [expandedReports, setExpandedReports] = useState({});
-  const [chartTypes, setChartTypes] = useState({});
-  const [viewModes, setViewModes] = useState({}); // New state for chart/table view
-  const [timeRange, setTimeRange] = useState('6M');
-  const [filters, setFilters] = useState({
-    dateRange: 'Month',
-    category: 'All',
-    department: 'All',
-  });
+  const [selectedReport, setSelectedReport] = useState('pnl');
   const [aiInputs, setAiInputs] = useState({});
   const [aiHistory, setAiHistory] = useState({});
   const [showAIDropdown, setShowAIDropdown] = useState(null);
+  const [drillDownData, setDrillDownData] = useState(null);
+  const [filters, setFilters] = useState({
+    period: 'all',
+    entity: 'all',
+    hierarchy: 'group',
+    customRange: { start: '', end: '' }
+  });
   const [showFilters, setShowFilters] = useState(false);
-  const filtersRef = useRef(null);
-  const aiChatbotRef = useRef(null);
+  const [activeInsight, setActiveInsight] = useState(0);
 
-  // Toggle report expansion
-  const toggleReport = (reportId) => {
-    setExpandedReports((prev) => ({
-      ...prev,
-      [reportId]: !prev[reportId],
-    }));
-  };
+  const data = sampleData[selectedReport];
+  const currentReport = reports.find(r => r.id === selectedReport);
 
-  // Handle chart type change
-  const handleChartTypeChange = (reportId, type) => {
-    setChartTypes((prev) => ({ ...prev, [reportId]: type }));
-  };
+  // Filter data based on selected filters
+  const filteredData = React.useMemo(() => {
+    if (!data || !data.tableData) return { tableData: [], metrics: {} };
+    
+    let result = [...data.tableData];
+    
+    // Apply period filter
+    if (filters.period === 'current') {
+      result = result.slice(-1);
+    } else if (filters.period === 'last') {
+      result = result.slice(-2, -1);
+    } else if (filters.period === 'qtd') {
+      result = result.slice(-3);
+    } else if (filters.period === 'ytd') {
+      result = result; // Show all data for year-to-date (adjust if needed)
+    }
+    // For 'all' period, we don't filter - show everything
+    
+    return {
+      tableData: result,
+      metrics: data.metrics
+    };
+  }, [data, filters]);
 
-  // Handle view mode change (chart/table)
-  const handleViewModeChange = (reportId) => {
-    setViewModes((prev) => ({
-      ...prev,
-      [reportId]: prev[reportId] === 'table' ? 'chart' : 'table',
-    }));
-  };
+  // Rotate insights every 5 seconds
+  useEffect(() => {
+    if (data?.metrics?.insights?.length > 1) {
+      const interval = setInterval(() => {
+        setActiveInsight(prev => (prev + 1) % data.metrics.insights.length);
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [data]);
 
-  // Handle AI input and send
-  const handleSendAIQuery = (reportId) => {
-    const input = aiInputs[reportId] || '';
+  const handleSendAIQuery = () => {
+    const input = aiInputs[selectedReport] || '';
     if (input.trim()) {
-      const response = `AI Insight for ${reportId}: ${input} (e.g., variance due to seasonal trends)`;
-      setAiHistory((prev) => ({
-        ...prev,
-        [reportId]: [...(prev[reportId] || []), { query: input, response }],
-      }));
-      setAiInputs((prev) => ({ ...prev, [reportId]: '' }));
+      const response = `AI Insight for ${selectedReport}: ${input} (mock insight)`;
+      setAiHistory((prev) => ({ ...prev, [selectedReport]: [...(prev[selectedReport] || []), { query: input, response }] }));
+      setAiInputs((prev) => ({ ...prev, [selectedReport]: '' }));
       setShowAIDropdown(null);
     }
   };
 
-  // Handle filter changes
-  const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+  const handleDrillDown = (rowData) => {
+    setDrillDownData({
+      title: ` ${Object.values(rowData)[0]}`,
+      data: Object.entries(rowData).map(([key, value]) => ({
+        field: key,
+        value: typeof value === 'number' ? `$${value.toLocaleString()}` : value
+      })),
+      insights: [
+        `Detailed analysis for ${Object.values(rowData)[0]}`,
+        keyInsightsForRow(rowData)
+      ]
+    });
   };
 
-  // Reset filters
-  const resetFilters = () => {
-    setFilters({ dateRange: 'Month', category: 'All', department: 'All' });
-  };
-
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (filtersRef.current && !filtersRef.current.contains(event.target)) {
-        setShowFilters(false);
+  const keyInsightsForRow = (rowData) => {
+    if (selectedReport === 'pnl') {
+      const variance = rowData.Actual - rowData.Budget;
+      if (variance > 0) {
+        return `Performance exceeded budget by $${Math.abs(variance).toLocaleString()} (${Math.round((variance/rowData.Budget)*100)}%)`;
+      } else {
+        return `Performance below budget by $${Math.abs(variance).toLocaleString()} (${Math.round((variance/rowData.Budget)*100)}%)`;
       }
-      if (aiChatbotRef.current && !aiChatbotRef.current.contains(event.target)) {
-        setShowAIDropdown(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Report Definitions
-  const coreReports = [
-    {
-      id: 'pnl',
-      title: 'Profit & Loss Statement',
-      description: 'Actual vs. Budget vs. Forecast',
-    },
-    {
-      id: 'balanceSheet',
-      title: 'Balance Sheet',
-      description: 'Assets, Liabilities, and Equity Summary',
-    },
-    {
-      id: 'cashFlow',
-      title: 'Cash Flow Statement',
-      description: 'Operational, Investing, and Financing Cash Flow',
-    },
-    {
-      id: 'arAging',
-      title: 'AR Aging Reports',
-      description: 'Overdue Receivables Breakdown',
-    },
-    {
-      id: 'apAging',
-      title: 'AP Aging Reports',
-      description: 'Overdue Payments Breakdown',
-    },
-    {
-      id: 'budgetVsActuals',
-      title: 'Budget vs. Actuals',
-      description: 'Variance Analysis & Cost Overruns',
-    },
-    {
-      id: 'financialRatios',
-      title: 'Financial Ratio Analysis',
-      description: 'Liquidity, Profitability, and Efficiency Ratios',
-    },
-    {
-      id: 'departmental',
-      title: 'Departmental Performance Reports',
-      description: 'Cost Centers, P&L by Business Unit',
-    },
-  ];
-
-  const customReports = [
-    {
-      id: 'custom1',
-      title: 'Custom Revenue Report',
-      description: 'Revenue vs. Expenses by Quarter',
-    },
-    {
-      id: 'custom2',
-      title: 'Regional Sales Report',
-      description: 'Sales by Region',
-    },
-  ];
-
-  // Render Chart or Table
-  const renderChart = (reportId) => {
-    const data = sampleData[reportId];
-    if (!data || !data.tableData) {
-      return (
-        <div className="flex items-center justify-center h-48 bg-sky-50 rounded-lg">
-          <p className="text-sky-600 text-sm">No data available</p>
-        </div>
-      );
     }
-
-    const viewMode = viewModes[reportId] || 'chart';
-
-    if (viewMode === 'table') {
-      return (
-        <div className="h-48 overflow-y-auto bg-white/50 rounded-lg border border-sky-100">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="bg-sky-100 text-sky-800">
-                {Object.keys(data.tableData[0]).map((key) => (
-                  <th key={key} className="px-2 py-1 text-left capitalize">
-                    {key}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.tableData.map((row, index) => (
-                <tr key={index} className="border-b border-sky-200">
-                  {Object.entries(row).map(([key, value], i) => (
-                    <td key={i} className="px-2 py-1 text-sky-700">
-                      {typeof value === 'number' ? `$${value.toLocaleString()}` : value}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      );
-    }
-
-    const chartType = chartTypes[reportId] || (
-      reportId === 'arAging' || reportId === 'apAging' || reportId === 'custom2' || reportId === 'financialRatios' ? 'pie' :
-      reportId === 'custom1' ? 'line' : 'bar'
-    );
-
-    const options = {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top', labels: { font: { size: 10 } } },
-        tooltip: { mode: 'index', intersect: false },
-      },
-      scales: chartType !== 'pie' ? {
-        x: { ticks: { font: { size: 8 } } },
-        y: { ticks: { font: { size: 8 }, callback: (value) => `$${value.toLocaleString()}` } },
-      } : undefined,
-    };
-
-    return (
-      <div className="h-48 relative group">
-        <motion.div
-          className="transition-transform duration-300 group-hover:scale-105"
-        >
-          {chartType === 'pie' ? (
-            <Pie data={data} options={options} />
-          ) : chartType === 'line' ? (
-            <Line data={data} options={options} />
-          ) : (
-            <Bar data={data} options={options} />
-          )}
-        </motion.div>
-      </div>
-    );
+    // Add insights for other report types
+    return "Key metrics within expected ranges";
   };
 
-  // Render Related Data
-  const renderRelatedData = (reportId) => {
-    const data = sampleData[reportId];
-    if (!data) return null;
-
-    if (data.metrics) {
-      return (
-        <div className="space-y-2">
-          {Object.entries(data.metrics).map(([key, value]) => (
-            <div key={key} className="flex justify-between text-xs">
-              <span className="text-sky-700 capitalize">{key.replace(/([A-Z])/g, ' $1')}:</span>
-              <span className={`text-sky-900 font-medium ${value < 0 ? 'text-red-600' : ''}`}>
-                {typeof value === 'number' ? `$${Math.abs(value).toLocaleString()}` : value}
-              </span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    // Fallback to mini-table
+  const renderTable = () => {
+    if (!filteredData || !filteredData.tableData) return <p>No data available</p>;
+    
     return (
-      <div className="max-h-32 overflow-y-auto">
+      <div className="overflow-y-auto bg-white/50 rounded-lg border border-sky-100 h-56">
         <table className="w-full text-xs">
           <thead>
-            <tr className="bg-sky-100 text-sky-800">
-              {Object.keys(data.tableData[0]).map((key) => (
-                <th key={key} className="px-2 py-1 text-left">{key}</th>
+            <tr className="bg-sky-100 text-sky-900">
+              {Object.keys(filteredData.tableData[0]).map((key) => (
+                <th key={key} className="px-2 py-1 text-left capitalize">{key}</th>
               ))}
+              <th className="px-2 py-1 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {data.tableData.slice(0, 3).map((row, index) => (
-              <tr key={index} className="border-b border-sky-200">
-                {Object.values(row).map((value, i) => (
-                  <td key={i} className="px-2 py-1 text-sky-700">
-                    {typeof value === 'boolean' ? (value ? '↑' : '↓') : value}
+            {filteredData.tableData.map((row, index) => (
+              <tr key={index} className="border-b border-sky-200 hover:bg-sky-50">
+                {Object.entries(row).map(([key, value], i) => (
+                  <td key={i} className="px-2 py-1 text-black">
+                    {typeof value === 'number' ? (
+                      <div className="flex items-center">
+                        ${value.toLocaleString()}
+                        {key === 'Actual' && row.Budget && (
+                          <span className={`ml-2 text-xs ${value >= row.Budget ? 'text-green-600' : 'text-red-600'}`}>
+                            {value >= row.Budget ? (
+                              <FiTrendingUp className="inline" />
+                            ) : (
+                              <FiTrendingDown className="inline" />
+                            )}
+                            {Math.round(((value - row.Budget)/row.Budget)*100)}%
+                          </span>
+                        )}
+                      </div>
+                    ) : value}
                   </td>
                 ))}
+                <td className="px-2 py-1">
+                  <button 
+                    onClick={() => handleDrillDown(row)}
+                    className="text-sky-600 hover:text-sky-800 text-xs flex items-center"
+                  >
+                    View in detail <FiChevronRight className="ml-1" />
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -604,326 +400,297 @@ const FinancialReports = () => {
     );
   };
 
-  return (
-    <div className="space-y-6 p-4 min-h-screen relative bg-sky-50">
-      <nav className="flex" aria-label="Breadcrumb">
-        <ol className="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
-          <li className="inline-flex text-sky-900 items-center">
-            <a
-              href="/"
-              className="inline-flex items-center text-sm font-medium text-sky-900 hover:text-blue-600 dark:text-gray-400 dark:hover:text-gray-600"
-            >
-              <svg
-                className="w-3 h-3 me-2.5 text-sky-900"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z" />
-              </svg>
-              <span className="text-sky-900">Dashboard</span>
-            </a>
-          </li>
-          {/* <li>
-            <div className="flex items-center">
-              <svg
-                className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 6 10"
-              >
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="m1 9 4-4-4-4"
-                />
-              </svg>
-              <a
-                href="/p&l-Dashboard"
-                className="ms-1 text-sm font-medium text-sky-900 hover:text-blue-600 md:ms-2"
-              >
-                Profit & Loss
-              </a>
-            </div>
-          </li> */}
-        </ol>
-      </nav>
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-lg font-bold text-white">Financial Reports</h1>
-              <p className="text-sky-100 text-xs">Discover actionable financial insights</p>
-            </div>
-            <div className="flex space-x-2">
-              <select
-                value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value)}
-                className="py-2 px-4 text-sm font-medium cursor-pointer text-sky-50 bg-sky-800 rounded-lg hover:bg-sky-50 hover:text-sky-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
-              >
-                <option value="3M">Last 3 Months</option>
-                <option value="6M">Last 6 Months</option>
-                <option value="12M">Last 12 Months</option>
-                <option value="YTD">Year to Date</option>
-              </select>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center py-2 px-4 text-sm font-medium text-sky-50 bg-sky-800 rounded-lg hover:bg-sky-50 hover:text-sky-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
-              >
-                <FiFilter className="mr-2" /> Filters
-              </button>
-              <Link to='/financial-gl-upload'><p
-                
-                className="flex items-center py-2 px-4 text-sm font-medium text-sky-50 bg-sky-800 rounded-lg hover:bg-sky-50 hover:text-sky-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
-              >
-                {/* <FiFilter className="mr-2" /> */}
-                <MdOutlineFileUpload className="mr-2"  size={20} />
-                
-                 Upload GL file
-              </p></Link>
+  const renderDrillDownView = () => {
+    return (
+      <div className="bg-white/50 rounded-lg border border-sky-100 p-4 h-96">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-sm font-semibold text-sky-900">Detailed Analysis</h3>
+          <button 
+            onClick={() => setDrillDownData(null)}
+            className="flex items-center text-sky-600 hover:text-sky-800 text-xs"
+          >
+            <FiChevronLeft className="mr-1" /> Back to Report
+          </button>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
+          <div className="md:col-span-2">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-sky-100 text-sky-800">
+                  <th className="px-2 py-1 text-left">Field</th>
+                  <th className="px-2 py-1 text-left">Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                {drillDownData.data.map((item, index) => (
+                  <tr key={index} className="border-b border-sky-200">
+                    <td className="px-2 py-1 text-black capitalize">{item.field}</td>
+                    <td className="px-2 py-1 text-black">{item.value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          <div className="bg-sky-50/50 p-3 rounded-lg">
+            <h4 className="text-xs font-semibold text-sky-900 mb-2 flex items-center">
+              <FiAlertCircle className="mr-1" /> Key Insights
+            </h4>
+            <div className="text-xs text-sky-700 space-y-2">
+              {drillDownData.insights.map((insight, i) => (
+                <p key={i} className="p-2 bg-white/50 rounded">{insight}</p>
+              ))}
             </div>
           </div>
         </div>
+      </div>
+    );
+  };
 
-        {/* Filters (Collapsible) */}
-        <AnimatePresence>
-          {showFilters && (
-            <motion.div
-              className="bg-white/90 backdrop-blur-md p-6 rounded-xl shadow-md mt-6 border border-sky-100"
-              ref={filtersRef}
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-sky-900">Filters</h3>
-                <button
-                  onClick={resetFilters}
-                  className="text-sm text-sky-600 hover:text-sky-800 flex items-center"
-                >
-                  <FiX className="mr-1" /> Reset
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-sky-700 mb-2">
-                    Date Range
-                  </label>
-                  <select
-                    value={filters.dateRange}
-                    onChange={(e) => handleFilterChange('dateRange', e.target.value)}
-                    className="w-full p-2 border border-sky-300 rounded-lg bg-sky-50 text-sky-900 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                  >
-                    <option>Month</option>
-                    <option>Quarter</option>
-                    <option>YTD</option>
-                    <option>Custom</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-sky-700 mb-2">
-                    Category
-                  </label>
-                  <select
-                    value={filters.category}
-                    onChange={(e) => handleFilterChange('category', e.target.value)}
-                    className="w-full p-2 border border-sky-300 rounded-lg bg-sky-50 text-sky-900 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                  >
-                    <option>All</option>
-                    <option>Revenue</option>
-                    <option>Expenses</option>
-                    <option>Assets</option>
-                    <option>Liabilities</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-sky-700 mb-2">
-                    Department
-                  </label>
-                  <select
-                    value={filters.department}
-                    onChange={(e) => handleFilterChange('department', e.target.value)}
-                    className="w-full p-2 border border-sky-300 rounded-lg bg-sky-50 text-sky-900 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                  >
-                    <option>All</option>
-                    <option>Sales</option>
-                    <option>Marketing</option>
-                    <option>Operations</option>
-                    <option>R&D</option>
-                    <option>HR</option>
-                  </select>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+  const renderKeyMetrics = () => {
+    if (!filteredData.metrics) return null;
+    
+    return (
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold text-sky-900 mb-2">Key Metrics</h3>
+        <ul className="text-sm text-black space-y-2">
+          {Object.entries(filteredData.metrics).map(([key, val]) => {
+            if (key === 'insights') return null;
+            
+            const isNegative = typeof val === 'number' && key.toLowerCase().includes('variance') && val < 0;
+            const isPositive = typeof val === 'number' && key.toLowerCase().includes('variance') && val > 0;
+            const isCurrency = typeof val === 'number' && !key.toLowerCase().includes('percentage') && !key.toLowerCase().includes('ratio');
+            
+            return (
+              <li key={key} className="flex justify-between items-center">
+                <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</span>
+                <span className={`font-medium ${isNegative ? 'text-red-600' : isPositive ? 'text-green-600' : 'text-sky-800'}`}>
+                  {isCurrency ? `$${Math.abs(val).toLocaleString()}` : 
+                   typeof val === 'number' ? `${val.toLocaleString()}${key.toLowerCase().includes('percentage') ? '%' : ''}` : val}
+                  {isNegative && <FiTrendingDown className="inline ml-1" />}
+                  {isPositive && <FiTrendingUp className="inline ml-1" />}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+        
+        {filteredData.metrics.insights && (
+          <div className="mt-4">
+            <h4 className="text-xs font-semibold text-sky-900 mb-2 flex items-center">
+              <FiAlertCircle className="mr-1" /> Performance Insights
+            </h4>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeInsight}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                className="text-xs bg-white/80 p-3 rounded-lg border border-sky-200"
+              >
+                {filteredData.metrics.insights[activeInsight]}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
+    );
+  };
 
-        {/* Tab Navigation */}
-        <motion.div
-          className="bg-white/90 backdrop-blur-md rounded-lg p-4 mt-6 shadow-sm border border-sky-100"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <nav className="flex space-x-2">
-            {['core', 'custom'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 text-sm font-medium rounded-full transition-colors ${
-                  activeTab === tab
-                    ? 'bg-sky-600 text-white'
-                    : 'text-sky-600 bg-sky-100 hover:bg-sky-200'
+  const aiChatbotRef = useRef(null);
+  const filtersRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (aiChatbotRef.current && !aiChatbotRef.current.contains(event.target)) {
+        setShowAIDropdown(null);
+      }
+      if (filtersRef.current && !filtersRef.current.contains(event.target)) {
+        setShowFilters(false);
+      }
+    };
+  
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-sky-50 p-6">
+      <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg mb-6">
+        <h1 className="text-lg font-bold text-white">Financial Reports</h1>
+        <p className="text-sky-100 text-xs">Discover actionable financial insights</p>
+      </div>
+
+      <div className="flex gap-6">
+        <aside className="w-1/4 bg-white p-4 rounded-xl shadow-md">
+          <h2 className="text-sky-800 text-md font-semibold mb-4">Reports</h2>
+          <ul className="space-y-2">
+            {reports.map((r) => (
+              <li
+                key={r.id}
+                onClick={() => {
+                  setSelectedReport(r.id);
+                  setDrillDownData(null);
+                }}
+                className={`px-3 py-2 rounded-md text-sm cursor-pointer transition ${
+                  selectedReport === r.id ? 'bg-sky-100 text-sky-800 font-semibold' : 'text-sky-700 hover:bg-sky-50'
                 }`}
               >
-                {tab === 'core' ? 'Core Reports' : 'Custom Reports'}
-              </button>
+                {r.title}
+              </li>
             ))}
-          </nav>
-        </motion.div>
+          </ul>
+        </aside>
 
-        {/* Report List */}
-        <motion.div
-          className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {(activeTab === 'core' ? coreReports : customReports).map((report) => (
-            <motion.div
-              key={report.id}
-              className="bg-white/90 backdrop-blur-md rounded-xl shadow-md border border-sky-100 hover:shadow-xl transition-all duration-300"
-              variants={cardVariants}
-            >
-              <button
-                onClick={() => toggleReport(report.id)}
-                className="w-full flex justify-between items-center p-4 text-left focus:outline-none hover:bg-sky-50/50"
-              >
-                <div>
-                  <h3 className="text-base font-semibold text-sky-900 flex items-center gap-2">
-                    {report.title}
-                    {report.id === 'pnl' && (
-                      <Link
-                        to="/p&l-Dashboard"
-                        className="text-sky-500 hover:text-sky-700 hover:pl-2"
-                        onClick={(e) => e.stopPropagation()}
+        <main className="w-3/4 bg-white p-6 rounded-xl shadow-md">
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-sky-900 flex items-center gap-2">
+              {drillDownData ? drillDownData.title : currentReport?.title}
+              {selectedReport === 'pnl' && !drillDownData && (
+                <Link
+                  to="/p&l-Dashboard"
+                  className="text-sky-500 hover:text-sky-700"
+                >
+                  <GrLinkNext className="w-4 h-4 hover:w-5 hover:h-5 transition-all" />
+                </Link>
+              )}
+            </h2>
+            <p className="text-sky-600 text-sm mb-2">
+              {drillDownData ? 'Detailed view of selected item' : currentReport?.desc}
+            </p>
+          </div>
+
+          {!drillDownData && (
+            <div className="mb-4 flex flex-wrap gap-2 justify-between items-center">
+              <div className="flex gap-2">
+                <div className="relative" ref={filtersRef}>
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="flex items-center bg-sky-100 hover:bg-sky-200 text-sky-800 rounded-lg px-3 py-2 text-xs"
+                  >
+                    <FiFilter className="mr-2" /> Filters
+                  </button>
+                  
+                  <AnimatePresence>
+                    {showFilters && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="absolute z-10 mt-2 w-64 bg-white rounded-lg shadow-lg border border-sky-200 p-4"
                       >
-                        {/* <FiDollarSign className="w-5 h-5" /> */}
-                        <GrLinkNext className="w-5 h-5" hover:w-7 h-7/>
-
-                      </Link>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-xs font-medium text-sky-700 mb-1">Time Period</label>
+                            <select
+                              value={filters.period}
+                              onChange={(e) => setFilters({...filters, period: e.target.value})}
+                              className="w-full p-2 border border-sky-300 rounded text-xs"
+                            >
+                              {timePeriods.map(period => (
+                                <option key={period.id} value={period.id}>{period.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-xs font-medium text-sky-700 mb-1">Entity</label>
+                            <select
+                              value={filters.entity}
+                              onChange={(e) => setFilters({...filters, entity: e.target.value})}
+                              className="w-full p-2 border border-sky-300 rounded text-xs"
+                            >
+                              {entities.map(entity => (
+                                <option key={entity.id} value={entity.id}>{entity.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-xs font-medium text-sky-700 mb-1">Hierarchy</label>
+                            <select
+                              value={filters.hierarchy}
+                              onChange={(e) => setFilters({...filters, hierarchy: e.target.value})}
+                              className="w-full p-2 border border-sky-300 rounded text-xs"
+                            >
+                              {hierarchies.map(hierarchy => (
+                                <option key={hierarchy.id} value={hierarchy.id}>{hierarchy.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                          
+                          {filters.period === 'custom' && (
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="block text-xs font-medium text-sky-700 mb-1">Start Date</label>
+                                <input
+                                  type="date"
+                                  value={filters.customRange.start}
+                                  onChange={(e) => setFilters({...filters, customRange: {...filters.customRange, start: e.target.value}})}
+                                  className="w-full p-2 border border-sky-300 rounded text-xs"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-sky-700 mb-1">End Date</label>
+                                <input
+                                  type="date"
+                                  value={filters.customRange.end}
+                                  onChange={(e) => setFilters({...filters, customRange: {...filters.customRange, end: e.target.value}})}
+                                  className="w-full p-2 border border-sky-300 rounded text-xs"
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
                     )}
-                  </h3>
-                  <p className="text-xs text-sky-600 mt-1">{report.description}</p>
+                  </AnimatePresence>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className="px-2 py-1 bg-sky-100 text-sky-800 rounded-full text-xs font-medium">
-                    {report.id.includes('aging') ? 'Monthly' : 'Quarterly'}
-                  </span>
-                  {expandedReports[report.id] ? (
-                    <FiChevronDown className="text-sky-500 w-5 h-5" />
-                  ) : (
-                    <FiChevronRight className="text-sky-500 w-5 h-5" />
-                  )}
-                </div>
-              </button>
-              {expandedReports[report.id] && (
-                <div className="p-4 border-t border-sky-200">
-                  <div className="flex justify-between items-center mb-4">
-                    <div className="flex gap-2">
-                      {['bar', 'pie', 'line'].map((type) => (
-                        <button
-                          key={type}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleChartTypeChange(report.id, type);
-                          }}
-                          className={`px-3 py-1 text-xs font-medium rounded-full ${
-                            (chartTypes[report.id] || (
-                              report.id === 'arAging' || report.id === 'apAging' || report.id === 'custom2' || report.id === 'financialRatios' ? 'pie' :
-                              report.id === 'custom1' ? 'line' : 'bar'
-                            )) === type
-                              ? 'bg-sky-600 text-white'
-                              : 'bg-sky-100 text-sky-800 hover:bg-sky-200'
-                          } ${viewModes[report.id] === 'table' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          disabled={viewModes[report.id] === 'table'}
-                        >
-                          {type.charAt(0).toUpperCase() + type.slice(1)}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="flex gap-2">
-                      <CSVLink
-                        data={sampleData[report.id]?.tableData || []}
-                        filename={`${report.title}.csv`}
-                        className="flex items-center px-3 py-1 bg-sky-100 text-sky-800 rounded-lg hover:bg-sky-200 text-xs"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <FiDownload className="mr-1" /> CSV
-                      </CSVLink>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.print();
-                        }}
-                        className="flex items-center px-3 py-1 bg-sky-100 text-sky-800 rounded-lg hover:bg-sky-200 text-xs"
-                      >
-                        <FiPrinter className="mr-1" /> Print
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleViewModeChange(report.id);
-                        }}
-                        className="flex items-center px-3 py-1 bg-sky-100 text-sky-800 rounded-lg hover:bg-sky-200 text-xs"
-                      >
-                        <FiTable className="mr-1" /> {viewModes[report.id] === 'table' ? 'Chart' : 'Table'}
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowAIDropdown(report.id);
-                        }}
-                        className="flex items-center px-3 py-1 text-sky-800 rounded-lg hover:bg-sky-200 text-xs"
-                      >
-                        <BsStars className="mr-1" /> Ask AI
-                      </button>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-white/50 p-3 rounded-lg border border-sky-100">
-                      {renderChart(report.id)}
-                    </div>
-                    <div className="bg-white/50 p-3 ml-35 rounded-lg border border-sky-100">
-                      <h4 className="text-xs font-semibold text-sky-900 mb-2">Key Metrics</h4>
-                      {renderRelatedData(report.id)}
-                    </div>
-                  </div>
-                  {showAIDropdown === report.id && (
+              </div>
+              
+              <div className="flex gap-2">
+                <CSVLink
+                  data={filteredData.tableData || []}
+                  filename={`${selectedReport}.csv`}
+                  className="flex items-center px-3 py-2 bg-sky-100 text-sky-800 rounded-lg text-xs hover:bg-sky-200"
+                >
+                  <FiDownload className="mr-1" /> CSV
+                </CSVLink>
+                <button
+                  onClick={() => window.print()}
+                  className="flex items-center px-3 py-2 bg-sky-100 text-sky-800 rounded-lg text-xs hover:bg-sky-200"
+                >
+                  <FiPrinter className="mr-1" /> Print
+                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowAIDropdown(selectedReport)}
+                    className="flex items-center px-3 py-2 text-sky-800 rounded-lg bg-sky-100 hover:bg-sky-200 text-xs"
+                  >
+                    <BsStars className="mr-1" /> Ask AI
+                  </button>
+
+                  {showAIDropdown === selectedReport && currentReport && (
                     <motion.div
                       ref={aiChatbotRef}
-                      className="mt-4 absolute top-28 right-3 bg-white/90 backdrop-blur-md rounded-lg shadow-lg border border-sky-200 p-2"
+                      className="absolute z-50 mt-2 right-0 w-80 bg-white/90 backdrop-blur-md rounded-lg shadow-lg border border-sky-200 p-2"
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
                     >
                       <h1 className="text-sm font-semibold text-sky-900 mb-2">
-                        Ask about {report.title}
+                        Ask about {currentReport.title}
                       </h1>
                       <div className="flex items-center space-x-2 mb-4">
                         <input
                           type="text"
-                          value={aiInputs[report.id] || ''}
+                          value={aiInputs[selectedReport] || ''}
                           onChange={(e) =>
                             setAiInputs((prev) => ({
                               ...prev,
-                              [report.id]: e.target.value,
+                              [selectedReport]: e.target.value,
                             }))
                           }
                           placeholder="Ask AI about this report..."
@@ -933,17 +700,17 @@ const FinancialReports = () => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleSendAIQuery(report.id);
+                            handleSendAIQuery();
                           }}
                           className="p-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50"
-                          disabled={!aiInputs[report.id]?.trim()}
+                          disabled={!aiInputs[selectedReport]?.trim()}
                         >
                           <FiSend className="w-5 h-5" />
                         </button>
                       </div>
-                      {aiHistory[report.id]?.length > 0 && (
+                      {aiHistory[selectedReport]?.length > 0 && (
                         <div className="space-y-2 max-h-32 overflow-y-auto text-xs text-sky-700">
-                          {aiHistory[report.id].map((entry, index) => (
+                          {aiHistory[selectedReport].map((entry, index) => (
                             <div key={index}>
                               <strong>Q:</strong> {entry.query}
                               <br />
@@ -955,10 +722,66 @@ const FinancialReports = () => {
                     </motion.div>
                   )}
                 </div>
-              )}
-            </motion.div>
-          ))}
-        </motion.div>
+              </div>
+            </div>
+          )}
+
+          <div className="mb-6">
+            {drillDownData ? renderDrillDownView() : renderTable()}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              {!drillDownData && renderKeyMetrics()}
+            </div>
+            <div className="bg-sky-50/50 p-4 rounded-lg border border-sky-200">
+              <h3 className="text-sm font-semibold text-sky-900 mb-3">Quick Analysis</h3>
+              <div className="text-xs text-sky-700 space-y-3">
+                {selectedReport === 'pnl' && (
+                  <>
+                    <div className="flex items-start">
+                      <div className={`p-2 rounded-full mr-3 ${filteredData.metrics.variance >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {filteredData.metrics.variance >= 0 ? (
+                          <FiTrendingUp size={16} />
+                        ) : (
+                          <FiTrendingDown size={16} />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium">Overall Performance</p>
+                        <p>
+                          {filteredData.metrics.variance >= 0 ? 'Surplus' : 'Deficit'} of ${Math.abs(filteredData.metrics.variance).toLocaleString()} (
+                          {filteredData.metrics.variancePercentage}%) compared to budget
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="p-2 rounded-full mr-3 bg-blue-100 text-blue-700">
+                        <FiAlertCircle size={16} />
+                      </div>
+                      <div>
+                        <p className="font-medium">Top Impact Area</p>
+                        <p>February showed highest positive variance (+26.7%) due to seasonal sales</p>
+                      </div>
+                    </div>
+                  </>
+                )}
+                {selectedReport === 'balanceSheet' && (
+                  <div className="flex items-start">
+                    <div className="p-2 rounded-full mr-3 bg-green-100 text-green-700">
+                      <FiTrendingUp size={16} />
+                    </div>
+                    <div>
+                      <p className="font-medium">Assets Growth</p>
+                      <p>Total assets increased by {filteredData.metrics.assetGrowth}% compared to previous period</p>
+                    </div>
+                  </div>
+                )}
+                {/* Add analysis for other report types */}
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   );
