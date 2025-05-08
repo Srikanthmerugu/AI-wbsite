@@ -164,7 +164,7 @@ const MENUITEMS = [
               { path: "#", type: "link", title: "Salary & Compensation Budgeting ", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Attrition & Replacement Cost Projections ", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "AI-Driven Workforce Efficiency Analysis ", icon: { name: "FiFile" } },
-            ],
+            ], 
           },
           {
             path: "#",
