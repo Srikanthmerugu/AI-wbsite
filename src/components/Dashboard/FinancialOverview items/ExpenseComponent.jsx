@@ -493,7 +493,7 @@ const ExpenseComponent = () => {
           <div className=" p-4 bg-sky-50 rounded-lg border border-sky-200">
             <h4 className="text-base font-semibold text-sky-900 mb-2 flex items-center">
               <FaInfoCircle className="mr-2 text-sky-500" />
-              Expense Insights
+              Expense Insights 
             </h4>
             <ul className="list-disc flex items-center justify-between pl-5 text-sky-700 text-base space-y-1">
               <li>
