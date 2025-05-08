@@ -1,18 +1,11 @@
 import React, { useEffect, useRef, useContext } from 'react';
 import { FaUserCircle } from 'react-icons/fa';
 import { AuthContext } from '../../context/AuthContext';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const ProfileDropdown = ({ isOpen, onClose }) => {
   const dropdownRef = useRef(null);
   const { logout } = useContext(AuthContext);
-
-  const navigate = useNavigate();
-
-  const ProfileHandle = () => {
-    navigate('/profile-details');
-  }
-  
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -32,8 +25,6 @@ const ProfileDropdown = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  
-
   return (
     <div 
       ref={dropdownRef}
@@ -48,14 +39,10 @@ const ProfileDropdown = ({ isOpen, onClose }) => {
       </div> */}
       <div className="flex flex-col items-center px-4 pb-4">
         <FaUserCircle className="w-24 h-24 text-gray-50" />
-        <h5 className="text-xl font-medium  text-white mt-2">Tech Innovators Inc</h5>
-        {/* <span className="text-sm text-gray-200">Administrator</span> */}
+        <h5 className="text-xl font-medium  text-white mt-2">Admin</h5>
+        <span className="text-sm text-gray-200">Administrator</span>
         <div className="flex mt-4 space-x-2">
-          <button
-
-          onClick={ProfileHandle}organizations-list-screen
-          
-          className="px-4 py-2 text-sm font-medium text-white bg-sky-700 rounded-lg hover:bg-sky-900">
+          <button className="px-4 py-2 text-sm font-medium text-white bg-sky-700 rounded-lg hover:bg-sky-900">
             Profile
           </button>
           <button 
@@ -65,9 +52,9 @@ const ProfileDropdown = ({ isOpen, onClose }) => {
           Sign out
         </button>
         </div>
-        {/* <div className=" w-full mt-3 bg-sky-700 rounded-lg over:bg-sky-900">
+        <div className=" w-full mt-3 bg-sky-700 rounded-lg over:bg-sky-900">
         <Link to="/company-management-table" className="block border--2 border-sky-900 px-4 py-2  text-center   text-sm text-sky-50 h hover:border-sky-900 hover:text-white">All Companies</Link>
-      </div> */}
+      </div>
       </div>
      
     </div>

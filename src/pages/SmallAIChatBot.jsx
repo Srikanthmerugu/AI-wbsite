@@ -82,7 +82,7 @@ const SmallAIChatBot = () => {
             <div className='flex gap-4 items-center '>
             <img src={fevicon}  width="50px"/>
 
-<h2 className="text-lg font-semibold text-sky-900">𝐅𝐏𝐧𝐀𝐈𝐧𝐬𝐢𝐠𝐡𝐭𝐬 𝐜𝐡𝐚𝐭 </h2>
+<h2 className="text-lg font-semibold text-sky-900">𝙵𝚒𝚗𝚂𝚒𝚐𝚑𝚝𝙰𝙸 𝙲𝚑𝚊𝚝 </h2>
             </div>
        
           <p className="text-sm text-sky-700">Ask me anything about financial reports, forecasts, or insights</p>

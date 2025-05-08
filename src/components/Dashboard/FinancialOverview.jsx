@@ -281,7 +281,7 @@ const charts = {
 const FinancialOverview = () => {
   const [showAIChatbot, setShowAIChatbot] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState("Tech Innovators Inc");
+  const [selectedCompany, setSelectedCompany] = useState("Acme Corporation");
   const [activeWidgets, setActiveWidgets] = useState([
     "revenueTrend",
     "expenseBreakdown",
