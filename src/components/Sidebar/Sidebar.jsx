@@ -458,7 +458,7 @@ const MENUITEMS = [
       //     { path: "#", title: "Predictive Risk Management", type: "link", icon: { name: "FiFile" } },
       //     { path: "#", title: "AI-Driven Forecast Accuracy Monitoring", type: "link", icon: { name: "FiFile" } },
       //     { path: "#", title: "AI-Powered Benchmarking & Peer Comparisons", type: "link", icon: { name: "FiFile" } },
-      //   ],
+      //   ], 
       // },
       {
         title: "User Management",
