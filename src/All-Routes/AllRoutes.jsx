@@ -28,6 +28,11 @@ import PLDashboard from '../pages/Financial Reports/PLDashboard';
 import CapitalInvestmentPlan from '../pages/Budgeting/CAPEX-Budgeting/CapitalInvestPlan';
 import ROIAllocation from '../pages/Budgeting/CAPEX-Budgeting/ROIAllocation';
 import DepreciationForecast from '../pages/Budgeting/CAPEX-Budgeting/DepreciationForecast';
+import UploadGL from '../pages/Financial Reports/UploadGL';
+import RegisterPage from '../pages/RegisterPage';
+import OrganizationsListScreen from '../pages/Organizations List Screen/OrganizationsListScreen';
+import RevenueComponent from '../components/Dashboard/FinancialOverview items/RevenueComponent';
+import ExpenseComponent from '../components/Dashboard/FinancialOverview items/ExpenseComponent';
 
 function AllRoutes() {
   return (
@@ -35,7 +40,7 @@ function AllRoutes() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          
+          <Route path="/register-page" element={<RegisterPage />} />
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
             <Route element={<MainLayout />}>
@@ -65,7 +70,10 @@ function AllRoutes() {
               <Route path="/budget-capital-investment" element={<CapitalInvestmentPlan />} />
               <Route path="/budget-roi-allocation" element={<ROIAllocation />} />
               <Route path="/budget-depreciation-forecast" element={<DepreciationForecast  />} />
-              {/* <Route path='/AICostOptimization' element={<AICostOptimization />} /> */}
+              <Route path="/financial-gl-upload" element={<UploadGL  />} />
+              <Route path="/organizations-list-screen" element={<OrganizationsListScreen  />} />
+              <Route path='/revenue-component' element={<RevenueComponent />} />
+              <Route path='/expense-component' element={<ExpenseComponent />} />
 
             </Route>
           </Route>
