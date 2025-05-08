@@ -468,12 +468,12 @@ const MENUITEMS = [
         type: "sub",
         active: false,
       },
-      {
-        path: "/company-management-table",
-        icon: { name: "FaLayerGroup" },
-        title: "All Companies Management",
-        type: "link",
-      },
+      // {
+      //   path: "/company-management-table",
+      //   icon: { name: "FaLayerGroup" },
+      //   title: "All Companies Management",
+      //   type: "link",
+      // },
       {
         path: "#",
         icon: { name: "FiSettings" },
@@ -492,12 +492,12 @@ const MENUITEMS = [
         title: "Ask AI",
         type: "link",
       },
-      {
-        path: "organizations-list-screen",
-        icon: { name: "FiUsers" },
-        title: "Organizations-List",
-        type: "link",
-      },
+      // {
+      //   path: "/profile-details",
+      //   icon: { name: "FiUsers" },
+      //   title: "Organizations-List",
+      //   type: "link",
+      // },
     ],
   },
 ];

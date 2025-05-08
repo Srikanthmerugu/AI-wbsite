@@ -73,7 +73,7 @@ function AllRoutes() {
               <Route path="/budget-roi-allocation" element={<ROIAllocation />} />
               <Route path="/budget-depreciation-forecast" element={<DepreciationForecast  />} />
               <Route path="/financial-gl-upload" element={<UploadGL  />} />
-              <Route path="/organizations-list-screen" element={<OrganizationsListScreen  />} />
+              <Route path="/profile-details" element={<OrganizationsListScreen  />} />
               <Route path='/revenue-component' element={<RevenueComponent />} />
               <Route path='/expense-component' element={<ExpenseComponent />} />
 

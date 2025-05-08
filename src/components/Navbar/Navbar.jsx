@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FiSearch, FiBell, FiMessageSquare, FiMenu } from 'react-icons/fi';
 import { FaUserCircle } from 'react-icons/fa';
+import { BsStars } from 'react-icons/bs';
+import { Tooltip } from 'react-tooltip';
 import SearchBar from './SearchBar';
 import ProfileDropdown from './ProfileDropdown';
 import NotificationToast from './NotificationToast';
@@ -9,11 +11,13 @@ import MessageNotification from './MessageNotification';
 const Navbar = ({ toggleSidebar }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isAskAIOpen, setIsAskAIOpen] = useState(false);
   const [isMessagesOpen, setIsMessagesOpen] = useState(false);
 
   // Create refs for each dropdown
   const profileRef = useRef(null);
   const notificationsRef = useRef(null);
+  const askAIRef = useRef(null);
   const messagesRef = useRef(null);
 
   // Sample data
@@ -28,6 +32,15 @@ const Navbar = ({ toggleSidebar }) => {
     { id: 2, sender: 'Jane Smith', message: 'Meeting at 3pm', time: '1 hour ago' },
   ];
 
+  // AI navigation items
+  const aiNavItems = [
+    { id: 1, name: 'Smart Financial Alerts', path: '/smart-financial-alerts' },
+    { id: 2, name: 'AI-Powered Financial Recommendations', path: '#' },
+    { id: 3, name: 'Predictive Risk Management', path: '#' },
+    { id: 4, name: 'AI-Driven Forecast Accuracy Monitoring', path: '#' },
+    { id: 5, name: 'AI-Powered Benchmarking & Peer Comparisons', path: '#' },
+  ];
+
   // Handle click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -37,13 +50,16 @@ const Navbar = ({ toggleSidebar }) => {
       if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
         setIsNotificationsOpen(false);
       }
+      if (askAIRef.current && !askAIRef.current.contains(event.target)) {
+        setIsAskAIOpen(false);
+      }
       if (messagesRef.current && !messagesRef.current.contains(event.target)) {
         setIsMessagesOpen(false);
       }
     };
 
     // Add event listener when any dropdown is open
-    if (isProfileOpen || isNotificationsOpen || isMessagesOpen) {
+    if (isProfileOpen || isNotificationsOpen || isAskAIOpen || isMessagesOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
@@ -51,7 +67,7 @@ const Navbar = ({ toggleSidebar }) => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isProfileOpen, isNotificationsOpen, isMessagesOpen]);
+  }, [isProfileOpen, isNotificationsOpen, isAskAIOpen, isMessagesOpen]);
 
   return (
     <header className="bg-white shadow-sm z-40">
@@ -66,17 +82,47 @@ const Navbar = ({ toggleSidebar }) => {
 
         {/* Search Bar */}
         <div>
-          <h1 className="text-2xl mx-5 font-bold text-sky-900">Welcome, Shashi Konduru!</h1>
-        </div>
-        <div className="hidden md:block flex-1 max-w-md mx-4">
-          <SearchBar />
+          <h1 className="text-2xl mx-5 font-bold text-sky-900">Welcome, Tech Innovators Inc.</h1>
         </div>
 
         {/* Right Side - Icons */}
         <div className="flex items-center space-x-4">
-          <button className="p-2 rounded-full hover:bg-gray-100 relative">
-            <FiSearch className="text-gray-600 hover:text-gray-900 md:hidden" size={20} />
-          </button>
+          {/* Ask AI Button */}
+          <div className="relative" ref={askAIRef}>
+            <button
+              onClick={() => setIsAskAIOpen(!isAskAIOpen)}
+              className="p-2 rounded-full hover:bg-gray-100 relative"
+              data-tooltip-id="ask-ai-tooltip"
+              data-tooltip-content="Ask AI"
+              data-tooltip-place="left" 
+            >
+              <BsStars className="text-gray-600 hover:text-gray-900" size={20} />
+            </button>
+            <Tooltip
+              id="ask-ai-tooltip"
+              place="bottom"
+              className="bg-gray-800 text-white text-sm rounded px-2 py-1"
+            />
+
+            {isAskAIOpen && (
+              <div className="absolute right-0 mt-2 w-80 bg-sky-50 rounded-lg shadow-lg py-2 z-50">
+                <div className="px-4 py-2 border-b border-gray-200">
+                  <h3 className="font-bold text-sky-900">AI Insights & Alerts</h3>
+                </div>
+                <div className="max-h-96 overflow-y-auto">
+                  {aiNavItems.map((item) => (
+                    <a
+                      key={item.id}
+                      href={item.path}
+                      className="block px-4 py-2 hover:bg-sky-700 hover:text-sky-50 text-sky-700"
+                    >
+                      {item.name}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Messages Button */}
           <div className="relative" ref={messagesRef}>
@@ -149,15 +195,12 @@ const Navbar = ({ toggleSidebar }) => {
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="flex items-center space-x-2 border-2 p-1 hover:border-sky-700 border-sky-600 bg-white rounded-sm focus:outline-none shadow-2xl hover:bg-sky-900 hover:text-sky-50  text-sky-700 transition-all duration-200 transform hover:scale-[1.02]"
+              className="flex items-center space-x-2 border-2 p-1 hover:border-sky-700 border-sky-600 bg-white rounded-sm focus:outline-none shadow-2xl hover:bg-sky-900 hover:text-sky-50 text-sky-700 transition-all duration-200 transform hover:scale-[1.02]"
             >
-              <span
-                className=" hidden capitalize md:inline-block text-sm  sp"
-              >
-                {/* Acme Corporation */}
-                FPnAInsights
+              <span className="hidden capitalize md:inline-block text-sm">
+                Tech Innovators Inc
               </span>
-              <FaUserCircle className=" text-2xl" />
+              <FaUserCircle className="text-2xl" />
             </button>
 
             <ProfileDropdown
