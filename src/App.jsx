@@ -9,7 +9,7 @@ import './styles/animations.css'
 const App = () => {
   return (
     <div>
-     <ToastContainer />
+     {/* <ToastContainer /> */}
       <AllRoutes />
     </div>
   )

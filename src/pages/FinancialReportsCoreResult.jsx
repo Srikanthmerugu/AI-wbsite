@@ -22,22 +22,84 @@ import { GrLinkNext } from "react-icons/gr";
 const sampleData = {
 	pnl: {
 		tableData: [
-			{ month: "Jan", Actual: 12000, Budget: 15000, Forecast: 13000 },
-			{ month: "Feb", Actual: 19000, Budget: 15000, Forecast: 17000 },
-			{ month: "Mar", Actual: 15000, Budget: 17000, Forecast: 16000 },
-			{ month: "Apr", Actual: 18000, Budget: 20000, Forecast: 19000 },
-			{ month: "May", Actual: 22000, Budget: 21000, Forecast: 23000 },
-			{ month: "Jun", Actual: 24000, Budget: 23000, Forecast: 25000 },
+			{
+				month: "Jan",
+				ActualRevenue: 12000,
+				ActualCosts: 8000,
+				BudgetRevenue: 15000,
+				BudgetCosts: 9000,
+				ActualProfit: 4000, // Calculated as Revenue - Costs
+				BudgetProfit: 6000,
+				Variance: -2000, // ActualProfit - BudgetProfit
+				VariancePercentage: -33.3, // (Variance / BudgetProfit) * 100
+			},
+			{
+				month: "Feb",
+				ActualRevenue: 19000,
+				ActualCosts: 10000,
+				BudgetRevenue: 15000,
+				BudgetCosts: 9500,
+				ActualProfit: 9000,
+				BudgetProfit: 5500,
+				Variance: 3500,
+				VariancePercentage: 63.6,
+			},
+			{
+				month: "Mar",
+				ActualRevenue: 15000,
+				ActualCosts: 11000,
+				BudgetRevenue: 17000,
+				BudgetCosts: 10500,
+				ActualProfit: 4000,
+				BudgetProfit: 6500,
+				Variance: -2500,
+				VariancePercentage: -38.5,
+			},
+			{
+				month: "Apr",
+				ActualRevenue: 18000,
+				ActualCosts: 12000,
+				BudgetRevenue: 20000,
+				BudgetCosts: 11500,
+				ActualProfit: 6000,
+				BudgetProfit: 8500,
+				Variance: -2500,
+				VariancePercentage: -29.4,
+			},
+			{
+				month: "May",
+				ActualRevenue: 22000,
+				ActualCosts: 13000,
+				BudgetRevenue: 21000,
+				BudgetCosts: 12500,
+				ActualProfit: 9000,
+				BudgetProfit: 8500,
+				Variance: 500,
+				VariancePercentage: 5.9,
+			},
+			{
+				month: "Jun",
+				ActualRevenue: 24000,
+				ActualCosts: 14000,
+				BudgetRevenue: 23000,
+				BudgetCosts: 13500,
+				ActualProfit: 10000,
+				BudgetProfit: 9500,
+				Variance: 500,
+				VariancePercentage: 5.3,
+			},
 		],
 		metrics: {
-			totalActual: 110000,
-			totalBudget: 111000,
-			variance: -1000,
-			variancePercentage: -0.9,
+			totalActualProfit: 36000, // Sum of all ActualProfit
+			totalBudgetProfit: 39500, // Sum of all BudgetProfit
+			overallVariance: -3500,
+			overallVariancePercentage: -8.9,
+			bestMonth: "Feb",
+			worstMonth: "Mar",
 			insights: [
-				"Revenue exceeded forecast in Q2 due to seasonal demand",
-				"Higher marketing spend impacted March profits",
-				"Cost savings in operations improved May results",
+				"February showed strongest performance with 63.6% above budget profit",
+				"March had the largest negative variance at -38.5% below budget",
+				"Overall performance was 8.9% below budget expectations",
 			],
 		},
 	},
@@ -398,6 +460,71 @@ const FinancialReports = () => {
 		return "Key metrics within expected ranges";
 	};
 
+	const renderQuickAnalysis = () => {
+		if (selectedReport !== "pnl") return null;
+
+		return (
+			<div className="bg-sky-50/50 p-4 rounded-lg border border-sky-200">
+				<h3 className="text-sm font-semibold text-sky-900 mb-3">
+					Profit & Loss Summary
+				</h3>
+				<div className="text-xs text-sky-700 space-y-3">
+					<div className="flex items-start">
+						<div className="p-2 rounded-full mr-3 bg-blue-100 text-blue-700">
+							<FiAlertCircle size={16} />
+						</div>
+						<div>
+							<p className="font-medium">Total Period Performance</p>
+							<p className="text-black">
+								{filteredData.metrics.overallVariance >= 0
+									? "Surplus"
+									: "Deficit"}{" "}
+								of $
+								{Math.abs(
+									filteredData.metrics.overallVariance,
+								).toLocaleString()}{" "}
+								({filteredData.metrics.overallVariancePercentage}%) compared to
+								budget
+							</p>
+						</div>
+					</div>
+
+					<div className="flex items-start">
+						<div className="p-2 rounded-full mr-3 bg-green-100 text-green-700">
+							<FiTrendingUp size={16} />
+						</div>
+						<div>
+							<p className="font-medium">Best Performing Month</p>
+							<p className="text-black">
+								{filteredData.metrics.bestMonth} with $
+								{filteredData.tableData
+									.find((m) => m.month === filteredData.metrics.bestMonth)
+									.ActualProfit.toLocaleString()}{" "}
+								profit
+							</p>
+						</div>
+					</div>
+
+					<div className="flex items-start">
+						<div className="p-2 rounded-full mr-3 bg-red-100 text-red-700">
+							<FiTrendingDown size={16} />
+						</div>
+						<div>
+							<p className="font-medium">Worst Performing Month</p>
+							<p className="text-black">
+								{filteredData.metrics.worstMonth} with $
+								{filteredData.tableData
+									.find((m) => m.month === filteredData.metrics.worstMonth)
+									.ActualProfit.toLocaleString()}{" "}
+								profit
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		);
+	};
+
 	const renderTable = () => {
 		if (!filteredData || !filteredData.tableData)
 			return <p>No data available</p>;
@@ -407,12 +534,11 @@ const FinancialReports = () => {
 				<table className="w-full text-xs">
 					<thead>
 						<tr className="bg-sky-100 text-sky-900">
-							{Object.keys(filteredData.tableData[0]).map((key) => (
-								<th key={key} className="px-2 py-1 text-left capitalize">
-									{key}
-								</th>
-							))}
-							{/* <th className="px-2 py-1 text-left">Actions</th> */}
+							<th className="px-2 py-1 text-left">Month</th>
+							<th className="px-2 py-1 text-left">Actual Profit</th>
+							<th className="px-2 py-1 text-left">Budget Profit</th>
+							<th className="px-2 py-1 text-left">Variance</th>
+							<th className="px-2 py-1 text-left">Performance</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -420,45 +546,35 @@ const FinancialReports = () => {
 							<tr
 								key={index}
 								className="border-b border-sky-200 hover:bg-sky-50">
-								{Object.entries(row).map(([key, value], i) => (
-									<td key={i} className="px-2 py-1 text-black">
-										{typeof value === "number" ? (
-											<div className="flex items-center">
-												${value.toLocaleString()}
-												{key === "Actual" && row.Budget && (
-													<span
-														className={`ml-2 text-xs ${
-															value >= row.Budget
-																? "text-green-600"
-																: "text-red-600"
-														}`}>
-														{value >= row.Budget ? (
-															<FiTrendingUp className="inline" />
-														) : (
-															<FiTrendingDown className="inline" />
-														)}
-														<span className="ml-2">
-															{value >= row.Budget ? "+" : ""}
-															{Math.round(
-																((value - row.Budget) / row.Budget) * 100,
-															)}
-															%
-														</span>
-													</span>
-												)}
-											</div>
-										) : (
-											value
-										)}
-									</td>
-								))}
-								{/* <td className="px-2 py-1">
-									<button
-										onClick={() => handleDrillDown(row)}
-										className="text-sky-600 hover:text-sky-800 text-xs flex items-center">
-										View in detail <FiChevronRight className="ml-1" />
-									</button>
-								</td> */}
+								<td className="px-2 py-1 font-medium">{row.month}</td>
+								<td className="px-2 py-1">
+									${row.ActualProfit.toLocaleString()}
+								</td>
+								<td className="px-2 py-1">
+									${row.BudgetProfit.toLocaleString()}
+								</td>
+								<td className="px-2 py-1">
+									<span
+										className={`${
+											row.Variance >= 0 ? "text-green-600" : "text-red-600"
+										}`}>
+										{row.Variance >= 0 ? "+" : ""}$
+										{Math.abs(row.Variance).toLocaleString()}(
+										{row.Variance >= 0 ? "+" : ""}
+										{row.VariancePercentage}%)
+									</span>
+								</td>
+								<td className="px-2 py-1">
+									{row.Variance >= 0 ? (
+										<span className="text-green-600 flex items-center">
+											<FiTrendingUp className="mr-1" /> Above Budget
+										</span>
+									) : (
+										<span className="text-red-600 flex items-center">
+											<FiTrendingDown className="mr-1" /> Below Budget
+										</span>
+									)}
+								</td>
 							</tr>
 						))}
 					</tbody>
@@ -466,59 +582,6 @@ const FinancialReports = () => {
 			</div>
 		);
 	};
-
-	// const renderDrillDownView = () => {
-	// 	return (
-	// 		<div className="bg-white/50 rounded-lg border border-sky-100 p-4 h-96">
-	// 			<div className="flex justify-between items-center mb-4">
-	// 				<h3 className="text-sm font-semibold text-sky-900">
-	// 					Detailed Analysis
-	// 				</h3>
-	// 				<button
-	// 					onClick={() => setDrillDownData(null)}
-	// 					className="flex items-center text-sky-600 hover:text-sky-800 text-xs">
-	// 					<FiChevronLeft className="mr-1" /> Back to Report
-	// 				</button>
-	// 			</div>
-
-	// 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
-	// 				<div className="md:col-span-2">
-	// 					<table className="w-full text-xs">
-	// 						<thead>
-	// 							<tr className="bg-sky-100 text-sky-800">
-	// 								<th className="px-2 py-1 text-left">Field</th>
-	// 								<th className="px-2 py-1 text-left">Value</th>
-	// 							</tr>
-	// 						</thead>
-	// 						<tbody>
-	// 							{drillDownData.data.map((item, index) => (
-	// 								<tr key={index} className="border-b border-sky-200">
-	// 									<td className="px-2 py-1 text-black capitalize">
-	// 										{item.field}
-	// 									</td>
-	// 									<td className="px-2 py-1 text-black">{item.value}</td>
-	// 								</tr>
-	// 							))}
-	// 						</tbody>
-	// 					</table>
-	// 				</div>
-
-	// 				<div className="bg-sky-50/50 p-3 rounded-lg">
-	// 					<h4 className="text-xs font-semibold text-sky-900 mb-2 flex items-center">
-	// 						<FiAlertCircle className="mr-1" /> Key Insights
-	// 					</h4>
-	// 					<div className="text-xs text-black space-y-2">
-	// 						{drillDownData.insights.map((insight, i) => (
-	// 							<p key={i} className="p-2 bg-white/50 rounded">
-	// 								{insight}
-	// 							</p>
-	// 						))}
-	// 					</div>
-	// 				</div>
-	// 			</div>
-	// 		</div>
-	// 	);
-	// };
 
 	const renderKeyMetrics = () => {
 		if (!filteredData.metrics) return null;
@@ -882,72 +945,79 @@ const FinancialReports = () => {
 
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 						<div>{!drillDownData && renderKeyMetrics()}</div>
-						<div className="bg-sky-50/50 p-4 rounded-lg border border-sky-200">
-							<h3 className="text-sm font-semibold text-sky-900 mb-3">
-								Quick Analysis
-							</h3>
-							<div className="text-xs text-sky-700 space-y-3">
-								{selectedReport === "pnl" && (
-									<>
-										<div className="flex items-start">
-											<div
-												className={`p-2 rounded-full mr-3 ${
-													filteredData.metrics.variance >= 0
-														? "bg-green-100 text-green-700"
-														: "bg-red-100 text-red-700"
-												}`}>
-												{filteredData.metrics.variance >= 0 ? (
+						<div>
+							{selectedReport === "pnl" ? (
+								renderQuickAnalysis()
+							) : (
+								<div className="bg-sky-50/50 p-4 rounded-lg border border-sky-200">
+									<h3 className="text-sm font-semibold text-sky-900 mb-3">
+										Quick Analysis
+									</h3>
+
+									<div className="text-xs text-sky-700 space-y-3">
+										{selectedReport === "pnl" && (
+											<>
+												<div className="flex items-start">
+													<div
+														className={`p-2 rounded-full mr-3 ${
+															filteredData.metrics.variance >= 0
+																? "bg-green-100 text-green-700"
+																: "bg-red-100 text-red-700"
+														}`}>
+														{filteredData.metrics.variance >= 0 ? (
+															<FiTrendingUp size={16} />
+														) : (
+															<FiTrendingDown size={16} />
+														)}
+													</div>
+													<div>
+														<p className="font-medium">Overall Performance</p>
+														<p className="text-black">
+															{filteredData.metrics.variance >= 0
+																? "Surplus"
+																: "Deficit"}{" "}
+															of $
+															{Math.abs(
+																filteredData.metrics.variance,
+															).toLocaleString()}{" "}
+															({filteredData.metrics.variancePercentage}%)
+															compared to budget
+														</p>
+													</div>
+												</div>
+												<div className="flex items-start">
+													<div className="p-2 rounded-full mr-3 bg-blue-100 text-blue-700">
+														<FiAlertCircle size={16} />
+													</div>
+													<div>
+														<p className="font-medium">Top Impact Area</p>
+														<p className="text-black">
+															February showed highest positive variance (+26.7%)
+															due to seasonal sales
+														</p>
+													</div>
+												</div>
+											</>
+										)}
+										{selectedReport === "balanceSheet" && (
+											<div className="flex items-start">
+												<div className="p-2 rounded-full mr-3 bg-green-100 text-green-700">
 													<FiTrendingUp size={16} />
-												) : (
-													<FiTrendingDown size={16} />
-												)}
+												</div>
+												<div>
+													<p className="font-medium">Assets Growth</p>
+													<p>
+														Total assets increased by{" "}
+														{filteredData.metrics.assetGrowth}% compared to
+														previous period
+													</p>
+												</div>
 											</div>
-											<div>
-												<p className="font-medium">Overall Performance</p>
-												<p className="text-black">
-													{filteredData.metrics.variance >= 0
-														? "Surplus"
-														: "Deficit"}{" "}
-													of $
-													{Math.abs(
-														filteredData.metrics.variance,
-													).toLocaleString()}{" "}
-													({filteredData.metrics.variancePercentage}%) compared
-													to budget
-												</p>
-											</div>
-										</div>
-										<div className="flex items-start">
-											<div className="p-2 rounded-full mr-3 bg-blue-100 text-blue-700">
-												<FiAlertCircle size={16} />
-											</div>
-											<div>
-												<p className="font-medium">Top Impact Area</p>
-												<p className="text-black">
-													February showed highest positive variance (+26.7%) due
-													to seasonal sales
-												</p>
-											</div>
-										</div>
-									</>
-								)}
-								{selectedReport === "balanceSheet" && (
-									<div className="flex items-start">
-										<div className="p-2 rounded-full mr-3 bg-green-100 text-green-700">
-											<FiTrendingUp size={16} />
-										</div>
-										<div>
-											<p className="font-medium">Assets Growth</p>
-											<p>
-												Total assets increased by{" "}
-												{filteredData.metrics.assetGrowth}% compared to previous
-												period
-											</p>
-										</div>
+										)}
+										{/* Add analysis for other report types */}
 									</div>
-								)}
-								{/* Add analysis for other report types */}
-							</div>
+								</div>
+							)}
 						</div>
 					</div>
 				</main>
