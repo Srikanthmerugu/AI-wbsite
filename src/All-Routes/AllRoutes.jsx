@@ -33,6 +33,7 @@ import RegisterPage from '../pages/RegisterPage';
 import OrganizationsListScreen from '../pages/Organizations List Screen/OrganizationsListScreen';
 import RevenueComponent from '../components/Dashboard/FinancialOverview items/RevenueComponent';
 import ExpenseComponent from '../components/Dashboard/FinancialOverview items/ExpenseComponent';
+import ProfileDetailsScreen from '../pages/Organizations List Screen/OrganizationsListScreen';
 
 function AllRoutes() {
   return (
@@ -71,9 +72,12 @@ function AllRoutes() {
               <Route path="/budget-roi-allocation" element={<ROIAllocation />} />
               <Route path="/budget-depreciation-forecast" element={<DepreciationForecast  />} />
               <Route path="/financial-gl-upload" element={<UploadGL  />} />
-              <Route path="/organizations-list-screen" element={<OrganizationsListScreen  />} />
+              {/* <Route path="/profile-details" element={<OrganizationsListScreen  />} /> */}
               <Route path='/revenue-component' element={<RevenueComponent />} />
               <Route path='/expense-component' element={<ExpenseComponent />} />
+              <Route path="/profile-details" element={<ProfileDetailsScreen  />} />
+
+
 
             </Route>
           </Route>

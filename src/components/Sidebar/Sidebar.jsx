@@ -492,12 +492,12 @@ const MENUITEMS = [
         title: "Ask AI",
         type: "link",
       },
-      {
-        path: "organizations-list-screen",
-        icon: { name: "FiUsers" },
-        title: "Organizations-List",
-        type: "link",
-      },
+      // {
+      //   path: "organizations-list-screen",
+      //   icon: { name: "FiUsers" },
+      //   title: "Organizations-List",
+      //   type: "link",
+      // },
     ],
   },
 ];
