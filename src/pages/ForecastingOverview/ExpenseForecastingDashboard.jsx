@@ -162,12 +162,6 @@ const ExpenseForecastScreen = () => {
   return (
     <div className="space-y-6 p-4 min-h-screen relative bg-sky-50">
       <div className="max-w-7xl mx-auto">
-       
-
-
-
-
-
          {/* Header */}
               <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
                 <div className="flex justify-between items-center">

@@ -76,12 +76,14 @@ const CashFlowProjections = () => {
   };
 
   return (
-    <div className="space-y-6 p-4 min-h-screen">
+    <div className="sspace-y-6 p-4 min-h-screen relative bg-sky-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-6 rounded-lg shadow-sm">
-        <h1 className="text-3xl font-bold text-white">Cash Flow Projections</h1>
-        <p className="text-sky-100 mt-2">AI-driven liquidity predictions and scenario analysis</p>
-      </div>
+      <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg mb-6">
+				<h1 className="text-lg font-bold text-white">Cash Flow Projections</h1>
+				<p className="text-sky-100 text-xs">
+					AI-driven liquidity predictions and scenario analysis
+				</p>
+			</div>
 
 
       {/* <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-6 rounded-lg shadow-sm ">
