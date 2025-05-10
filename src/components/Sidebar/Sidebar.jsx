@@ -513,7 +513,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   });
 
   // Handle click to set active item
-  const handleNavClick = (path) => {
+  const handleNavClick = (path) => { 
     if (path && path !== "#") {
       setActiveItem(path);
     }
