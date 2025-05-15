@@ -34,6 +34,11 @@ import OrganizationsListScreen from '../pages/Organizations List Screen/Organiza
 import RevenueComponent from '../components/Dashboard/FinancialOverview items/RevenueComponent';
 import ExpenseComponent from '../components/Dashboard/FinancialOverview items/ExpenseComponent';
 
+import ProfileDetailsScreen from '../pages/Organizations List Screen/OrganizationsListScreen';
+import SalesPerformanceDashboard from '../pages/Performance Analytics/SalesPerformanceDashboard';
+import SalesPerformanceTable from '../pages/Performance Analytics/SalesPerformanceTable';
+
+
 function AllRoutes() {
   return (
     <Router>
@@ -74,6 +79,10 @@ function AllRoutes() {
               <Route path="/organizations-list-screen" element={<OrganizationsListScreen  />} />
               <Route path='/revenue-component' element={<RevenueComponent />} />
               <Route path='/expense-component' element={<ExpenseComponent />} />
+              <Route path="/profile-details" element={<ProfileDetailsScreen  />} />
+              {/* Performance Analytics */}
+              <Route path="/sales-performance-dashboard" element={<SalesPerformanceDashboard  />} />
+              <Route path="/sales-performance-table" element={<SalesPerformanceTable  />} />
 
             </Route>
           </Route>

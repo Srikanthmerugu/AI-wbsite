@@ -241,7 +241,7 @@ const MENUITEMS = [
             title: "Sales and Marketing Analytics ",
             icon: { name: "FiFile" },
             children: [
-              { path: "#", type: "link", title: "Sales Performance Dashboard ", icon: { name: "FiFile" } },
+              { path: "/sales-performance-dashboard", type: "link", title: "Sales Performance Dashboard ", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Pipeline & Conversion Analysis ", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "CAC &  CLV", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Churn & Retention Analysis", icon: { name: "FiFile" } },
