@@ -68,7 +68,7 @@ const AIChatBot = () => {
       {/* Left Sidebar - Conversation History */}
       <div className=" bg-white border-r border-gray-300 shadow-lg flex flex-col">
         <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-sky-800 to-sky-600">
-          <h2 className="text-xl font-bold text-white drop-shadow-md">𝙵𝚒𝚗𝚂𝚒𝚐𝚑𝚝𝙰𝙸 𝙲𝚑𝚊𝚝</h2>
+          <h2 className="text-xl font-bold text-white drop-shadow-md">𝐅𝐏𝐧𝐀𝐈𝐧𝐬𝐢𝐠𝐡𝐭𝐬 𝐜𝐡𝐚𝐭</h2>
         </div>
 
         {/* History Tabs */}
