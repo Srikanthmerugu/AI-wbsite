@@ -37,6 +37,11 @@ import ProfileDetailsScreen from '../pages/Organizations List Screen/Organizatio
 import ResetPasswordPage from '../pages/ResetPasswordPage';
 import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 
+import ProfileDetailsScreen from '../pages/Organizations List Screen/OrganizationsListScreen';
+import SalesPerformanceDashboard from '../pages/Performance Analytics/SalesPerformanceDashboard';
+import SalesPerformanceTable from '../pages/Performance Analytics/SalesPerformanceTable';
+
+
 function AllRoutes() {
   return (
     <Router>
@@ -82,7 +87,9 @@ function AllRoutes() {
               <Route path='/expense-component' element={<ExpenseComponent />} />
               <Route path="/profile-details" element={<ProfileDetailsScreen  />} />
 
-
+              {/* Performance Analytics */}
+              <Route path="/sales-performance-dashboard" element={<SalesPerformanceDashboard  />} />
+              <Route path="/sales-performance-table" element={<SalesPerformanceTable  />} />
 
             </Route>
           </Route>
