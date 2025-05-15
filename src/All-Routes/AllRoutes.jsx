@@ -33,7 +33,7 @@ import RegisterPage from '../pages/RegisterPage';
 import OrganizationsListScreen from '../pages/Organizations List Screen/OrganizationsListScreen';
 import RevenueComponent from '../components/Dashboard/FinancialOverview items/RevenueComponent';
 import ExpenseComponent from '../components/Dashboard/FinancialOverview items/ExpenseComponent';
-import ProfileDetailsScreen from '../pages/Organizations List Screen/OrganizationsListScreen';
+// import ProfileDetailsScreen from '../pages/Organizations List Screen/OrganizationsListScreen';
 import ResetPasswordPage from '../pages/ResetPasswordPage';
 import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 
