@@ -382,7 +382,7 @@ const ProfileDetailsScreen = () => {
           <div>
             <h2 className="text-xl font-bold text-slate-800 mb-4">Users</h2>
             <div className="bg-slate-50 p-4 rounded-xl">
-              <p className="text-sm text-slate-600 mb-2">Total users (4)</p>
+              <p className="text-sm text-slate-600 mb-2">Total users </p>
               <button
                 // onClick={() => setShowOrgsModal(true)}
                 onClick={handleUsers}
