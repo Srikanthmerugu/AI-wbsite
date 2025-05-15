@@ -1,8 +1,8 @@
+// src/AllRoutes.js
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from '../components/ProtectedRoute';
 import MainLayout from '../components/MainLayout';
 import FinancialOverview from '../components/Dashboard/FinancialOverview';
-// import '../AllRoutes.css';
 import KeyFinancialKPIs from '../pages/KeyFinancialKPIs';
 import FinancialReports from '../pages/FinancialReportsCoreResult';
 import RevenueForecasting from '../pages/ForecastingOverview/RevenueForecasting';
@@ -10,7 +10,7 @@ import AIChatBot from '../pages/AIChatBot';
 import LoginPage from '../pages/Login';
 import ExpenseForecastingDashboard from '../pages/ForecastingOverview/ExpenseForecastingDashboard';
 import HelpSupport from '../pages/Suport/HelpSupport';
-import UserManagement from '../pages/Suport/UserManagement';
+import UserManagement from '../pages/Suport/User Management/UserManagement';
 import CashFlowProjections from '../pages/CashFlowProjections';
 import SmartFinancialAlerts from '../pages/SmartFinancialAlerts';
 import AIFinancialRecommendations from '../pages/AIFinancialRecommendations';
@@ -34,6 +34,8 @@ import OrganizationsListScreen from '../pages/Organizations List Screen/Organiza
 import RevenueComponent from '../components/Dashboard/FinancialOverview items/RevenueComponent';
 import ExpenseComponent from '../components/Dashboard/FinancialOverview items/ExpenseComponent';
 import ProfileDetailsScreen from '../pages/Organizations List Screen/OrganizationsListScreen';
+import ResetPasswordPage from '../pages/ResetPasswordPage';
+import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 
 function AllRoutes() {
   return (
@@ -41,10 +43,13 @@ function AllRoutes() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
           <Route path="/register-page" element={<RegisterPage />} />
+          
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
-            <Route element={<MainLayout />}>
+             <Route element={<MainLayout />}>
               <Route path="/" element={<FinancialOverview />} />
               <Route path="/financial-overview" element={<FinancialOverview />} />
               <Route path="/key-financial" element={<KeyFinancialKPIs />} />
