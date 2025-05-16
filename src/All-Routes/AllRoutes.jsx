@@ -40,6 +40,8 @@ import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 import ProfileDetailsScreen from '../pages/Organizations List Screen/OrganizationsListScreen';
 import SalesPerformanceDashboard from '../pages/Performance Analytics/SalesPerformanceDashboard';
 import SalesPerformanceTable from '../pages/Performance Analytics/SalesPerformanceTable';
+import HRworkForce from '../pages/Performance Analytics/HRworkForce';
+import ITSpendAnalytics from '../pages/Performance Analytics/ITspendAnalytics';
 
 
 function AllRoutes() {
@@ -90,6 +92,8 @@ function AllRoutes() {
               {/* Performance Analytics */}
               <Route path="/sales-performance-dashboard" element={<SalesPerformanceDashboard  />} />
               <Route path="/sales-performance-table" element={<SalesPerformanceTable  />} />
+              <Route path="/hr-workforce" element={<HRworkForce  />} /> 
+              <Route path="/it-technology-spend" element={<ITSpendAnalytics  />} />
 
             </Route>
           </Route>

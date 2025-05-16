@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FiDownload, FiChevronRight, FiDollarSign, FiTrendingUp, FiUser, FiPieChart, FiFilter } from 'react-icons/fi';
+import { FiDownload, FiChevronRight, FiDollarSign, FiTrendingUp, FiUser, FiPieChart, FiFilter, FiSend } from 'react-icons/fi';
 import { BsStars } from 'react-icons/bs';
 import { CSVLink } from 'react-csv';
 import * as XLSX from 'xlsx';
@@ -22,7 +22,8 @@ const SalesPerformanceTable = () => {
       change: '-25%', 
       isPositive: false, 
       icon: <FiDollarSign />,
-      forecast: '$2.8M predicted next quarter'
+      forecast: '$2.8M predicted next quarter',
+      aiSuggestion: 'Revenue decline detected. Consider reviewing pricing strategy and customer retention programs.'
     },
     { 
       title: 'Revenue Per Segment', 
@@ -30,7 +31,8 @@ const SalesPerformanceTable = () => {
       change: '+8%', 
       isPositive: true, 
       icon: <FiPieChart />,
-      forecast: '$165K predicted next quarter'
+      forecast: '$165K predicted next quarter',
+      aiSuggestion: 'Strong growth in segment revenue. Identify top-performing segments for further investment.'
     },
     { 
       title: 'Sales Team Cost', 
@@ -38,7 +40,8 @@ const SalesPerformanceTable = () => {
       change: '+12%', 
       isPositive: false, 
       icon: <FiUser />,
-      forecast: '$520K predicted next quarter'
+      forecast: '$520K predicted next quarter',
+      aiSuggestion: 'Costs rising faster than revenue. Evaluate team productivity and compensation structure.'
     },
     { 
       title: 'Leads', 
@@ -46,7 +49,8 @@ const SalesPerformanceTable = () => {
       change: '+15%', 
       isPositive: true, 
       icon: <FiTrendingUp />,
-      forecast: '13,500 predicted next quarter'
+      forecast: '13,500 predicted next quarter',
+      aiSuggestion: 'Lead generation performing well. Focus on improving lead-to-opportunity conversion.'
     },
     { 
       title: 'Opportunities', 
@@ -54,7 +58,8 @@ const SalesPerformanceTable = () => {
       change: '+10%', 
       isPositive: true, 
       icon: <FiFilter />,
-      forecast: '5,200 predicted next quarter'
+      forecast: '5,200 predicted next quarter',
+      aiSuggestion: 'Opportunity growth is healthy. Review sales process for bottlenecks in later stages.'
     },
     { 
       title: 'Wins', 
@@ -62,82 +67,83 @@ const SalesPerformanceTable = () => {
       change: '+5%', 
       isPositive: true, 
       icon: <FiTrendingUp />,
-      forecast: '700 predicted next quarter'
+      forecast: '700 predicted next quarter',
+      aiSuggestion: 'Win rate needs improvement. Consider competitive analysis and deal coaching.'
     }
   ];
 
   // Chart Data in Tabular Form
   const revenueTrendData = [
-    { week: 'Jun 1', opportunities: 320, wins: 40, revenue: '$150K' },
-    { week: 'Jun 8', opportunities: 310, wins: 45, revenue: '$160K' },
-    { week: 'Jun 15', opportunities: 290, wins: 50, revenue: '$170K' },
-    { week: 'Jun 22', opportunities: 330, wins: 55, revenue: '$180K' },
-    { week: 'Jun 29', opportunities: 340, wins: 60, revenue: '$190K' },
-    { week: 'Jul 6', opportunities: 350, wins: 65, revenue: '$200K' },
-    { week: 'Jul 13', opportunities: 360, wins: 70, revenue: '$210K' },
-    { week: 'Jul 20', opportunities: 370, wins: 75, revenue: '$220K' },
-    { week: 'Jul 27', opportunities: 380, wins: 80, revenue: '$230K' },
-    { week: 'Aug 3', opportunities: 390, wins: 85, revenue: '$240K' },
-    { week: 'Aug 10', opportunities: 400, wins: 90, revenue: '$250K' },
-    { week: 'Aug 17', opportunities: 410, wins: 95, revenue: '$260K' },
-    { week: 'Aug 24', opportunities: 420, wins: 100, revenue: '$270K' },
-    { week: 'Aug 31', opportunities: 430, wins: 105, revenue: '$280K' }
+    { week: 'Jun 1', opportunities: 320, wins: 40, revenue: '$150K', aiSuggestion: 'Starting point shows baseline performance' },
+    { week: 'Jun 8', opportunities: 310, wins: 45, revenue: '$160K', aiSuggestion: 'Slight dip in opportunities but win rate improved' },
+    { week: 'Jun 15', opportunities: 290, wins: 50, revenue: '$170K', aiSuggestion: 'Opportunities down but revenue up - higher value deals?' },
+    { week: 'Jun 22', opportunities: 330, wins: 55, revenue: '$180K', aiSuggestion: 'End-of-month push showing positive results' },
+    { week: 'Jun 29', opportunities: 340, wins: 60, revenue: '$190K', aiSuggestion: 'Consistent weekly growth pattern emerging' },
+    { week: 'Jul 6', opportunities: 350, wins: 65, revenue: '$200K', aiSuggestion: 'New quarter starting strong' },
+    { week: 'Jul 13', opportunities: 360, wins: 70, revenue: '$210K', aiSuggestion: 'Steady progression in all metrics' },
+    { week: 'Jul 20', opportunities: 370, wins: 75, revenue: '$220K', aiSuggestion: 'Mid-month performance consistent' },
+    { week: 'Jul 27', opportunities: 380, wins: 80, revenue: '$230K', aiSuggestion: 'End-of-month peak as expected' },
+    { week: 'Aug 3', opportunities: 390, wins: 85, revenue: '$240K', aiSuggestion: 'New month starting at higher baseline' },
+    { week: 'Aug 10', opportunities: 400, wins: 90, revenue: '$250K', aiSuggestion: 'Growth trend continuing' },
+    { week: 'Aug 17', opportunities: 410, wins: 95, revenue: '$260K', aiSuggestion: 'Performance accelerating' },
+    { week: 'Aug 24', opportunities: 420, wins: 100, revenue: '$270K', aiSuggestion: 'Approaching monthly record' },
+    { week: 'Aug 31', opportunities: 430, wins: 105, revenue: '$280K', aiSuggestion: 'Strong finish to the month' }
   ];
 
   const leadSourceData = [
-    { source: 'Web', opportunities: 1213, avgRevenue: '$152.8K' },
-    { source: 'Social Media', opportunities: 1136, avgRevenue: '$119.3K' },
-    { source: 'Phone', opportunities: 948, avgRevenue: '$227.4K' },
-    { source: 'Others', opportunities: 635, avgRevenue: '$201.4K' },
-    { source: 'Email', opportunities: 508, avgRevenue: '$137.6K' },
-    { source: 'PPC', opportunities: 306, avgRevenue: '$94.8K' },
-    { source: 'Event', opportunities: 153, avgRevenue: '$84.2K' }
+    { source: 'Web', opportunities: 1213, avgRevenue: '$152.8K', aiSuggestion: 'High volume with good revenue. Optimize web conversion paths.' },
+    { source: 'Social Media', opportunities: 1136, avgRevenue: '$119.3K', aiSuggestion: 'Strong volume but lower value. Consider targeting higher-value segments.' },
+    { source: 'Phone', opportunities: 948, avgRevenue: '$227.4K', aiSuggestion: 'Highest value leads. Increase outbound calling efforts.' },
+    { source: 'Others', opportunities: 635, avgRevenue: '$201.4K', aiSuggestion: 'Miscellaneous sources performing well. Investigate top contributors.' },
+    { source: 'Email', opportunities: 508, avgRevenue: '$137.6K', aiSuggestion: 'Moderate performance. Test new email strategies.' },
+    { source: 'PPC', opportunities: 306, avgRevenue: '$94.8K', aiSuggestion: 'Lowest value leads. Review targeting and ad spend.' },
+    { source: 'Event', opportunities: 153, avgRevenue: '$84.2K', aiSuggestion: 'Low volume and value. Evaluate event ROI.' }
   ];
 
   const productRevenueData = [
-    { product: 'Data Science', revenue: '$1,650,000', percentage: '64.89%' },
-    { product: 'Computer Science', revenue: '$480,000', percentage: '18.86%' },
-    { product: 'Arts', revenue: '$210,000', percentage: '8.19%' },
-    { product: 'Business', revenue: '$205,000', percentage: '8.07%' }
+    { product: 'Data Science', revenue: '$1,650,000', percentage: '64.89%', aiSuggestion: 'Core revenue driver. Consider upselling/cross-selling opportunities.' },
+    { product: 'Computer Science', revenue: '$480,000', percentage: '18.86%', aiSuggestion: 'Solid secondary product. Bundle with Data Science for growth.' },
+    { product: 'Arts', revenue: '$210,000', percentage: '8.19%', aiSuggestion: 'Niche product with potential. Target specific buyer personas.' },
+    { product: 'Business', revenue: '$205,000', percentage: '8.07%', aiSuggestion: 'Balanced performance. Align with corporate training needs.' }
   ];
 
   const regionRevenueData = [
-    { region: 'North America', revenue: '$1,500,000', percentage: '58.8%' },
-    { region: 'Europe', revenue: '$600,000', percentage: '23.5%' },
-    { region: 'Asia', revenue: '$300,000', percentage: '11.8%' },
-    { region: 'South America', revenue: '$100,000', percentage: '3.9%' },
-    { region: 'Africa', revenue: '$46,000', percentage: '1.8%' }
+    { region: 'North America', revenue: '$1,500,000', percentage: '58.8%', aiSuggestion: 'Primary market. Focus on customer retention and expansion.' },
+    { region: 'Europe', revenue: '$600,000', percentage: '23.5%', aiSuggestion: 'Strong secondary market. Localize marketing efforts.' },
+    { region: 'Asia', revenue: '$300,000', percentage: '11.8%', aiSuggestion: 'High growth potential. Invest in local partnerships.' },
+    { region: 'South America', revenue: '$100,000', percentage: '3.9%', aiSuggestion: 'Emerging market. Test localized offerings.' },
+    { region: 'Africa', revenue: '$46,000', percentage: '1.8%', aiSuggestion: 'Nascent market. Focus on key urban centers.' }
   ];
 
   const customerStageData = [
-    { stage: 'Prospect', customers: 5000 },
-    { stage: 'Qualify', customers: 4000 },
-    { stage: 'Presentation/Demo', customers: 3000 },
-    { stage: 'Proposal', customers: 2000 },
-    { stage: 'Negotiation', customers: 1000 },
-    { stage: 'Close', customers: 628 }
+    { stage: 'Prospect', customers: 5000, aiSuggestion: 'Large pool. Improve qualification criteria.' },
+    { stage: 'Qualify', customers: 4000, aiSuggestion: 'Good progression. Strengthen discovery process.' },
+    { stage: 'Presentation/Demo', customers: 3000, aiSuggestion: 'Significant drop-off. Enhance demo effectiveness.' },
+    { stage: 'Proposal', customers: 2000, aiSuggestion: 'Further attrition. Refine proposal strategy.' },
+    { stage: 'Negotiation', customers: 1000, aiSuggestion: 'Half make it to negotiation. Improve deal shaping.' },
+    { stage: 'Close', customers: 628, aiSuggestion: 'Final conversion needs work. Focus on closing techniques.' }
   ];
 
   const salesPersonData = [
-    { name: 'Andree Repp', revenue: '$227,412' },
-    { name: 'Salla Yes', revenue: '$201,384' },
-    { name: 'Shannah Biden', revenue: '$119,267' },
-    { name: 'Hanny Giraudoux', revenue: '$152,803' },
-    { name: 'Thali Bour', revenue: '$94,763' }
+    { name: 'Andree Repp', revenue: '$227,412', aiSuggestion: 'Top performer. Identify best practices for team.' },
+    { name: 'Salla Yes', revenue: '$201,384', aiSuggestion: 'Strong results. Potential for further growth.' },
+    { name: 'Shannah Biden', revenue: '$119,267', aiSuggestion: 'Below average. Needs coaching or reassignment.' },
+    { name: 'Hanny Giraudoux', revenue: '$152,803', aiSuggestion: 'Solid middle performer. Could specialize.' },
+    { name: 'Thali Bour', revenue: '$94,763', aiSuggestion: 'Lowest performer. Requires performance plan.' }
   ];
 
   const salesTeamCostData = [
-    { category: 'Salaries', cost: '$300,000', percentage: '61.9%' },
-    { category: 'Commissions', cost: '$120,000', percentage: '24.7%' },
-    { category: 'Training', cost: '$35,000', percentage: '7.2%' },
-    { category: 'Travel', cost: '$20,000', percentage: '4.1%' },
-    { category: 'Tools', cost: '$10,000', percentage: '2.1%' }
+    { category: 'Salaries', cost: '$300,000', percentage: '61.9%', aiSuggestion: 'Fixed cost. Ensure alignment with productivity.' },
+    { category: 'Commissions', cost: '$120,000', percentage: '24.7%', aiSuggestion: 'Performance-based. Review incentive structure.' },
+    { category: 'Training', cost: '$35,000', percentage: '7.2%', aiSuggestion: 'Investment in skills. Measure ROI.' },
+    { category: 'Travel', cost: '$20,000', percentage: '4.1%', aiSuggestion: 'Client-facing expense. Optimize with virtual meetings.' },
+    { category: 'Tools', cost: '$10,000', percentage: '2.1%', aiSuggestion: 'Enablement cost. Ensure full utilization.' }
   ];
 
   const funnelMetricsData = [
-    { stage: 'Leads', count: '12,500', conversion: '100%' },
-    { stage: 'Opportunities', count: '4,890', conversion: '39.1%' },
-    { stage: 'Wins', count: '628', conversion: '12.8%' }
+    { stage: 'Leads', count: '12,500', conversion: '100%', aiSuggestion: 'Lead generation healthy. Focus on quality.' },
+    { stage: 'Opportunities', count: '4,890', conversion: '39.1%', aiSuggestion: 'Qualification process needs refinement.' },
+    { stage: 'Wins', count: '628', conversion: '12.8%', aiSuggestion: 'Closing rate low. Review sales process.' }
   ];
 
   const aiSuggestions = {
@@ -192,54 +198,63 @@ const SalesPerformanceTable = () => {
           { header: 'Value', accessor: 'value' },
           { header: 'Change', accessor: 'change' },
           { header: 'Trend', accessor: 'isPositive' },
-          { header: 'Forecast', accessor: 'forecast' }
+          { header: 'Forecast', accessor: 'forecast' },
+          { header: 'AI Insight', accessor: 'aiSuggestion' }
         ];
       case 'revenueTrend':
         return [
           { header: 'Week', accessor: 'week' },
           { header: 'Opportunities', accessor: 'opportunities' },
           { header: 'Wins', accessor: 'wins' },
-          { header: 'Revenue', accessor: 'revenue' }
+          { header: 'Revenue', accessor: 'revenue' },
+          { header: 'AI Insight', accessor: 'aiSuggestion' }
         ];
       case 'leadSource':
         return [
           { header: 'Lead Source', accessor: 'source' },
           { header: 'Opportunities', accessor: 'opportunities' },
-          { header: 'Avg Revenue', accessor: 'avgRevenue' }
+          { header: 'Avg Revenue', accessor: 'avgRevenue' },
+          { header: 'AI Insight', accessor: 'aiSuggestion' }
         ];
       case 'productRevenue':
         return [
           { header: 'Product', accessor: 'product' },
           { header: 'Revenue', accessor: 'revenue' },
-          { header: 'Percentage', accessor: 'percentage' }
+          { header: 'Percentage', accessor: 'percentage' },
+          { header: 'AI Insight', accessor: 'aiSuggestion' }
         ];
       case 'regionRevenue':
         return [
           { header: 'Region', accessor: 'region' },
           { header: 'Revenue', accessor: 'revenue' },
-          { header: 'Percentage', accessor: 'percentage' }
+          { header: 'Percentage', accessor: 'percentage' },
+          { header: 'AI Insight', accessor: 'aiSuggestion' }
         ];
       case 'customerStage':
         return [
           { header: 'Stage', accessor: 'stage' },
-          { header: 'Customers', accessor: 'customers' }
+          { header: 'Customers', accessor: 'customers' },
+          { header: 'AI Insight', accessor: 'aiSuggestion' }
         ];
       case 'salesPerson':
         return [
           { header: 'Sales Person', accessor: 'name' },
-          { header: 'Revenue', accessor: 'revenue' }
+          { header: 'Revenue', accessor: 'revenue' },
+          { header: 'AI Insight', accessor: 'aiSuggestion' }
         ];
       case 'salesTeamCost':
         return [
           { header: 'Category', accessor: 'category' },
           { header: 'Cost', accessor: 'cost' },
-          { header: 'Percentage', accessor: 'percentage' }
+          { header: 'Percentage', accessor: 'percentage' },
+          { header: 'AI Insight', accessor: 'aiSuggestion' }
         ];
       case 'funnelMetrics':
         return [
           { header: 'Stage', accessor: 'stage' },
           { header: 'Count', accessor: 'count' },
-          { header: 'Conversion', accessor: 'conversion' }
+          { header: 'Conversion', accessor: 'conversion' },
+          { header: 'AI Insight', accessor: 'aiSuggestion' }
         ];
       default:
         return [];
@@ -283,12 +298,12 @@ const SalesPerformanceTable = () => {
             <p className="text-sky-100 text-xs">Detailed tabular view of all sales metrics</p>
           </div>
           <div className="flex space-x-2">
-            <button
+            {/* <button
               onClick={() => navigate(-1)}
               className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200"
             >
               <FiChevronRight className="mr-1 transform rotate-180" /> Back to Dashboard
-            </button>
+            </button> */}
             <button
               onClick={() => exportToExcel(getCurrentData(), activeTab)}
               className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200"
@@ -321,7 +336,7 @@ const SalesPerformanceTable = () => {
           ].map((tab) => (
             <button
               key={tab.id}
-              className={`px-4 py-3 text-sm font-medium whitespace-nowrap ${activeTab === tab.id ? 'text-blue-600 border-b-2 border-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`px-4 py-3 text-sm font-medium whitespace-nowrap ${activeTab === tab.id ? 'text-blue-500 border-b-2 border-blue-500' : 'text-gray-500 hover:text-blue-500'}`}
               onClick={() => setActiveTab(tab.id)}
             >
               {tab.label}
@@ -387,52 +402,80 @@ const SalesPerformanceTable = () => {
             </motion.div>
           )}
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  {getCurrentColumns().map((column, index) => (
-                    <th
-                      key={index}
-                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      {column.header}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {getCurrentData().map((row, rowIndex) => (
-                  <tr key={rowIndex} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                    {getCurrentColumns().map((column, colIndex) => {
-                      if (column.accessor === 'isPositive') {
-                        return (
-                          <td key={colIndex} className="px-4 py-3 whitespace-nowrap text-sm">
-                            <span className={`inline-flex items-center ${row.isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                              {row.isPositive ? (
-                                <>
-                                  <FiTrendingUp className="mr-1" /> Positive
-                                </>
-                              ) : (
-                                <>
-                                  <FiTrendingUp className="mr-1 transform rotate-180" /> Negative
-                                </>
-                              )}
-                            </span>
-                          </td>
-                        );
-                      }
-                      return (
-                        <td key={colIndex} className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                          {row[column.accessor]}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+           <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              {getCurrentColumns().map((column, index) => (
+                <th
+                  key={index}
+                  className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider"
+                >
+                  {column.header}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {getCurrentData().map((row, rowIndex) => (
+              <tr key={rowIndex} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                {getCurrentColumns().map((column, colIndex) => {
+                  if (column.accessor === 'isPositive') {
+                    return (
+                      <td key={colIndex} className="px-4 py-3 whitespace-nowrap text-sm">
+                        <span className={`inline-flex items-center ${row.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                          {row.isPositive ? (
+                            <>
+                              <FiTrendingUp className="mr-1" /> Positive
+                            </>
+                          ) : (
+                            <>
+                              <FiTrendingUp className="mr-1 transform rotate-180" /> Negative
+                            </>
+                          )}
+                        </span>
+                      </td>
+                    );
+                  }
+                  if (column.accessor === 'aiSuggestion') {
+                    return (
+                      <td key={colIndex} className="px-4 py-3 text-sm text-gray-700">
+                        <div className="flex items-start">
+                          <BsStars className="flex-shrink-0 mt-0.5 mr-2 text-blue-500" />
+                          <span className="text-xs">{row.aiSuggestion}</span>
+                        </div>
+                      </td>
+                    );
+                  }
+                  return (
+                    <td key={colIndex} className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                      {row[column.accessor]}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+          {/* AI Summary Box */}
+          <motion.div 
+            className="mt-6 bg-blue-50 rounded-lg p-4 border border-blue-100"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="flex items-start">
+              <div className="flex-shrink-0 mt-1">
+                <BsStars className="h-5 w-5 text-blue-600" />
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-semibold text-blue-800">AI Analysis Summary</h3>
+                <p className="text-sm text-blue-700 mt-1">{aiSuggestions[activeTab]}</p>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
     </div>

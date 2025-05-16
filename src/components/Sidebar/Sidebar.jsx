@@ -236,7 +236,7 @@ const MENUITEMS = [
         active: false,
         children: [
           {
-            path: "#",
+            path: "/sales-performance-dashboard",
             type: "link",
             title: "Sales and Marketing Analytics ",
             icon: { name: "FiFile" },
@@ -250,12 +250,12 @@ const MENUITEMS = [
             ],
           },
           {
-            path: "#",
+            path: "/hr-workforce",
             type: "link",
             title: "HR & Workforce Analytics",
             icon: { name: "FiFile" },
             children: [
-              { path: "#", type: "link", title: "Employee Productivity Report ", icon: { name: "FiFile" } },
+              { path: "/hr-workforce", type: "link", title: "Employee Productivity Report ", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Utilization Rate Report ", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Retention & Attrition Rate Analysis ", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Hiring Funnel Metrics ", icon: { name: "FiFile" } },
@@ -264,12 +264,12 @@ const MENUITEMS = [
             ],
           },
           {
-            path: "#",
+            path: "/it-technology-spend",
             type: "link",
             title: "IT & Technology Spend Analytics ",
             icon: { name: "FiFile" },
             children: [
-              { path: "#", type: "link", title: "IT Spend Breakdown ", icon: { name: "FiFile" } },
+              { path: "/it-technology-spend", type: "link", title: "IT Spend Breakdown ", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Software License Utilization", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Infrastructure Cost Efficiency ", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "IT Project Budget vs. Actuals ", icon: { name: "FiFile" } },
