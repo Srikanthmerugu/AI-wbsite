@@ -41,6 +41,8 @@ export const AuthProvider = ({ children }) => {
         setToken(data.access_token);
         setIsAuthenticated(true);
         setUserEmail(email);
+                console.log(email, "comming fro the login lone-52")
+
         toast.success("Login successful");
         navigate('/');
         return true;

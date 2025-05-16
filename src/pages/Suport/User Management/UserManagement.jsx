@@ -18,7 +18,7 @@ import { Tooltip } from 'react-tooltip';
 import * as XLSX from 'xlsx';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { AuthContext } from '../../../context/AuthContext';
+import {  useAuth } from '../../../context/AuthContext';
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component {
@@ -210,7 +210,7 @@ const DeleteConfirmModal = ({ user, onConfirm, onCancel, loading }) => {
 
 // User Management Component
 const UserManagement = () => {
-  const { token } = useContext(AuthContext);
+  const { token } = useContext(useAuth);
   const [activeTab, setActiveTab] = useState('roles');
   const [showPassword, setShowPassword] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');

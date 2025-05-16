@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useContext } from 'react';
 import { FaUserCircle } from 'react-icons/fa';
-import { AuthContext } from '../../context/AuthContext';
+import {  } from '../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 
 const ProfileDropdown = ({ isOpen, onClose }) => {
   const dropdownRef = useRef(null);
-  const { logout } = useContext(AuthContext);
+  // const { logout } = useContext(AuthContext);
+    const { isAuthenticated, userData, logout } = useAuth();
+
 
   const navigate = useNavigate();
 

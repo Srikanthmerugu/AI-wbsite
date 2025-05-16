@@ -16,6 +16,7 @@
     "ag-grid-enterprise": "^33.2.4",
     "ag-grid-react": "^33.2.4",
     "apexcharts": "^4.5.0",
+    "axios": "^1.9.0",
     "chart.js": "^4.4.8",
     "framer-motion": "^12.9.1",
     "highcharts": "^12.2.0",

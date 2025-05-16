@@ -1,6 +1,6 @@
 // src/pages/Login.js
 import React, { useState, useContext } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { FiLock, FiMail, FiEye, FiEyeOff } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { LoginBG, offRobo } from '../assets/Assets';
@@ -12,11 +12,14 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const { login, loading } = useContext(AuthContext);
+  const { login, loading } = useContext(useAuth);
+  
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    console.log(login, "login page from login page");
     
     if (!email || !password) {
       toast.error('Please fill in all fields');

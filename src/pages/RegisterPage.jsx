@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { FiLock, FiMail, FiEye, FiEyeOff, FiUser, FiHome, FiGlobe, FiBriefcase, FiPhone } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { LoginBG, offRobo } from '../assets/Assets';
@@ -21,7 +21,7 @@ const RegisterPage = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const { register } = useContext(AuthContext);
+  const { register } = useContext(useAuth);
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
