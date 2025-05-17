@@ -10,7 +10,7 @@ import AIChatBot from '../pages/AIChatBot';
 import LoginPage from '../pages/Login';
 import ExpenseForecastingDashboard from '../pages/ForecastingOverview/ExpenseForecastingDashboard';
 import HelpSupport from '../pages/Suport/HelpSupport';
-import UserManagement from '../pages/Suport/User Management/UserManagement';
+import UserManagement from '../pages/Suport/UserManagement';
 import CashFlowProjections from '../pages/CashFlowProjections';
 import SmartFinancialAlerts from '../pages/SmartFinancialAlerts';
 import AIFinancialRecommendations from '../pages/AIFinancialRecommendations';

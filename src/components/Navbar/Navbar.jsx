@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { FiSearch, FiBell, FiMessageSquare, FiMenu } from 'react-icons/fi';
 import { FaUserCircle } from 'react-icons/fa';
 import { BsStars } from 'react-icons/bs';
@@ -7,12 +7,14 @@ import SearchBar from './SearchBar';
 import ProfileDropdown from './ProfileDropdown';
 import NotificationToast from './NotificationToast';
 import MessageNotification from './MessageNotification';
+import { AuthContext } from '../../context/AuthContext';
 
 const Navbar = ({ toggleSidebar }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isAskAIOpen, setIsAskAIOpen] = useState(false);
   const [isMessagesOpen, setIsMessagesOpen] = useState(false);
+  const {currentUser} = useContext(AuthContext);
 
   // Create refs for each dropdown
   const profileRef = useRef(null);
@@ -82,7 +84,7 @@ const Navbar = ({ toggleSidebar }) => {
 
         {/* Search Bar */}
         <div>
-          <h1 className="text-2xl mx-5 font-bold text-sky-900">Welcome, Tech Innovators Inc.</h1>
+          <h1 className="text-2xl mx-5 font-bold text-sky-900">Welcome, {currentUser.company_name}</h1>
         </div>
 
         {/* Right Side - Icons */}
@@ -198,7 +200,7 @@ const Navbar = ({ toggleSidebar }) => {
               className="flex items-center space-x-2 border-2 p-1 hover:border-sky-700 border-sky-600 bg-white rounded-sm focus:outline-none shadow-2xl hover:bg-sky-900 hover:text-sky-50 text-sky-700 transition-all duration-200 transform hover:scale-[1.02]"
             >
               <span className="hidden capitalize md:inline-block text-sm">
-                Tech Innovators Inc
+                {currentUser.user_name}
               </span>
               <FaUserCircle className="text-2xl" />
             </button>

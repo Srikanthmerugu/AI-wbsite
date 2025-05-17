@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { AuthContext } from '../context/AuthContext';
 import { FiLock, FiMail, FiEye, FiEyeOff, FiUser, FiHome, FiGlobe, FiBriefcase, FiPhone } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { LoginBG, offRobo } from '../assets/Assets';

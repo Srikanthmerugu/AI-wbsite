@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -39,6 +39,7 @@ import {
 import { BsStars, BsThreeDotsVertical } from "react-icons/bs";
 import { Tooltip as ReactTooltip } from "react-tooltip";
 import { RiDragMove2Fill } from "react-icons/ri";
+import { AuthContext } from "../../context/AuthContext";
 
 // Register ChartJS components
 ChartJS.register(
@@ -311,7 +312,8 @@ const FinancialOverview = () => {
 	const navigate = useNavigate();
 	const [showAIChatbot, setShowAIChatbot] = useState(false);
 	const [showFilters, setShowFilters] = useState(false);
-	const [selectedCompany, setSelectedCompany] = useState("Acme Corporation");
+	// const [selectedCompany, setSelectedCompany] = useState("Maven Group Global");
+	const {currentUser} = useContext(AuthContext)
 	const [activeWidgets, setActiveWidgets] = useState([
 		"revenueTrend",
 		"expenseBreakdown",
@@ -716,7 +718,7 @@ const FinancialOverview = () => {
 						<h1 className="text-lg font-bold text-white">
 							Financial Dashboard
 						</h1>
-						<p className="text-sky-100 text-xs">{selectedCompany}</p>
+						<p className="text-sky-100 text-xs">{currentUser.company_name}</p>
 					</div>
 					<div className="flex space-x-2">
 						<button
