@@ -6,6 +6,7 @@ import Loader from './Loading/Loading';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useContext(AuthContext);
+  
 
   if (loading) {
     return <div className="flex justify-center items-center h-screen"><Loader /></div>;

@@ -6,6 +6,10 @@ import { Link, useNavigate } from 'react-router-dom';
 const ProfileDropdown = ({ isOpen, onClose }) => {
   const dropdownRef = useRef(null);
   const { logout } = useContext(AuthContext);
+    const { currentUser } = useContext(AuthContext);
+    // const {currentUser} = useContext(AuthContext);
+  
+  
 
   const navigate = useNavigate();
 
@@ -48,7 +52,11 @@ const ProfileDropdown = ({ isOpen, onClose }) => {
       </div> */}
       <div className="flex flex-col items-center px-4 pb-4">
         <FaUserCircle className="w-24 h-24 text-gray-50" />
-        <h5 className="text-xl font-medium  text-white mt-2">Tech Innovators Inc</h5>
+        {/* <p><strong>Name:</strong> {currentUser.user_name}</p> */}
+        
+        <h5 className="text-xl font-medium  text-white mt-2">{currentUser.user_name}</h5>
+        <h5 className="text-sm font-medium  text-white mt-2">Department: {currentUser.
+user_department}</h5>
         {/* <span className="text-sm text-gray-200">Administrator</span> */}
         <div className="flex mt-4 space-x-2">
           <button

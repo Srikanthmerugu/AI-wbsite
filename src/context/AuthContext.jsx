@@ -2,6 +2,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { API_BASE_URL } from '../config/config';
 
 export const AuthContext = createContext();
 
@@ -11,35 +12,53 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [userEmail, setUserEmail] = useState('');
   const [resetToken, setResetToken] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
+
+
+  console.log(currentUser, "from the auth context");
 
   // Check for token on initial load
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('currentUser');
+    
     if (storedToken) {
       setToken(storedToken);
       setIsAuthenticated(true);
+      
+      if (storedUser) {
+        try {
+          setCurrentUser(JSON.parse(storedUser));
+          setUserEmail(JSON.parse(storedUser).user_email || '');
+        } catch (e) {
+          console.error("Failed to parse user data", e);
+        }
+      }
     }
     setLoading(false);
   }, []);
 
   const login = async (email, password) => {
     try {
+
       setLoading(true);
-      const response = await fetch('http://91.108.104.205:8000/auth/user-login', {
+      const response = await fetch(`${API_BASE_URL}/auth/user-login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
-      });
+      }); 
 
       const data = await response.json();
 
       if (response.ok && data.access_token) {
         localStorage.setItem('token', data.access_token);
+        localStorage.setItem('currentUser', JSON.stringify(data));
         setToken(data.access_token);
         setIsAuthenticated(true);
+        setCurrentUser(data);
         setUserEmail(email);
         toast.success("Login successful");
         navigate('/');
@@ -66,7 +85,7 @@ export const AuthProvider = ({ children }) => {
   const requestPasswordReset = async (email) => {
     try {
       setLoading(true);
-      const response = await fetch('http://91.108.104.205:8000/auth/request-reset-password/', {
+      const response = await fetch(`${API_BASE_URL}/auth/request-reset-password/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,7 +112,7 @@ export const AuthProvider = ({ children }) => {
   const resetPassword = async (token, newPassword) => {
     try {
       setLoading(true);
-      const response = await fetch(`http://91.108.104.205:8000/auth/reset-password/${token}`, {
+      const response = await fetch(`${API_BASE_URL}/auth/reset-password/${token}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -122,9 +141,11 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('currentUser');
     setToken(null);
     setIsAuthenticated(false);
     setUserEmail('');
+    setCurrentUser(null);
     navigate('/login');
     toast.success('Logged out successfully');
   };
@@ -136,6 +157,7 @@ export const AuthProvider = ({ children }) => {
       loading,
       userEmail,
       resetToken,
+      currentUser,
       login,
       logout,
       requestPasswordReset,

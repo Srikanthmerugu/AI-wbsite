@@ -355,87 +355,7 @@ const MENUITEMS = [
 
 
 
-      {
-        title: "AI Insights & Alerts",
-        icon: { name: "FiBell" },
-        path: "#",
-        type: "sub",
-        badge: "badge badge-light-secondary",
-        badgetxt: "New",
-        active: false,
-        children: [
-          {
-            path: "/smart-financial-alerts",
-            type: "link",
-            title: "Smart Financial Alerts",
-            icon: { name: "FiFile" },
-            children: [
-              { path: "#", type: "link", title: "Cash Shortfall Warning", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Budget Overrun Alerts", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Revenue Drop & Sales Decline Alerts", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Expense Spike Detection", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Accounts Receivable Aging Alerts", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Accounts Payable Due Alerts", icon: { name: "FiFile" } },
-            ],
-          },
-          {
-            path: "#",
-            type: "link",
-            title: "AI-Powered Financial Recommendations ",
-            icon: { name: "FiFile" },
-            children: [
-              { path: "#", type: "link", title: "Cost Optimization Suggestions ", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Revenue Growth Strategies", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Profitability Enhancement Plans", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Investment & Capital Allocation Advice", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Vendor Contract Negotiation", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Tax Optimization & Compliance Suggestions", icon: { name: "FiFile" } },
-            ],
-          },
-          {
-            path: "#",
-            type: "link",
-            title: "Predictive Risk Management ",
-            icon: { name: "FiFile" },
-            children: [
-              { path: "#", type: "link", title: "Financial Fraud & Anomaly Detection ", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Operational Risk Alerts", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Market Volatility & External Risk Alerts", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Debt Repayment & Interest Rate Risks", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Customer Churn Risk Forecasting", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Credit Risk Exposure", icon: { name: "FiFile" } },
-            ],
-          },
-          {
-            path: "#",
-            type: "link",
-            title: "AI-Driven Forecast Accuracy Monitoring",
-            icon: { name: "FiFile" },
-            children: [
-              { path: "#", type: "link", title: "Revenue Forecast Deviation Analysis", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Expense Forecast Accuracy", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Cash Flow Forecast Reliability", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "AI Model Confidence Scores", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Forecast Adjustment History", icon: { name: "FiFile" } },
-            ],
-          },
-          {
-            path: "#",
-            type: "link",
-            title: "AI-Powered Benchmarking & Peer Comparisons",
-            icon: { name: "FiFile" },
-            children: [
-              { path: "#", type: "link", title: "Industry Profitability Comparison", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Revenue Growth Benchmarking", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Operational Cost Efficiency Index", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Debt & Leverage Comparisons", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Employee Productivity Metrics", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Market Expansion & Performance Trends", icon: { name: "FiFile" } },
-            ],
-          },
-         
-        ],
-      },
+       
 
 
 
@@ -460,20 +380,20 @@ const MENUITEMS = [
       //     { path: "#", title: "AI-Powered Benchmarking & Peer Comparisons", type: "link", icon: { name: "FiFile" } },
       //   ],
       // },
-      {
-        title: "User Management",
-        path: "/user-management",
-        icon: { name: "FiUsers" },
-        type: "link",
-        type: "sub",
-        active: false,
-      },
-      {
-        path: "/company-management-table",
-        icon: { name: "FaLayerGroup" },
-        title: "All Companies Management",
-        type: "link",
-      },
+      // {
+      //   title: "User Management",
+      //   path: "/user-management",
+      //   icon: { name: "FiUsers" },
+      //   type: "link",
+      //   type: "sub",
+      //   active: false,
+      // },
+      // {
+      //   path: "/company-management-table",
+      //   icon: { name: "FaLayerGroup" },
+      //   title: "All Companies Management",
+      //   type: "link",
+      // },
       {
         path: "#",
         icon: { name: "FiSettings" },
