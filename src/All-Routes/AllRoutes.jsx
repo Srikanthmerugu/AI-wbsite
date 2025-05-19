@@ -38,8 +38,16 @@ import ResetPasswordPage from '../pages/ResetPasswordPage';
 import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 
 import ProfileDetailsScreen from '../pages/Organizations List Screen/OrganizationsListScreen';
-import SalesPerformanceDashboard from '../pages/Performance Analytics/SalesPerformanceDashboard';
-import SalesPerformanceTable from '../pages/Performance Analytics/SalesPerformanceTable';
+import SalesPerformanceDashboard from '../pages/Performance Analytics/Sales and Marketing/SalesPerformanceDashboard';
+import SalesPerformanceTable from '../pages/Performance Analytics/Sales and Marketing/SalesPerformanceTable';
+import HRworkForce from '../pages/Performance Analytics/Sales and Marketing/HRworkForce';
+import ITSpendAnalytics from '../pages/Performance Analytics/Sales and Marketing/ITspendAnalytics';
+import PipelineConversion from '../pages/Performance Analytics/Sales and Marketing/PipelineConversion';
+import CACandCLV from '../pages/Performance Analytics/Sales and Marketing/CACandCLV';
+import ChurnRetention from '../pages/Performance Analytics/Sales and Marketing/ChurnRetention';
+import MarketingCampaign from '../pages/Performance Analytics/Sales and Marketing/MarketingCampaign';
+import RevenueBreakdown from '../pages/Performance Analytics/Sales and Marketing/RevenueBreakdown';
+
 
 
 function AllRoutes() {
@@ -90,6 +98,13 @@ function AllRoutes() {
               {/* Performance Analytics */}
               <Route path="/sales-performance-dashboard" element={<SalesPerformanceDashboard  />} />
               <Route path="/sales-performance-table" element={<SalesPerformanceTable  />} />
+              <Route path="/pipeline-conversion" element={<PipelineConversion  />} />
+              <Route path="/cac-clv" element={<CACandCLV  />} />
+              <Route path="/churn-retention" element={<ChurnRetention />} />
+              <Route path="/marketing-campaign" element={<MarketingCampaign />} />
+              <Route path="/revenue-breakdown" element={<RevenueBreakdown />} />
+              <Route path="/hr-workforce" element={<HRworkForce  />} /> 
+              <Route path="/it-technology-spend" element={<ITSpendAnalytics  />} />
 
             </Route>
           </Route>

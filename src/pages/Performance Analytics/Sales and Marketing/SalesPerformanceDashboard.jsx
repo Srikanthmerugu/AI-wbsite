@@ -14,10 +14,10 @@ import {
   Legend,
   Filler,
 } from "chart.js";
-import { Bar, Line, Pie, Doughnut, Radar, PolarArea, Bubble } from "react-chartjs-2";
+import { Bar, Line, Pie, Doughnut } from "react-chartjs-2";
 import { motion } from "framer-motion";
-import { FiTrendingUp, FiTrendingDown, FiDollarSign, FiPieChart, FiFilter, FiPlus, FiChevronDown, FiSend, FiUser, FiMap, FiLayers } from "react-icons/fi";
-import { BsStars, BsThreeDotsVertical } from "react-icons/bs";
+import { FiTrendingUp, FiTrendingDown, FiDollarSign, FiPieChart, FiFilter, FiPlus, FiChevronDown, FiSend, FiUser, FiMap, FiLayers, FiRefreshCw, FiUsers} from "react-icons/fi";
+import { BsStars, BsThreeDotsVertical, BsCashCoin} from "react-icons/bs";
 import { Tooltip as ReactTooltip } from "react-tooltip";
 import { RiDragMove2Fill } from "react-icons/ri";
 import { GrLinkNext } from "react-icons/gr";
@@ -47,11 +47,23 @@ const kpiData = {
   totalRevenue: { value: 2546000, change: "-25%", componentPath: "/sales-performance-dashboard", forecast: "$2.8M predicted next quarter" },
   revenuePerSegment: { value: 152000, change: "+8%", componentPath: "/sales-performance-dashboard", forecast: "$165K predicted next quarter" },
   salesTeamCost: { value: 485000, change: "+12%", componentPath: "/sales-performance-dashboard", forecast: "$520K predicted next quarter" },
-//   roi: { value: 5.2, change: "-0.8", componentPath: "/sales-performance-dashboard", forecast: "5.5 predicted next quarter" },
-  leads: { value: 12500, change: "+15%", componentPath: "/leads-dashboard", forecast: "13,500 predicted next quarter" },
-  opportunities: { value: 4890, change: "+10%", componentPath: "/opportunities-dashboard", forecast: "5,200 predicted next quarter" },
-  wins: { value: 628, change: "+5%", componentPath: "/wins-dashboard", forecast: "700 predicted next quarter" },
+  roi: { value: 5.2, change: "-0.8", componentPath: "/sales-performance-dashboard", forecast: "5.5 predicted next quarter" },
+  // leads: { value: 12500, change: "+15%", componentPath: "/sales-performance-dashboard", forecast: "13,500 predicted next quarter" },
+  // opportunities: { value: 4890, change: "+10%", componentPath: "/sales-performance-dashboard", forecast: "5,200 predicted next quarter" },
+  // wins: { value: 628, change: "+5%", componentPath: "/sales-performance-dashboard", forecast: "700 predicted next quarter" },
 };
+
+
+// Navigation items
+  const navItems = [
+    { name: "Sales Dashboard", icon: <FiDollarSign />, path: "/sales-performance-dashboard" },
+    { name: "Pipeline & Conversion", icon: <FiTrendingUp />, path: "/pipeline-conversion" },
+    { name: "CAC & CLV", icon: <BsCashCoin />, path: "/cac-clv" },
+    { name: "Churn & Retention", icon: <FiRefreshCw />, path: "/churn-retention" },
+    { name: "Marketing Campaigns", icon: <FiUsers />, path: "/marketing-campaign" },
+    { name: "Revenue Breakdown", icon: <FiPieChart />, path: "/revenue-breakdown" }
+  ];
+
 
 const charts = {
   revenueTrend: {
@@ -217,8 +229,17 @@ const charts = {
   },
 };
 
+
 const SalesPerformanceDashboard = () => {
   const navigate = useNavigate();
+  const [filters, setFilters] = useState({
+    timePeriod: "Last Quarter",
+    region: "All Regions",
+    product: "All Products",
+    segment: "All Segments",
+    team: "All Teams"
+  });
+  const [filteredData, setFilteredData] = useState({});
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState("");
   const [activeWidgets, setActiveWidgets] = useState(["revenueTrend", "revenueByProduct", "revenueByRegion", "customersByStage", "revenueBySalesPerson", "salesTeamCost"]);
@@ -386,6 +407,7 @@ const SalesPerformanceDashboard = () => {
     );
   };
 
+
   const RevenueTargetTable = () => (
     <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100">
       <h3 className="text-sm font-semibold text-sky-800 mb-2">Revenue vs Target (with AI Forecast)</h3>
@@ -471,14 +493,14 @@ const SalesPerformanceDashboard = () => {
               </div>
             ))}
           </div>
-          <div className="flex justify-end mt-4 space-x-2">
+          {/* <div className="flex justify-end mt-4 space-x-2">
             <button className="px-4 py-2 text-sm bg-gray-200 rounded hover:bg-gray-300">Reset</button>
             <button className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Apply Filters</button>
-          </div>
+          </div> */}
         </div>
       )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+      <div className=" grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {Object.entries(kpiData).map(([key, value], index) => (
           <KPICard
             key={key}
@@ -495,6 +517,29 @@ const SalesPerformanceDashboard = () => {
           />
         ))}
       </div>
+
+      {/* Navigation Cards
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {navItems.map((item, index) => (
+          <Link to={item.path} key={index}>
+            <motion.div 
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              transition={{ delay: index * 0.1 }}
+              whileHover={{ y: -3 }}
+              className="bg-white p-4 rounded-lg border border-sky-100 shadow-sm hover:shadow-md transition-all duration-300"
+            >
+              <div className="flex flex-col items-center text-center">
+                <div className="p-3 rounded-full bg-sky-100 text-sky-600 mb-2">
+                  {item.icon}
+                </div>
+                <h3 className="text-sm font-medium text-sky-800">{item.name}</h3>
+              </div>
+            </motion.div>
+          </Link>
+        ))}
+      </div> */}
 
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="charts" isDropDisabled={false}>
@@ -530,6 +575,25 @@ const SalesPerformanceDashboard = () => {
 
       <ReactTooltip id="chart-type-tooltip" place="top" effect="solid" />
       <ReactTooltip id="ai-tooltip" place="top" effect="solid" />
+
+      {/* Quick Links to Sub-Pages */}
+      <div className="bg-white p-5 rounded-xl shadow-sm border border-sky-100 mt-6">
+        <h3 className="text-md font-semibold text-sky-800 mb-4">Explore Detailed Analytics</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          {navItems.map((item, index) => (
+            <Link 
+              to={item.path} 
+              key={index} 
+              className="bg-sky-50 hover:bg-sky-100 p-3 rounded-lg text-center text-sm font-medium text-sky-800 transition-colors"
+            >
+              <div className="mx-auto w-8 h-8 bg-sky-100 rounded-full flex items-center justify-center mb-2 text-sky-600">
+                {item.icon}
+              </div>
+              {item.name}
+            </Link>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
