@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }) => {
     try {
 
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/auth/user-login`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/company/user/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -85,7 +85,7 @@ export const AuthProvider = ({ children }) => {
   const requestPasswordReset = async (email) => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/auth/request-reset-password/`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/company/user/auth/request-reset-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -112,7 +112,7 @@ export const AuthProvider = ({ children }) => {
   const resetPassword = async (token, newPassword) => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/auth/reset-password/${token}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/company/user/auth/reset-password/${token}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
