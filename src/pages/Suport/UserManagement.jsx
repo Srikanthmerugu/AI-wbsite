@@ -290,64 +290,100 @@ const UserManagement = () => {
       )
     : [];
 
-  const handleSaveUser = async (formData) => {
-    try {
-      setApiLoading(true);
+const handleSaveUser = async (formData) => {
+  try {
+    setApiLoading(true);
 
-      if (editingUser) {
-        // Update user
-        const response = await fetch(`${API_BASE_URL}/user-management/update-user/`, {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            user_id: editingUser.id,
-            user_email: formData.user_email,
-            user_department: formData.user_department,
-            user_role: formData.user_role,
-            company_name: editingUser.company_name || 'Unknown'
-          })
-        });
+    if (editingUser) {
+      // Update user
+      const response = await fetch(`${API_BASE_URL}/user-management/update-user/`, {
+        method: 'PATCH',  // Changed to PATCH as it's typically used for updates
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_id: editingUser.id,
+          user_email: formData.user_email,
+          user_department: formData.user_department,
+          user_role: formData.user_role,
+          reset_password: false  // Added this field as per API requirements
+        })
+      });
 
-        if (!response.ok) {
-          throw new Error('Failed to update user');
-        }
+      const responseData = await response.json();
 
-        toast.success('User updated successfully');
-      } else {
-        // Add new user
-        const response = await fetch(`${API_BASE_URL}/user-management/add-user/`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            full_name: formData.full_name,
-            user_email: formData.user_email,
-            user_department: formData.user_department,
-            user_role: formData.user_role
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to add user');
-        }
-
-        toast.success('User added successfully');
+      if (!response.ok) {
+        // If response is not ok, check for error messages in response
+        const errorMessage = responseData.message || 
+                            responseData.detail || 
+                            'Failed to update user';
+        throw new Error(errorMessage);
       }
 
-      await fetchUsers();
-      setShowAddEditModal(false);
-      setEditingUser(null);
-    } catch (error) {
-      toast.error(error.message || 'Operation failed');
-    } finally {
-      setApiLoading(false);
+      toast.success('User updated successfully!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    } else {
+      // Add new user
+      const response = await fetch(`${API_BASE_URL}/user-management/add-user/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          full_name: formData.full_name,
+          user_email: formData.user_email,
+          user_department: formData.user_department,
+          user_role: formData.user_role
+        })
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        const errorMessage = responseData.message || 
+                            responseData.detail || 
+                            'Failed to add user';
+        throw new Error(errorMessage);
+      }
+
+      toast.success('User added successfully!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
     }
-  };
+
+    await fetchUsers();
+    setShowAddEditModal(false);
+    setEditingUser(null);
+  } catch (error) {
+    console.error('User operation error:', error);
+    toast.error(error.message || 'Operation failed', {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+  } finally {
+    setApiLoading(false);
+  }
+};
 
   const handleDeleteUser = async () => {  
     try {
@@ -549,7 +585,7 @@ const UserManagement = () => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Active</th>
+                      {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Active</th> */}
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
@@ -575,9 +611,9 @@ const UserManagement = () => {
                               {user.role || 'N/A'}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                          {/* <td className="px-6 py-4 whitespace-nowrap text-gray-500">
                             {formatDate(user.last_active)}
-                          </td>
+                          </td> */}
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span
                               className={`px-2 py-1 text-xs rounded-full ${
