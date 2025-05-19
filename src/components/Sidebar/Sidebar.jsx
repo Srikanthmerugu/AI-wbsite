@@ -242,11 +242,11 @@ const MENUITEMS = [
             icon: { name: "FiFile" },
             children: [
               { path: "/sales-performance-dashboard", type: "link", title: "Sales Performance Dashboard ", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Pipeline & Conversion Analysis ", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "CAC &  CLV", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Churn & Retention Analysis", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Marketing Campaign Performance ", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Revenue Breakdown", icon: { name: "FiFile" } },
+              { path: "/pipeline-conversion", type: "link", title: "Pipeline & Conversion Analysis ", icon: { name: "FiFile" } },
+              { path: "/cac-clv", type: "link", title: "CAC &  CLV", icon: { name: "FiFile" } },
+              { path: "/churn-retention", type: "link", title: "Churn & Retention Analysis", icon: { name: "FiFile" } },
+              { path: "/marketing-campaign", type: "link", title: "Marketing Campaign Performance ", icon: { name: "FiFile" } },
+              { path: "/revenue-breakdown", type: "link", title: "Revenue Breakdown", icon: { name: "FiFile" } },
             ],
           },
           {

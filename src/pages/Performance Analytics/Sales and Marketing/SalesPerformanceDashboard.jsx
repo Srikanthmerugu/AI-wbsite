@@ -57,11 +57,11 @@ const kpiData = {
 // Navigation items
   const navItems = [
     { name: "Sales Dashboard", icon: <FiDollarSign />, path: "/sales-performance-dashboard" },
-    { name: "Pipeline & Conversion", icon: <FiTrendingUp />, path: "/sales-performance-dashboard" },
-    { name: "CAC & CLV", icon: <BsCashCoin />, path: "/sales-performance-dashboard" },
-    { name: "Churn & Retention", icon: <FiRefreshCw />, path: "/sales-performance-dashboard" },
-    { name: "Marketing Campaigns", icon: <FiUsers />, path: "/sales-performance-dashboard" },
-    { name: "Revenue Breakdown", icon: <FiPieChart />, path: "/sales-performance-dashboard" }
+    { name: "Pipeline & Conversion", icon: <FiTrendingUp />, path: "/pipeline-conversion" },
+    { name: "CAC & CLV", icon: <BsCashCoin />, path: "/cac-clv" },
+    { name: "Churn & Retention", icon: <FiRefreshCw />, path: "/churn-retention" },
+    { name: "Marketing Campaigns", icon: <FiUsers />, path: "/marketing-campaign" },
+    { name: "Revenue Breakdown", icon: <FiPieChart />, path: "/revenue-breakdown" }
   ];
 
 
