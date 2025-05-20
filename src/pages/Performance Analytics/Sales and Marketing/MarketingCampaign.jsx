@@ -176,7 +176,7 @@ const MarketingCampaign = () => {
       icon: <FiDollarSign />,
       description: "Total marketing spend this year",
       forecast: "$450K predicted next quarter",
-      componentPath: "/ad-spend-detail"
+      componentPath: "/marketing-campaign"
     },
     {
       title: "Leads Generated",
@@ -186,7 +186,7 @@ const MarketingCampaign = () => {
       icon: <FiUsers />,
       description: "Total leads from campaigns",
       forecast: "6,800 predicted next quarter",
-      componentPath: "/leads-detail"
+      componentPath: "/marketing-campaign"
     },
     {
       title: "Avg CPL",
@@ -196,7 +196,7 @@ const MarketingCampaign = () => {
       icon: <FiTrendingDown />,
       description: "Cost per lead",
       forecast: "$62 predicted next quarter",
-      componentPath: "/cpl-detail"
+      componentPath: "/marketing-campaign"
     },
     {
       title: "Avg ROI",
@@ -206,7 +206,7 @@ const MarketingCampaign = () => {
       icon: <FiPieChart />,
       description: "Return on ad spend",
       forecast: "155% predicted next quarter",
-      componentPath: "/roi-detail"
+      componentPath: "/marketing-campaign"
     }
   ];
 
@@ -663,7 +663,7 @@ const MarketingCampaign = () => {
           }} 
           widgetId="spendVsLeads" 
           index={0} 
-          componentPath="/spend-leads-detail" 
+          componentPath="/marketing-campaign" 
         />
 
         {/* ROI Trend */}
@@ -691,7 +691,7 @@ const MarketingCampaign = () => {
           }} 
           widgetId="roiTrend" 
           index={1} 
-          componentPath="/roi-trend-detail" 
+          componentPath="/marketing-campaign" 
         />
       </div>
 
@@ -722,7 +722,7 @@ const MarketingCampaign = () => {
           }} 
           widgetId="channelPerformance" 
           index={2} 
-          componentPath="/channel-performance-detail" 
+          componentPath="/marketing-campaign" 
         />
 
         {/* ROI by Campaign Type */}
@@ -748,7 +748,7 @@ const MarketingCampaign = () => {
           }} 
           widgetId="roiByCampaignType" 
           index={3} 
-          componentPath="/roi-campaign-type-detail" 
+          componentPath="/marketing-campaign" 
         />
       </div>
 
@@ -756,12 +756,12 @@ const MarketingCampaign = () => {
       <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-md font-semibold text-sky-800">Campaign Performance Details</h3>
-          <button 
+          {/* <button 
             className="flex items-center text-xs text-sky-600 hover:text-sky-800"
             onClick={() => navigate("/campaign-performance-detail")}
           >
             View All Campaigns <FiChevronDown className="ml-1" />
-          </button>
+          </button> */}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left text-gray-700">
@@ -808,12 +808,12 @@ const MarketingCampaign = () => {
       <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-md font-semibold text-sky-800">Engagement Metrics</h3>
-          <button 
+          {/* <button 
             className="flex items-center text-xs text-sky-600 hover:text-sky-800"
             onClick={() => navigate("/marketing-campaign")}
           >
             View Details <FiChevronDown className="ml-1" />
-          </button>
+          </button> */}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {engagementMetrics.map((metric, i) => (

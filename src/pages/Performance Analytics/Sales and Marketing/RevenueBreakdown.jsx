@@ -202,7 +202,7 @@ const RevenueBreakdown = () => {
       isPositive: true,
       icon: <FiDollarSign />,
       description: "FY 2024 YTD",
-      componentPath: "/revenue-total-detail"
+      componentPath: "/revenue-breakdown"
     },
     {
       title: "YoY Growth",
@@ -211,7 +211,7 @@ const RevenueBreakdown = () => {
       isPositive: true,
       icon: <FiTrendingUp />,
       description: "vs. FY 2023",
-      componentPath: "/revenue-growth-detail"
+      componentPath: "/revenue-breakdown"
     },
     {
       title: "Top Region",
@@ -220,7 +220,7 @@ const RevenueBreakdown = () => {
       isPositive: true,
       icon: <FiGlobe />,
       description: "$18M revenue",
-      componentPath: "/region-detail"
+      componentPath: "/revenue-breakdown"
     },
     {
       title: "Top Product",
@@ -229,7 +229,7 @@ const RevenueBreakdown = () => {
       isPositive: true,
       icon: <FiPieChart />,
       description: "$25.6M revenue",
-      componentPath: "/product-detail"
+      componentPath: "/revenue-breakdown"
     },
     {
       title: "Recurring %",
@@ -238,7 +238,7 @@ const RevenueBreakdown = () => {
       isPositive: true,
       icon: <FiUsers />,
       description: "of total revenue",
-      componentPath: "/recurring-detail"
+      componentPath: "/revenue-breakdown"
     }
   ];
 
@@ -655,7 +655,7 @@ const RevenueBreakdown = () => {
         chartData={getChartDataForDimension(selectedDimension)} 
         widgetId="revenueBreakdown" 
         index={0} 
-        componentPath={`/revenue-${selectedDimension}-detail`} 
+        componentPath={`/revenue-breakdown`} 
       />
 
       {/* Detailed Table View */}
@@ -701,12 +701,12 @@ const RevenueBreakdown = () => {
       <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-md font-semibold text-sky-800">AI Insights & Recommendations</h3>
-          <button 
+          {/* <button 
             className="flex items-center text-xs text-sky-600 hover:text-sky-800"
             onClick={() => setShowAIDropdown("aiRecommendations")}
           >
             <BsStars className="mr-1" /> Ask Another Question
-          </button>
+          </button> */}
         </div>
         {showAIDropdown === "aiRecommendations" && (
           <div className="mb-4 bg-sky-50 p-3 rounded-lg">

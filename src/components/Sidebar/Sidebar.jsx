@@ -255,8 +255,8 @@ const MENUITEMS = [
             title: "HR & Workforce Analytics",
             icon: { name: "FiFile" },
             children: [
-              { path: "/hr-workforce", type: "link", title: "Employee Productivity Report ", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Utilization Rate Report ", icon: { name: "FiFile" } },
+              { path: "/employee-productivity-report", type: "link", title: "Employee Productivity Report ", icon: { name: "FiFile" } },
+              { path: "/utilization-rate-report", type: "link", title: "Utilization Rate Report ", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Retention & Attrition Rate Analysis ", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Hiring Funnel Metrics ", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Diversity & Inclusion Metrics", icon: { name: "FiFile" } },
