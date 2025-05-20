@@ -10,10 +10,9 @@ import AIChatBot from '../pages/AIChatBot';
 import LoginPage from '../pages/Login';
 import ExpenseForecastingDashboard from '../pages/ForecastingOverview/ExpenseForecastingDashboard';
 import HelpSupport from '../pages/Suport/HelpSupport';
-import UserManagement from '../pages/Suport/UserManagement';
 import CashFlowProjections from '../pages/CashFlowProjections';
 import SmartFinancialAlerts from '../pages/SmartFinancialAlerts';
-import AIFinancialRecommendations from '../pages/AIFinancialRecommendations';
+import AIFinancialRecommendations from '../pages/AI-driven Insights & Alerts/AI-Financial Recommendations/AIFinancialRecommendations';
 import CompanyManagementTable from '../pages/All Company management/CompanyManagementTable';
 import ForecastingOverview from '../pages/ForecastingOverview/ForecastingOverview';
 import CAPEXForecastScreen from '../pages/ForecastingOverview/CAPEXForecastScreen';
@@ -47,6 +46,14 @@ import CACandCLV from '../pages/Performance Analytics/Sales and Marketing/CACand
 import ChurnRetention from '../pages/Performance Analytics/Sales and Marketing/ChurnRetention';
 import MarketingCampaign from '../pages/Performance Analytics/Sales and Marketing/MarketingCampaign';
 import RevenueBreakdown from '../pages/Performance Analytics/Sales and Marketing/RevenueBreakdown';
+import UserManagement from '../pages/Suport/User Management/UserManagement';
+import CostOptimizationSuggestions from '../pages/AI-driven Insights & Alerts/AI-Financial Recommendations/CostOptimizationSuggestions';
+import RevenueGrowthStrategies from '../pages/AI-driven Insights & Alerts/AI-Financial Recommendations/RevenueGrowthStrategies';
+import InvestmentCapitalAllocation from '../pages/AI-driven Insights & Alerts/AI-Financial Recommendations/InvestmentCapitalAllocation';
+import ProfitabilityEnhancement from '../pages/AI-driven Insights & Alerts/AI-Financial Recommendations/ProfitabilityEnhancement';
+import ForecastAccuracyMonitoring from '../pages/AI-driven Insights & Alerts/Forecast Accuracy Monitoring/ForecastAccuracyMonitoring';
+import BenchmarkingPeerComparisons from '../pages/AI-driven Insights & Alerts/BenchmarkingDashboard/BenchmarkingDashboard';
+import PredictiveRiskManagement from '../pages/AI-driven Insights & Alerts/PredictiveRiskManagement/PredictiveRiskManagement';
 
 
 
@@ -75,6 +82,21 @@ function AllRoutes() {
               <Route path="/smart-financial-alerts" element={<SmartFinancialAlerts />} />
               <Route path="/expenseForecasting" element={<ExpenseForecastingDashboard />} />
               <Route path="/aI-financial-recommendations" element={<AIFinancialRecommendations />} />
+              <Route path="/cost-optimization-suggestions" element={<CostOptimizationSuggestions />} />
+              <Route path="/revenue-growth-strategies" element={<RevenueGrowthStrategies />} />
+              <Route path="/InvestmentCapitalAllocation" element={<InvestmentCapitalAllocation />} />
+              <Route path="/ProfitabilityEnhancement" element={<ProfitabilityEnhancement />} />
+              <Route path="/ForecastAccuracyMonitoring" element={<ForecastAccuracyMonitoring />} />
+              <Route path="/BenchmarkingPeerComparisons" element={<BenchmarkingPeerComparisons />} />
+              <Route path="/PredictiveRiskManagement" element={<PredictiveRiskManagement />} />
+
+
+
+              
+
+
+
+
               <Route path="/company-management-table" element={<CompanyManagementTable />} />
               <Route path="/forecasting-overview" element={<ForecastingOverview />} />
               <Route path="/CAPEX-forecast-screen" element={<CAPEXForecastScreen />} />
