@@ -244,7 +244,7 @@ const UserManagement = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/user-management/company-users/`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/company/management/company-users/`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -296,7 +296,7 @@ const handleSaveUser = async (formData) => {
 
     if (editingUser) {
       // Update user
-      const response = await fetch(`${API_BASE_URL}/user-management/update-user/`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/company/management/update-user/`, {
         method: 'PATCH',  // Changed to PATCH as it's typically used for updates
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -332,7 +332,7 @@ const handleSaveUser = async (formData) => {
       });
     } else {
       // Add new user
-      const response = await fetch(`${API_BASE_URL}/user-management/add-user/`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/company/management/add-user/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -389,7 +389,7 @@ const handleSaveUser = async (formData) => {
     try {
       setApiLoading(true);
 
-      const response = await fetch(`${API_BASE_URL}/user-management/delete-user/`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/company/management/delete-user/`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
