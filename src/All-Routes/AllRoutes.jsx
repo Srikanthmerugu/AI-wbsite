@@ -54,6 +54,8 @@ import ProfitabilityEnhancement from '../pages/AI-driven Insights & Alerts/AI-Fi
 import ForecastAccuracyMonitoring from '../pages/AI-driven Insights & Alerts/Forecast Accuracy Monitoring/ForecastAccuracyMonitoring';
 import BenchmarkingPeerComparisons from '../pages/AI-driven Insights & Alerts/BenchmarkingDashboard/BenchmarkingDashboard';
 import PredictiveRiskManagement from '../pages/AI-driven Insights & Alerts/PredictiveRiskManagement/PredictiveRiskManagement';
+import SupplyChainAnalytics from '../pages/Supply Chain & Procurement Analytics/SupplyChainAnalytics';
+import SupplierPerformanceScorecard from '../pages/Supply Chain & Procurement Analytics/SupplierPerformanceScorecard';
 
 
 
@@ -92,11 +94,18 @@ function AllRoutes() {
 
 
 
+
+
               
 
 
 
 
+              <Route path="/SupplyChainAnalytics" element={<SupplyChainAnalytics />} />
+              <Route path="/SupplierPerformanceScorecard" element={<SupplierPerformanceScorecard />} />
+
+
+              
               <Route path="/company-management-table" element={<CompanyManagementTable />} />
               <Route path="/forecasting-overview" element={<ForecastingOverview />} />
               <Route path="/CAPEX-forecast-screen" element={<CAPEXForecastScreen />} />
