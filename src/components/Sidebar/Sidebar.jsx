@@ -292,7 +292,7 @@ const MENUITEMS = [
             ],
           },
           {
-            path: "#",
+            path: "/SupplyChainAnalytics",
             type: "link",
             title: "Supply Chain & Procurement Analytics ",
             icon: { name: "FiFile" },
