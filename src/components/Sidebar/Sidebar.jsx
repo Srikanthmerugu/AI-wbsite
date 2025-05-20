@@ -54,25 +54,25 @@ const MENUITEMS = [
             type: "link",
             title: "Financial Overview",
             icon: { name: "FiFile" },
-            children: [
-              { path: "/revenue-component", type: "link", title: "Revenue", icon: { name: "FiFile" } },
-              { path: "/expense-component", type: "link", title: "Expenses", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Gross Profit", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "EBITDA", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Cashflow", icon: { name: "FiFile" } },
-            ],
+            // children: [
+            //   { path: "/revenue-component", type: "link", title: "Revenue", icon: { name: "FiFile" } },
+            //   { path: "/expense-component", type: "link", title: "Expenses", icon: { name: "FiFile" } },
+            //   { path: "#", type: "link", title: "Gross Profit", icon: { name: "FiFile" } },
+            //   { path: "#", type: "link", title: "EBITDA", icon: { name: "FiFile" } },
+            //   { path: "#", type: "link", title: "Cashflow", icon: { name: "FiFile" } },
+            // ],
           },
           {
             path: "/key-financial",
             type: "link",
             title: "Key Financial KPIs",
             icon: { name: "FiFile" },
-            children: [
-              { path: "#", type: "link", title: "Revenue per Employee", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Marketing ROI", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Cost per Lead", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Profitability by Product/Region", icon: { name: "FiFile" } },
-            ],
+            // children: [
+            //   { path: "#", type: "link", title: "Revenue per Employee", icon: { name: "FiFile" } },
+            //   { path: "#", type: "link", title: "Marketing ROI", icon: { name: "FiFile" } },
+            //   { path: "#", type: "link", title: "Cost per Lead", icon: { name: "FiFile" } },
+            //   { path: "#", type: "link", title: "Profitability by Product/Region", icon: { name: "FiFile" } },
+            // ],
           },
         ],
       },
@@ -366,20 +366,20 @@ const MENUITEMS = [
 
 
 
-      // {
-      //   title: "AI Insights & Alerts",
-      //   icon: { name: "FiBell" },
-      //   path: "/smart-financial-alerts",
-      //   type: "sub",
-      //   active: false,
-      //   children: [
-      //     { path: "/smart-financial-alerts", title: "Smart Financial Alerts", type: "link", icon: { name: "FiFile" } },
-      //     { path: "/aI-financial-recommendations", title: "AI-Powered Financial Recommendations", type: "link", icon: { name: "FiFile" } },
-      //     { path: "#", title: "Predictive Risk Management", type: "link", icon: { name: "FiFile" } },
-      //     { path: "#", title: "AI-Driven Forecast Accuracy Monitoring", type: "link", icon: { name: "FiFile" } },
-      //     { path: "#", title: "AI-Powered Benchmarking & Peer Comparisons", type: "link", icon: { name: "FiFile" } },
-      //   ],
-      // },
+      {
+        title: "AI Insights & Alerts",
+        icon: { name: "FiBell" },
+        path: "/smart-financial-alerts",
+        type: "sub",
+        active: false,
+        children: [
+          { path: "/smart-financial-alerts", title: "Smart Financial Alerts", type: "link", icon: { name: "FiFile" } },
+          { path: "/aI-financial-recommendations", title: "AI-Powered Financial Recommendations", type: "link", icon: { name: "FiFile" } },
+          { path: "/PredictiveRiskManagement", title: "Predictive Risk Management", type: "link", icon: { name: "FiFile" } },
+          { path: "/ForecastAccuracyMonitoring", title: "AI-Driven Forecast Accuracy Monitoring", type: "link", icon: { name: "FiFile" } },
+          { path: "/BenchmarkingPeerComparisons", title: "AI-Powered Benchmarking & Peer Comparisons", type: "link", icon: { name: "FiFile" } },
+        ],
+      },
       // {
       //   title: "User Management",
       //   path: "/user-management",
@@ -413,9 +413,9 @@ const MENUITEMS = [
         type: "link",
       },
       // {
-      //   path: "organizations-list-screen",
+      //   path: "/AttritionPredictionDashboard ",
       //   icon: { name: "FiUsers" },
-      //   title: "Organizations-List",
+      //   title: "Attrition Prediction Dashboard ",
       //   type: "link",
       // },
     ],
