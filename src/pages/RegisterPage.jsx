@@ -21,7 +21,7 @@ const RegisterPage = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const { register } = useContext(AuthContext);
+  const { register } = useContext(useAuth);
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {

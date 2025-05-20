@@ -232,16 +232,54 @@ const SmartFinancialAlerts = () => {
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <div>
+    <div className='space-y-6 p-4 min-h-screen w-full relative bg-sky-50'>
+      <div className="flex justify-between w-full items-center mb-6">
+
+
+          <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm w-full">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h1 className="text-lg font-bold text-white">
+                      Smart Financial Alerts
+                    </h1>
+                    <p className="text-sky-100 text-xs">Automated notifications for key financial events</p>
+                  </div>
+                  <div className="flex space-x-2">
+                    {/* <button
+                      type="button"
+                      className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200"
+                      onClick={() => setShowFilters(!showFilters)}>
+                      <FiFilter className="mr-1" />
+                      Filters
+                    </button> */}
+                    <button
+                      type="button"
+                      className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
+                      <FiBell className="h-6 w-6 text-blue-600 mr-2" />
+          <span className="text-sm font-medium">Alerts Center</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+
+
+
+
+
+
+
+
+
+
+        {/* <div>
           <h1 className="text-2xl font-bold text-gray-800">Smart Financial Alerts</h1>
           <p className="text-gray-600">Automated notifications for key financial events</p>
         </div>
         <div className="flex items-center">
           <FiBell className="h-6 w-6 text-blue-600 mr-2" />
           <span className="text-sm font-medium">Alerts Center</span>
-        </div>
+        </div> */}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
