@@ -8,6 +8,7 @@ import ProfileDropdown from './ProfileDropdown';
 import NotificationToast from './NotificationToast';
 import MessageNotification from './MessageNotification';
 import { AuthContext } from '../../context/AuthContext';
+import AIDropdown from './AIDropdown';
 
 const Navbar = ({ toggleSidebar }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -32,15 +33,6 @@ const Navbar = ({ toggleSidebar }) => {
   const messages = [
     { id: 1, sender: 'John Doe', message: 'Please review the report', time: '2 min ago' },
     { id: 2, sender: 'Jane Smith', message: 'Meeting at 3pm', time: '1 hour ago' },
-  ];
-
-  // AI navigation items
-  const aiNavItems = [
-    { id: 1, name: 'Smart Financial Alerts', path: '/smart-financial-alerts' },
-    { id: 2, name: 'AI-Powered Financial Recommendations', path: '#' },
-    { id: 3, name: 'Predictive Risk Management', path: '#' },
-    { id: 4, name: 'AI-Driven Forecast Accuracy Monitoring', path: '#' },
-    { id: 5, name: 'AI-Powered Benchmarking & Peer Comparisons', path: '#' },
   ];
 
   // Handle click outside
@@ -107,22 +99,10 @@ const Navbar = ({ toggleSidebar }) => {
             />
 
             {isAskAIOpen && (
-              <div className="absolute right-0 mt-2 w-80 bg-sky-50 rounded-lg shadow-lg py-2 z-50">
-                <div className="px-4 py-2 border-b border-gray-200">
-                  <h3 className="font-bold text-sky-900">AI Insights & Alerts</h3>
-                </div>
-                <div className="max-h-96 overflow-y-auto">
-                  {aiNavItems.map((item) => (
-                    <a
-                      key={item.id}
-                      href={item.path}
-                      className="block px-4 py-2 hover:bg-sky-700 hover:text-sky-50 text-sky-700"
-                    >
-                      {item.name}
-                    </a>
-                  ))}
-                </div>
-              </div>
+              <AIDropdown 
+                isOpen={isAskAIOpen} 
+                onClose={() => setIsAskAIOpen(false)}
+              />
             )}
           </div>
 
