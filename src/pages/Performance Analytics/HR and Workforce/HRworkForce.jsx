@@ -130,8 +130,8 @@ export const HRworkForce = () => {
   ];
 
   const navItems = [
-    { name: "Employee Productivity Report", icon: <BsPieChart />, path: "/hr-workforce" },
-    { name: "Utilization Rate Report", icon: <BsBarChart />, path: "/hr-workforce" },
+    { name: "Employee Productivity Report", icon: <BsPieChart />, path: "/employee-productivity-report" },
+    { name: "Utilization Rate Report", icon: <BsBarChart />, path: "/utilization-rate-report" },
     { name: "Retention & Attrition Rate Analysis", icon: <BsServer />, path: "/hr-workforce" },
     { name: "Hiring Funnel Metrics", icon: <BsGraphUp />, path: "/hr-workforce" },
     { name: "Diversity & Inclusion Metrics", icon: <BsShieldLock />, path: "/hr-workforce" },
@@ -142,7 +142,7 @@ export const HRworkForce = () => {
   const chartData = {
     productivity: {
       title: "Revenue per Employee",
-      componentPath: "/hr-productivity",
+      componentPath: "/hr-workforce",
       data: {
         labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
         datasets: [
@@ -186,7 +186,7 @@ export const HRworkForce = () => {
     },
     utilization: {
       title: "Utilization Rate",
-      componentPath: "/hr-utilization",
+      componentPath: "/hr-workforce",
       data: {
         labels: departments,
         datasets: [
@@ -228,7 +228,7 @@ export const HRworkForce = () => {
     },
     retention: {
       title: "Retention Trends",
-      componentPath: "/hr-retention",
+      componentPath: "/hr-workforce",
       data: {
         labels: ['Q1 2022', 'Q2 2022', 'Q3 2022', 'Q4 2022', 'Q1 2023'],
         datasets: [
@@ -267,7 +267,7 @@ export const HRworkForce = () => {
     },
     hiringFunnel: {
       title: "Hiring Funnel",
-      componentPath: "/hr-hiring-funnel",
+      componentPath: "/hr-workforce",
       data: {
         labels: ['Applicants', 'Screened', 'Interviews', 'Offers', 'Hires'],
         datasets: [
@@ -293,7 +293,7 @@ export const HRworkForce = () => {
     },
     diversity: {
       title: "Diversity Metrics",
-      componentPath: "/hr-diversity",
+      componentPath: "/hr-workforce",
       data: {
         labels: ['Male', 'Female', 'Non-binary', 'Prefer not to say'],
         datasets: [
@@ -319,7 +319,7 @@ export const HRworkForce = () => {
     },
     compensation: {
       title: "Compensation Analysis",
-      componentPath: "/hr-compensation",
+      componentPath: "/hr-workforce",
       data: {
         labels: jobLevels,
         datasets: [

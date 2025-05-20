@@ -146,7 +146,7 @@ export const ITSpendAnalytics = () => {
   const chartData = {
     spendByCategory: {
       title: "IT Spend by Category",
-      componentPath: "/it-spend-category",
+      componentPath: "/it-technology-spend",
       data: {
         labels: ['Cloud Services', 'SaaS Subscriptions', 'Infrastructure', 'Security', 'Personnel', 'Other'],
         datasets: [{
@@ -170,7 +170,7 @@ export const ITSpendAnalytics = () => {
     },
     budgetVsActual: {
       title: "Budget vs Actuals",
-      componentPath: "/it-budget-vs-actual",
+      componentPath: "/it-technology-spend",
       data: {
         labels: ['ERP Upgrade', 'Cloud Migration', 'Security Suite', 'HR System', 'Marketing Platform'],
         datasets: [
@@ -209,7 +209,7 @@ export const ITSpendAnalytics = () => {
     },
     monthlySpendTrend: {
       title: "Monthly Spend Trend",
-      componentPath: "/it-monthly-trend",
+      componentPath: "/it-technology-spend",
       data: {
         labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
         datasets: [{
@@ -244,7 +244,7 @@ export const ITSpendAnalytics = () => {
     },
     cloudAdoption: {
       title: "Cloud Adoption",
-      componentPath: "/it-cloud-adoption",
+      componentPath: "/it-technology-spend",
       data: {
         labels: ['Production', 'Development', 'Test', 'Disaster Recovery'],
         datasets: [{
@@ -268,7 +268,7 @@ export const ITSpendAnalytics = () => {
     },
     licenseUtilization: {
       title: "License Utilization",
-      componentPath: "/it-license-utilization",
+      componentPath: "/it-technology-spend",
       data: {
         labels: ['Microsoft 365', 'Salesforce', 'Adobe CC', 'Zoom', 'Slack'],
         datasets: [{
@@ -301,7 +301,7 @@ export const ITSpendAnalytics = () => {
     },
     techDebtAnalysis: {
       title: "Tech Debt Analysis",
-      componentPath: "/it-tech-debt",
+      componentPath: "/it-technology-spend",
       data: {
         labels: ['Legacy Systems', 'Custom Code', 'Security Patches', 'Documentation', 'Test Coverage'],
         datasets: [{

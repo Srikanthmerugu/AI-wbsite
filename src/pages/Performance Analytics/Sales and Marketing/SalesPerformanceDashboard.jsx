@@ -68,7 +68,7 @@ const kpiData = {
 const charts = {
   revenueTrend: {
     title: "Oppty, Wins & Revenue by Week",
-    componentPath: "/revenue-trend-component",
+    componentPath: "/sales-performance-table",
     data: {
       labels: ["Jun 1", "Jun 8", "Jun 15", "Jun 22", "Jun 29", "Jul 6", "Jul 13", "Jul 20", "Jul 27", "Aug 3", "Aug 10", "Aug 17", "Aug 24", "Aug 31"],
       datasets: [
@@ -107,7 +107,7 @@ const charts = {
   },
   leadSource: {
     title: "Oppty & Avg Revenue by Lead Source",
-    componentPath: "/lead-source-component",
+    componentPath: "/sales-performance-table",
     data: {
       labels: ["Web", "Social Media", "Phone", "Others", "Email", "PPC", "Event"],
       datasets: [
@@ -127,7 +127,7 @@ const charts = {
   },
   revenueByProduct: {
     title: "Revenue by Product",
-    componentPath: "/product-revenue-component",
+    componentPath: "/sales-performance-table",
     data: {
       labels: ["Data Science", "Computer Science", "Arts", "Business"],
       datasets: [{
@@ -149,7 +149,7 @@ const charts = {
   },
   revenueByRegion: {
     title: "Revenue by Region",
-    componentPath: "/region-revenue-component",
+    componentPath: "/sales-performance-table",
     data: {
       labels: ["North America", "Europe", "Asia", "South America", "Africa"],
       datasets: [{
@@ -165,7 +165,7 @@ const charts = {
   },
   customersByStage: {
     title: "Number of Customers by Stage",
-    componentPath: "/customer-stage-component",
+    componentPath: "/sales-performance-table",
     data: {
       labels: ["Prospect", "Qualify", "Presentation/Demo", "Proposal", "Negotiation", "Close"],
       datasets: [{
@@ -181,7 +181,7 @@ const charts = {
   },
   revenueBySalesPerson: {
     title: "Revenue by Sales Manager",
-    componentPath: "/salesperson-component",
+    componentPath: "/sales-performance-table",
     data: {
       labels: ["Andree Repp", "Salla Yes", "Shannah Biden", "Hanny Giraudoux", "Thali Bour"],
       datasets: [{
@@ -197,7 +197,7 @@ const charts = {
   },
   salesTeamCost: {
     title: "Sales Team Cost Analysis",
-    componentPath: "/cost-component",
+    componentPath: "/sales-performance-table",
     data: {
       labels: ["Salaries", "Commissions", "Training", "Travel", "Tools"],
       datasets: [{
@@ -545,26 +545,30 @@ const SalesPerformanceDashboard = () => {
         <Droppable droppableId="charts" isDropDisabled={false}>
           {(provided) => (
             <div className="grid gap-6" {...provided.droppableProps} ref={provided.innerRef}>
-              {/* First Row */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-                <div className="md:col-span-2">
-                  <EnhancedChartCard title={charts.revenueTrend.title} chartType={chartTypes.revenueTrend} chartData={charts.revenueTrend} widgetId="revenueTrend" index={0} componentPath={charts.revenueTrend.componentPath} />
-                </div>
-                <EnhancedChartCard title={charts.funnelMetrics.title} chartType={chartTypes.funnelMetrics} chartData={charts.funnelMetrics} widgetId="funnelMetrics" index={1} componentPath={charts.funnelMetrics.componentPath} />
+
+               {/* First Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                <EnhancedChartCard title={charts.revenueTrend.title} chartType={chartTypes.revenueTrend} chartData={charts.revenueTrend} widgetId="revenueTrend" index={0} componentPath={charts.revenueTrend.componentPath} />
+                <EnhancedChartCard title={charts.leadSource.title} chartType={chartTypes.leadSource} chartData={charts.leadSource} widgetId="leadSource" index={6} componentPath={charts.leadSource.componentPath} />
               </div>
 
               {/* Second Row */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                <EnhancedChartCard title={charts.customersByStage.title} chartType={chartTypes.customersByStage} chartData={charts.customersByStage} widgetId="customersByStage" index={5} componentPath={charts.customersByStage.componentPath} />
+                <EnhancedChartCard title={charts.salesTeamCost.title} chartType={chartTypes.salesTeamCost} chartData={charts.salesTeamCost} widgetId="salesTeamCost" index={6} componentPath={charts.salesTeamCost.componentPath} />
+                <EnhancedChartCard title={charts.funnelMetrics.title} chartType={chartTypes.funnelMetrics} chartData={charts.funnelMetrics} widgetId="funnelMetrics" index={1} componentPath={charts.funnelMetrics.componentPath} />
+              </div>
+
+              {/* Third Row */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
                 <EnhancedChartCard title={charts.revenueByProduct.title} chartType={chartTypes.revenueByProduct} chartData={charts.revenueByProduct} widgetId="revenueByProduct" index={2} componentPath={charts.revenueByProduct.componentPath} />
                 <EnhancedChartCard title={charts.revenueByRegion.title} chartType={chartTypes.revenueByRegion} chartData={charts.revenueByRegion} widgetId="revenueByRegion" index={3} componentPath={charts.revenueByRegion.componentPath} />
                 <EnhancedChartCard title={charts.revenueBySalesPerson.title} chartType={chartTypes.revenueBySalesPerson} chartData={charts.revenueBySalesPerson} widgetId="revenueBySalesPerson" index={4} componentPath={charts.revenueBySalesPerson.componentPath} />
               </div>
 
-              {/* Third Row */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-                <EnhancedChartCard title={charts.customersByStage.title} chartType={chartTypes.customersByStage} chartData={charts.customersByStage} widgetId="customersByStage" index={5} componentPath={charts.customersByStage.componentPath} />
-                <EnhancedChartCard title={charts.salesTeamCost.title} chartType={chartTypes.salesTeamCost} chartData={charts.salesTeamCost} widgetId="salesTeamCost" index={6} componentPath={charts.salesTeamCost.componentPath} />
-                <RevenueTargetTable />
+              {/* Fourth Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                <RevenueTargetTable />              
               </div>
 
               {provided.placeholder}

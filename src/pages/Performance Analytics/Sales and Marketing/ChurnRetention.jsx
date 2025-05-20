@@ -213,7 +213,7 @@ const ChurnRetention = () => {
       isPositive: false,
       icon: <FiTrendingDown />,
       description: "Percentage of customers lost",
-      componentPath: "/churn-rate-detail"
+      componentPath: "/churn-retention"
     },
     {
       title: "Retention Rate",
@@ -222,7 +222,7 @@ const ChurnRetention = () => {
       isPositive: false,
       icon: <FiTrendingDown />,
       description: "Percentage of customers retained",
-      componentPath: "/retention-rate-detail"
+      componentPath: "/churn-retention"
     },
     {
       title: "Revenue Lost",
@@ -231,7 +231,7 @@ const ChurnRetention = () => {
       isPositive: false,
       icon: <FiDollarSign />,
       description: "MRR lost from churn",
-      componentPath: "/revenue-lost-detail"
+      componentPath: "/churn-retention"
     },
     {
       title: "Avg Tenure",
@@ -240,7 +240,7 @@ const ChurnRetention = () => {
       isPositive: false,
       icon: <FiUser />,
       description: "Average months before churn",
-      componentPath: "/tenure-detail"
+      componentPath: "/churn-retention"
     }
   ];
 
@@ -575,7 +575,7 @@ const ChurnRetention = () => {
           }} 
           widgetId="churnTrend" 
           index={0} 
-          componentPath="/churn-trend-detail" 
+          componentPath="/churn-retention" 
         />
 
         {/* Retention by Segment */}
@@ -634,7 +634,7 @@ const ChurnRetention = () => {
           }} 
           widgetId="revenueImpact" 
           index={2} 
-          componentPath="/revenue-impact-detail" 
+          componentPath="/churn-retention" 
         />
 
         {/* Churn Reasons */}
@@ -653,7 +653,7 @@ const ChurnRetention = () => {
           }} 
           widgetId="churnReasons" 
           index={3} 
-          componentPath="/churn-reasons-detail" 
+          componentPath="/churn-retention" 
         />
       </div>
 

@@ -39,13 +39,17 @@ import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 import ProfileDetailsScreen from '../pages/Organizations List Screen/OrganizationsListScreen';
 import SalesPerformanceDashboard from '../pages/Performance Analytics/Sales and Marketing/SalesPerformanceDashboard';
 import SalesPerformanceTable from '../pages/Performance Analytics/Sales and Marketing/SalesPerformanceTable';
-import HRworkForce from '../pages/Performance Analytics/Sales and Marketing/HRworkForce';
+import HRworkForce from '../pages/Performance Analytics/HR and Workforce/HRworkForce';
 import ITSpendAnalytics from '../pages/Performance Analytics/Sales and Marketing/ITspendAnalytics';
 import PipelineConversion from '../pages/Performance Analytics/Sales and Marketing/PipelineConversion';
 import CACandCLV from '../pages/Performance Analytics/Sales and Marketing/CACandCLV';
 import ChurnRetention from '../pages/Performance Analytics/Sales and Marketing/ChurnRetention';
 import MarketingCampaign from '../pages/Performance Analytics/Sales and Marketing/MarketingCampaign';
 import RevenueBreakdown from '../pages/Performance Analytics/Sales and Marketing/RevenueBreakdown';
+
+import EmployeeProductivityReport from '../pages/Performance Analytics/HR and Workforce/EmployeeProductivityReport';
+import UtilizationRateReport from '../pages/Performance Analytics/HR and Workforce/UtilizationRate';
+
 import UserManagement from '../pages/Suport/User Management/UserManagement';
 import CostOptimizationSuggestions from '../pages/AI-driven Insights & Alerts/AI-Financial Recommendations/CostOptimizationSuggestions';
 import RevenueGrowthStrategies from '../pages/AI-driven Insights & Alerts/AI-Financial Recommendations/RevenueGrowthStrategies';
@@ -54,6 +58,7 @@ import ProfitabilityEnhancement from '../pages/AI-driven Insights & Alerts/AI-Fi
 import ForecastAccuracyMonitoring from '../pages/AI-driven Insights & Alerts/Forecast Accuracy Monitoring/ForecastAccuracyMonitoring';
 import BenchmarkingPeerComparisons from '../pages/AI-driven Insights & Alerts/BenchmarkingDashboard/BenchmarkingDashboard';
 import PredictiveRiskManagement from '../pages/AI-driven Insights & Alerts/PredictiveRiskManagement/PredictiveRiskManagement';
+
 
 
 
@@ -126,6 +131,8 @@ function AllRoutes() {
               <Route path="/marketing-campaign" element={<MarketingCampaign />} />
               <Route path="/revenue-breakdown" element={<RevenueBreakdown />} />
               <Route path="/hr-workforce" element={<HRworkForce  />} /> 
+              <Route path="/employee-productivity-report" element={<EmployeeProductivityReport  />} />
+              <Route path="/utilization-rate-report" element={<UtilizationRateReport  />} />  
               <Route path="/it-technology-spend" element={<ITSpendAnalytics  />} />
 
             </Route>
