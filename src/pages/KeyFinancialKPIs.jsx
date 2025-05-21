@@ -518,7 +518,7 @@ const KeyFinancialKPIs = () => {
         </div>
       )}
 
-      // {/* KPI Grid with Drag-and-Drop */}
+      {/* KPI Grid with Drag-and-Drop */}
       {viewMode === "charts" && (
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId="kpis" direction="horizontal">

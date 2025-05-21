@@ -10,6 +10,7 @@ import AIChatBot from '../pages/AIChatBot';
 import LoginPage from '../pages/Login';
 import ExpenseForecastingDashboard from '../pages/ForecastingOverview/ExpenseForecastingDashboard';
 import HelpSupport from '../pages/Suport/HelpSupport';
+import UserManagement from '../pages/Suport/User Management/UserManagement';
 import CashFlowProjections from '../pages/CashFlowProjections';
 import SmartFinancialAlerts from '../pages/SmartFinancialAlerts/SmartFinancialAlerts';
 import AIFinancialRecommendations from '../pages/AI-driven Insights & Alerts/AI-Financial Recommendations/AIFinancialRecommendations';
@@ -40,15 +41,26 @@ import ProfileDetailsScreen from '../pages/Organizations List Screen/Organizatio
 import SalesPerformanceDashboard from '../pages/Performance Analytics/Sales and Marketing/SalesPerformanceDashboard';
 import SalesPerformanceTable from '../pages/Performance Analytics/Sales and Marketing/SalesPerformanceTable';
 import HRworkForce from '../pages/Performance Analytics/HR and Workforce/HRworkForce';
-import ITSpendAnalytics from '../pages/Performance Analytics/Sales and Marketing/ITspendAnalytics';
+import ITandTechnology from '../pages/Performance Analytics/IT and Technology/ITandTechnology';
 import PipelineConversion from '../pages/Performance Analytics/Sales and Marketing/PipelineConversion';
 import CACandCLV from '../pages/Performance Analytics/Sales and Marketing/CACandCLV';
 import ChurnRetention from '../pages/Performance Analytics/Sales and Marketing/ChurnRetention';
 import MarketingCampaign from '../pages/Performance Analytics/Sales and Marketing/MarketingCampaign';
 import RevenueBreakdown from '../pages/Performance Analytics/Sales and Marketing/RevenueBreakdown';
-
 import EmployeeProductivityReport from '../pages/Performance Analytics/HR and Workforce/EmployeeProductivityReport';
 import UtilizationRateReport from '../pages/Performance Analytics/HR and Workforce/UtilizationRate';
+
+import ITSpendBreakdown from '../pages/Performance Analytics/IT and Technology/ITSpendBreakdown';
+import SoftwareLicenseUtilization from '../pages/Performance Analytics/IT and Technology/SoftwareLicenseutilization';
+import InfrastructureCostEfficiency from '../pages/Performance Analytics/IT and Technology/InfrastructureEfficiency';
+import ITBudgetVsActuals from '../pages/Performance Analytics/IT and Technology/ITBudgetVsActuals';
+import SecurityCompliance from '../pages/Performance Analytics/IT and Technology/SecurityCompliance';
+import TechDebtModernization from '../pages/Performance Analytics/IT and Technology/TechDebtModernization';
+import FinanceAccountingDashboard from '../pages/Performance Analytics/Finance and Accounting/FinanceAccountingDashboard';
+import LiquidityWorkingCapital from '../pages/Performance Analytics/Finance and Accounting/LiquidityWorkingCapital';
+import ProfitabilityRatios from '../pages/Performance Analytics/Finance and Accounting/ProfitabilityRatios';
+import DebtCoverage from '../pages/Performance Analytics/Finance and Accounting/DebtCoverage';
+
 
 import UserManagement from '../pages/Suport/User Management/UserManagement';
 import CostOptimizationSuggestions from '../pages/AI-driven Insights & Alerts/AI-Financial Recommendations/CostOptimizationSuggestions';
@@ -99,6 +111,8 @@ function AllRoutes() {
 
               <Route path="/expenseForecasting" element={<ExpenseForecastingDashboard />} />
               <Route path="/aI-financial-recommendations" element={<AIFinancialRecommendations />} />
+
+
               <Route path="/cost-optimization-suggestions" element={<CostOptimizationSuggestions />} />
               <Route path="/revenue-growth-strategies" element={<RevenueGrowthStrategies />} />
               <Route path="/InvestmentCapitalAllocation" element={<InvestmentCapitalAllocation />} />
@@ -157,11 +171,20 @@ function AllRoutes() {
               <Route path="/hr-workforce" element={<HRworkForce  />} /> 
               <Route path="/employee-productivity-report" element={<EmployeeProductivityReport  />} />
               <Route path="/utilization-rate-report" element={<UtilizationRateReport  />} />  
-              <Route path="/it-technology-spend" element={<ITSpendAnalytics  />} />
+              <Route path="/it-technology-spend" element={<ITandTechnology  />} />
+              <Route path="/it-spend-breakdown" element={<ITSpendBreakdown />} />
+              <Route path="/software-license-utilization" element={<SoftwareLicenseUtilization />} />
+              <Route path="/infrastructure-cost-efficiency" element={<InfrastructureCostEfficiency />} />
+              <Route path="/it-budget-tracker" element={<ITBudgetVsActuals />} />
+              <Route path="/security-compliance" element={<SecurityCompliance />} />
+              <Route path="/tech-debt-modernization" element={<TechDebtModernization />} />
+              <Route path="/finance-accounting-dashboard" element={<FinanceAccountingDashboard />} /> 
+              <Route path="/liquidity-working-capital" element={<LiquidityWorkingCapital />} />
+              <Route path="/profitability-ratios" element={<ProfitabilityRatios />} />
+              <Route path="/debt-coverage" element={<DebtCoverage />} />
 
             </Route>
           </Route>
-
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </AuthProvider>

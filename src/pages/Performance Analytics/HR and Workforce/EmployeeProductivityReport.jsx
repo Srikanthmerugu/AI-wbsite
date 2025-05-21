@@ -16,6 +16,7 @@ import { motion } from "framer-motion";
 import { 
   FiTrendingUp, 
   FiTrendingDown, 
+  FiChevronRight,
   FiDollarSign,
   FiUsers, 
   FiCalendar, 
@@ -170,6 +171,7 @@ const charts = {
       plugins: { legend: { position: "bottom" } },
     },
   },
+  
   outputHeatmap: {
     title: "Output per Employee by Role & Business Unit",
     componentPath: "/employee-productivity-report",
@@ -477,7 +479,7 @@ const EmployeeProductivityReport = () => {
   const WorkforceSummary = () => (
     <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100">
       <h3 className="text-sm font-semibold text-sky-800 mb-2">Workforce Composition</h3>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-5 gap-4">
         <div className="bg-sky-50 p-3 rounded-lg">
           <p className="text-xs text-sky-600">Total Headcount</p>
           <p className="text-lg font-bold text-sky-800">245</p>
@@ -568,6 +570,33 @@ const EmployeeProductivityReport = () => {
 
   return (
     <div className="space-y-6 p-4 min-h-screen relative bg-sky-50">
+        {/* Breadcrumb Navigation */}
+                      <nav className="flex mb-4" aria-label="Breadcrumb">
+                        <ol className="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
+                          <li className="inline-flex items-center">
+                            <Link to="/" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                              <svg className="w-3 h-3 me-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z"/>
+                              </svg>
+                              Home
+                            </Link>
+                          </li>
+                          <li>
+                            <div className="flex items-center">
+                              <FiChevronRight className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" />
+                              <Link to="/hr-workforce" className="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2">
+                                HR & Workforce
+                              </Link>
+                            </div>
+                          </li>
+                          <li aria-current="page">
+                            <div className="flex items-center">
+                              <FiChevronRight className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" />
+                              <span className="ms-1 text-sm font-medium text-gray-500 md:ms-2">Employee Productivity Report</span>
+                            </div>
+                          </li>
+                        </ol>
+                      </nav>
       {/* Header Section */}
       <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
         <div className="flex justify-between items-center">
@@ -664,46 +693,60 @@ const EmployeeProductivityReport = () => {
           index={2}
           componentPath={charts.outputHeatmap.componentPath}
         />
-        <div className="space-y-4">
-          <h3 className="text-md font-semibold text-sky-800">AI-Driven Insights</h3>
-          <div className="space-y-3">
-            {aiInsights.map((insight, index) => (
-              <AIInsightCard 
-                key={index}
-                title={insight.title}
-                content={insight.content}
-                severity={insight.severity}
-                reasoning={insight.reasoning}
-              />
-            ))}
-          </div>
-        </div>
       </div>
 
-      {/* Tables Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <ProductivityTable />
-        </div>
-        <div className="space-y-4">
-          <WorkforceSummary />
-          <div className="space-y-3">
-            <h3 className="text-md font-semibold text-sky-800">Recommendations</h3>
-            {recommendations.map((rec, index) => (
-              <RecommendationCard 
-                key={index}
-                title={rec.title}
-                content={rec.content}
-                metric={rec.metric}
-                icon={rec.icon}
-              />
-            ))}
-          </div>
-        </div>
+
+  {/* Tables Section - Single Column Layout */}
+<div className="space-y-6">
+
+  <div>
+    <ProductivityTable />
+  </div>
+
+  <div>
+    <WorkforceSummary />
+  </div>
+
+  {/* Side-by-side: AI Insights and Recommendations */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {/* AI-driven Insights */}
+    <div className="space-y-4">
+      <h3 className="text-md font-semibold text-sky-800">AI-Driven Insights</h3>
+      <div className="space-y-3">
+        {aiInsights.map((insight, index) => (
+          <AIInsightCard 
+            key={index}
+            title={insight.title}
+            content={insight.content}
+            severity={insight.severity}
+            reasoning={insight.reasoning}
+          />
+        ))}
       </div>
+    </div>
+
+    {/* Recommendations */}
+    <div className="space-y-4">
+      <h3 className="text-md font-semibold text-sky-800">Recommendations</h3>
+      <div className="space-y-3">
+        {recommendations.map((rec, index) => (
+          <RecommendationCard 
+            key={index}
+            title={rec.title}
+            content={rec.content}
+            metric={rec.metric}
+            icon={rec.icon}
+          />
+        ))}
+      </div>
+    </div>
+  </div>
+</div>
+
+
 
       {/* Footer Section */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100 text-xs text-gray-500">
+      {/* <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100 text-xs text-gray-500">
         <h3 className="text-sm font-semibold text-sky-800 mb-2">Notes & Definitions</h3>
         <ul className="list-disc pl-5 space-y-1">
           <li><strong>Revenue per Employee:</strong> Total revenue divided by number of full-time equivalent employees</li>
@@ -712,7 +755,9 @@ const EmployeeProductivityReport = () => {
           <li><strong>AI Forecasts:</strong> Based on historical trends with 85% confidence interval</li>
           <li>Data sources: HRMS (Workday), Payroll (ADP), CRM (Salesforce)</li>
         </ul>
-      </div>
+      </div> */}
+
+      
     </div>
   );
 };
