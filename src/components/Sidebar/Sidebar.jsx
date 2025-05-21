@@ -297,7 +297,7 @@ const MENUITEMS = [
             title: "Supply Chain & Procurement Analytics ",
             icon: { name: "FiFile" },
             children: [
-              { path: "#", type: "link", title: "Supplier Performance Scorecard ", icon: { name: "FiFile" } },
+              { path: "/SupplierPerformanceScorecard", type: "link", title: "Supplier Performance Scorecard ", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Inventory Turnover Analysis", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Procurement Spend Breakdown ", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Freight & Logistics Optimization ", icon: { name: "FiFile" } },

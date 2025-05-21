@@ -25,7 +25,7 @@ const AIDropdown = ({ isOpen, onClose }) => {
         ]
       },
       { 
-        path: "#", 
+        path: "/PredictiveRiskManagement", 
         title: "Predictive Risk Management", 
         type: "sub", 
         icon: { name: "FiFile" },
@@ -35,7 +35,7 @@ const AIDropdown = ({ isOpen, onClose }) => {
         ]
       },
       { 
-        path: "#", 
+        path: "/ForecastAccuracyMonitoring", 
         title: "AI-Driven Forecast Accuracy", 
         type: "sub", 
         icon: { name: "FiFile" },
@@ -46,7 +46,7 @@ const AIDropdown = ({ isOpen, onClose }) => {
         ]
       },
       { 
-        path: "#", 
+        path: "/BenchmarkingPeerComparisons", 
         title: "AI-Powered Benchmarking", 
         type: "sub", 
         icon: { name: "FiFile" },
