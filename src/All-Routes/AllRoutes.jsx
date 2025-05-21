@@ -12,7 +12,7 @@ import ExpenseForecastingDashboard from '../pages/ForecastingOverview/ExpenseFor
 import HelpSupport from '../pages/Suport/HelpSupport';
 import UserManagement from '../pages/Suport/User Management/UserManagement';
 import CashFlowProjections from '../pages/CashFlowProjections';
-import SmartFinancialAlerts from '../pages/SmartFinancialAlerts';
+import SmartFinancialAlerts from '../pages/SmartFinancialAlerts/SmartFinancialAlerts';
 import AIFinancialRecommendations from '../pages/AI-driven Insights & Alerts/AI-Financial Recommendations/AIFinancialRecommendations';
 import CompanyManagementTable from '../pages/All Company management/CompanyManagementTable';
 import ForecastingOverview from '../pages/ForecastingOverview/ForecastingOverview';
@@ -49,6 +49,7 @@ import MarketingCampaign from '../pages/Performance Analytics/Sales and Marketin
 import RevenueBreakdown from '../pages/Performance Analytics/Sales and Marketing/RevenueBreakdown';
 import EmployeeProductivityReport from '../pages/Performance Analytics/HR and Workforce/EmployeeProductivityReport';
 import UtilizationRateReport from '../pages/Performance Analytics/HR and Workforce/UtilizationRate';
+
 import ITSpendBreakdown from '../pages/Performance Analytics/IT and Technology/ITSpendBreakdown';
 import SoftwareLicenseUtilization from '../pages/Performance Analytics/IT and Technology/SoftwareLicenseutilization';
 import InfrastructureCostEfficiency from '../pages/Performance Analytics/IT and Technology/InfrastructureEfficiency';
@@ -59,6 +60,26 @@ import FinanceAccountingDashboard from '../pages/Performance Analytics/Finance a
 import LiquidityWorkingCapital from '../pages/Performance Analytics/Finance and Accounting/LiquidityWorkingCapital';
 import ProfitabilityRatios from '../pages/Performance Analytics/Finance and Accounting/ProfitabilityRatios';
 import DebtCoverage from '../pages/Performance Analytics/Finance and Accounting/DebtCoverage';
+
+
+import UserManagement from '../pages/Suport/User Management/UserManagement';
+import CostOptimizationSuggestions from '../pages/AI-driven Insights & Alerts/AI-Financial Recommendations/CostOptimizationSuggestions';
+import RevenueGrowthStrategies from '../pages/AI-driven Insights & Alerts/AI-Financial Recommendations/RevenueGrowthStrategies';
+import InvestmentCapitalAllocation from '../pages/AI-driven Insights & Alerts/AI-Financial Recommendations/InvestmentCapitalAllocation';
+import ProfitabilityEnhancement from '../pages/AI-driven Insights & Alerts/AI-Financial Recommendations/ProfitabilityEnhancement';
+import ForecastAccuracyMonitoring from '../pages/AI-driven Insights & Alerts/Forecast Accuracy Monitoring/ForecastAccuracyMonitoring';
+import BenchmarkingPeerComparisons from '../pages/AI-driven Insights & Alerts/BenchmarkingDashboard/BenchmarkingDashboard';
+import PredictiveRiskManagement from '../pages/AI-driven Insights & Alerts/PredictiveRiskManagement/PredictiveRiskManagement';
+import SupplyChainAnalytics from '../pages/Supply Chain & Procurement Analytics/SupplyChainAnalytics';
+import SupplierPerformanceScorecard from '../pages/Supply Chain & Procurement Analytics/SupplierPerformanceScorecard';
+import InventoryTurnoverAnalysis from '../pages/Supply Chain & Procurement Analytics/InventoryTurnoverAnalysis';
+import ProcurementSpendBreakdown from '../pages/Supply Chain & Procurement Analytics/ProcurementSpendBreakdown';
+import FreightLogisticsOptimization from '../pages/Supply Chain & Procurement Analytics/FreightLogisticsOptimization';
+import OperationalRiskAssessment from '../pages/Supply Chain & Procurement Analytics/OperationalRiskAssessment';
+import CostSavingOpportunities from '../pages/Supply Chain & Procurement Analytics/CostSavingOpportunities';
+import CashShortfallWarning from '../pages/SmartFinancialAlerts/CashShortfallWarning';
+
+
 
 
 function AllRoutes() {
@@ -84,8 +105,41 @@ function AllRoutes() {
               <Route path="/user-management" element={<UserManagement />} />
               <Route path="/cashFlow-projections" element={<CashFlowProjections />} />
               <Route path="/smart-financial-alerts" element={<SmartFinancialAlerts />} />
+              <Route path="/CashShortfallWarning" element={<CashShortfallWarning />} />
+
+
+
               <Route path="/expenseForecasting" element={<ExpenseForecastingDashboard />} />
               <Route path="/aI-financial-recommendations" element={<AIFinancialRecommendations />} />
+
+
+              <Route path="/cost-optimization-suggestions" element={<CostOptimizationSuggestions />} />
+              <Route path="/revenue-growth-strategies" element={<RevenueGrowthStrategies />} />
+              <Route path="/InvestmentCapitalAllocation" element={<InvestmentCapitalAllocation />} />
+              <Route path="/ProfitabilityEnhancement" element={<ProfitabilityEnhancement />} />
+              <Route path="/ForecastAccuracyMonitoring" element={<ForecastAccuracyMonitoring />} />
+              <Route path="/BenchmarkingPeerComparisons" element={<BenchmarkingPeerComparisons />} />
+              <Route path="/PredictiveRiskManagement" element={<PredictiveRiskManagement />} />
+
+
+
+
+
+              
+
+
+
+
+              <Route path="/SupplyChainAnalytics" element={<SupplyChainAnalytics />} />
+              <Route path="/SupplierPerformanceScorecard" element={<SupplierPerformanceScorecard />} />
+              <Route path="/InventoryTurnoverAnalysis" element={<InventoryTurnoverAnalysis />} />
+              <Route path="/ProcurementSpendBreakdown" element={<ProcurementSpendBreakdown />} />
+              <Route path="/FreightLogisticsOptimization" element={<FreightLogisticsOptimization />} />
+              <Route path="/OperationalRiskAssessment" element={<OperationalRiskAssessment />} />
+              <Route path="/CostSavingOpportunities" element={<CostSavingOpportunities />} />
+
+
+              
               <Route path="/company-management-table" element={<CompanyManagementTable />} />
               <Route path="/forecasting-overview" element={<ForecastingOverview />} />
               <Route path="/CAPEX-forecast-screen" element={<CAPEXForecastScreen />} />

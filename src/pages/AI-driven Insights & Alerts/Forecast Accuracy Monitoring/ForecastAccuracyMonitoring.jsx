@@ -297,6 +297,8 @@ const ForecastAccuracyMonitoring = () => {
         </div>
 
         {/* AI Model Confidence Scores */}
+
+        <div className='flex flex-row justify-between gap-5'>
         <div className="bg-white rounded-lg p-4 border border-gray-200 mb-6">
           <h3 className="text-md font-semibold text-gray-800 mb-3">AI Model Confidence Scores</h3>
           <div className="h-48">
@@ -348,6 +350,8 @@ const ForecastAccuracyMonitoring = () => {
               <button className="text-sm text-sky-600 hover:text-sky-800 font-medium">Apply Suggestion</button>
             </div>
           </div>
+        </div>
+
         </div>
 
         {/* Forecast Adjustment History */}

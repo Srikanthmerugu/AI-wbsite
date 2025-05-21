@@ -6,57 +6,73 @@ const AIDropdown = ({ isOpen, onClose }) => {
   const [hoverTimeout, setHoverTimeout] = useState(null);
 
   const menuItems = {
-    title: "AI Insights & Alerts",
-    icon: { name: "FiBell" },
-    path: "/smart-financial-alerts",
-    type: "sub",
-    active: false,
+    title: "AI-driven Insights & Alerts",
     children: [
-      { path: "/smart-financial-alerts", title: "Smart Financial Alerts", type: "link", icon: { name: "FiFile" } },
-      { 
-        path: "/aI-financial-recommendations", 
-        title: "AI-Powered Financial Recommendations", 
-        type: "sub", 
-        icon: { name: "FiFile" },
+      {
+        title: "Smart Financial Alerts",
+        type: "sub",
         children: [
-          { path: "/investment-recommendations", title: "Investment Recommendations", type: "link" },
-          { path: "/savings-optimization", title: "Savings Optimization", type: "link" },
-          { path: "/budgeting-strategies", title: "Budgeting Strategies", type: "link" }
+          { title: "Smart Financial Alerts Overview", path: "/smart-financial-alerts" },
+          { title: "Cash Shortfall Warning", path: "/CashShortfallWarning" },
+          { title: "Budget Overrun Alerts", path: "#" },
+          { title: "Revenue Drop & Sales Decline Alerts", path: "#" },
+          // { title: "Expense Spike Detection", path: "#expense-spike" },
+          // { title: "Accounts Receivable Aging Alerts", path: "#ar-aging" },
+          // { title: "Accounts Payable Due Alerts", path: "#ap-due" }
         ]
       },
-      { 
-        path: "#", 
-        title: "Predictive Risk Management", 
-        type: "sub", 
-        icon: { name: "FiFile" },
+      {
+        title: "AI-Powered Financial Recommendations",
+        type: "sub",
         children: [
-          { path: "/risk-assessment", title: "Risk Assessment", type: "link" },
-          { path: "/mitigation-strategies", title: "Mitigation Strategies", type: "link" }
+          { title: "AI-Powered Overview", path: "/aI-financial-recommendations" },
+          { title: "Cost Optimization Suggestions", path: "/cost-optimization-suggestions" },
+          { title: "Revenue Growth Strategies", path: "/revenue-growth-strategies" },
+          { title: "Profitability Enhancement Plans", path: "/ProfitabilityEnhancement" },
+          { title: "Investment & Capital Allocation Advice", path: "/InvestmentCapitalAllocation" },
+          // { title: "Vendor Contract Negotiation Suggestions", path: "#" },
+          // { title: "Tax Optimization & Compliance Suggestions", path: "#" }
         ]
       },
-      { 
-        path: "#", 
-        title: "AI-Driven Forecast Accuracy", 
-        type: "sub", 
-        icon: { name: "FiFile" },
+      {
+        title: "Predictive Risk Management",
+        type: "sub",
         children: [
-          { path: "/revenue-forecasting", title: "Revenue Forecasting", type: "link" },
-          { path: "/expense-prediction", title: "Expense Prediction", type: "link" },
-          { path: "/cashflow-analysis", title: "Cashflow Analysis", type: "link" }
+          { title: "Predictive Risk Management", path: "PredictiveRiskManagement" },
+          // { title: "Financial Fraud & Anomaly Detection", path: "#fraud-detection" },
+          // { title: "Operational Risk Alerts", path: "#operational-risk" },
+          // { title: "Market Volatility & External Risk Alerts", path: "#market-risk" },
+          // { title: "Debt Repayment & Interest Rate Risks", path: "#debt-risk" },
+          // { title: "Customer Churn Risk Forecasting", path: "#churn-risk" },
+          // { title: "Credit Risk Exposure", path: "#credit-risk" }
         ]
       },
-      { 
-        path: "#", 
-        title: "AI-Powered Benchmarking", 
-        type: "sub", 
-        icon: { name: "FiFile" },
+      {
+        title: "AI-Driven Forecast Accuracy Monitoring",
+        type: "sub",
         children: [
-          { path: "/industry-comparisons", title: "Industry Comparisons", type: "link" },
-          { path: "/performance-metrics", title: "Performance Metrics", type: "link" },
-          { path: "/competitive-analysis", title: "Competitive Analysis", type: "link" }
+          { title: "AI-Driven Forecast Accuracy Monitoring", path: "/ForecastAccuracyMonitoring" },
+          // { title: "Revenue Forecast Deviation Analysis", path: "ForecastAccuracyMonitoring" },
+          // { title: "Expense Forecast Accuracy", path: "#expense-forecast" },
+          // { title: "Cash Flow Forecast Reliability", path: "#cashflow-forecast" },
+          // { title: "AI Model Confidence Scores", path: "#model-confidence" },
+          // { title: "Forecast Adjustment History", path: "#forecast-history" }
         ]
       },
-    ],
+      {
+        title: "AI-Powered Benchmarking & Peer Comparisons",
+        type: "sub",
+        children: [
+          { title: "Benchmarking & Peer Comparisons", path: "/BenchmarkingPeerComparisons" },
+          // { title: "Industry Profitability Comparison", path: "#profitability-comparison" },
+          // { title: "Revenue Growth Benchmarking", path: "#revenue-benchmark" },
+          // { title: "Operational Cost Efficiency Index", path: "#cost-efficiency" },
+          // { title: "Debt & Leverage Comparisons", path: "#debt-comparison" },
+          // { title: "Employee Productivity Metrics", path: "#productivity-metrics" },
+          // { title: "Market Expansion & Performance Trends", path: "#market-expansion" }
+        ]
+      }
+    ]
   };
 
   useEffect(() => {
@@ -78,18 +94,14 @@ const AIDropdown = ({ isOpen, onClose }) => {
   }, [isOpen, onClose, hoverTimeout]);
 
   const handleMouseEnter = (index) => {
-    // Clear any pending timeouts
     if (hoverTimeout) clearTimeout(hoverTimeout);
-    // Set new timeout to open submenu after a small delay
     setHoverTimeout(setTimeout(() => {
       setOpenSubmenu(index);
     }, 200));
   };
 
   const handleMouseLeave = () => {
-    // Clear any pending timeouts
     if (hoverTimeout) clearTimeout(hoverTimeout);
-    // Close submenu after a small delay (to allow moving to submenu)
     setHoverTimeout(setTimeout(() => {
       setOpenSubmenu(null);
     }, 200));
@@ -100,12 +112,10 @@ const AIDropdown = ({ isOpen, onClose }) => {
   return (
     <div 
       ref={dropdownRef}
-      className="absolute right-0 mt-2 w-64 bg-white  rounded-lg shadow-2xl z-50 overflow-visible"
+      className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-2xl z-50 overflow-visible border border-gray-200"
     >
-      <div className="p-4 border-b border-gray-700">
-        <h3 className="text-sky-800 font-semibold flex items-center">
-          <span className="mr-2">{menuItems.title}</span>
-        </h3>
+      <div className="p-4 border-b border-gray-200 bg-sky-50">
+        <h3 className="text-sky-800 font-semibold text-lg">{menuItems.title}</h3>
       </div>
       
       <div className="py-2">
@@ -117,14 +127,9 @@ const AIDropdown = ({ isOpen, onClose }) => {
             onMouseLeave={handleMouseLeave}
           >
             <div 
-              className={`flex justify-between items-center px-4 py-3 text-sky-800 hover:text-sky-50 hover:bg-sky-400 cursor-pointer transition-colors ${openSubmenu === index ? 'bg-sky-200' : ''}`}
+              className={`flex justify-between items-center px-4 py-3 text-gray-700 hover:text-white hover:bg-sky-600 cursor-pointer transition-colors duration-200 ${openSubmenu === index ? 'bg-sky-100 text-sky-800' : ''}`}
             >
-              <a 
-                href={item.type === 'link' ? item.path : '#'}
-                className="flex-1"
-              >
-                {item.title}
-              </a>
+              <div className="flex-1 font-medium">{item.title}</div>
               {item.type === 'sub' && (
                 <svg 
                   className={`w-4 h-4 transform transition-transform ${openSubmenu === index ? 'rotate-90' : ''}`} 
@@ -140,19 +145,21 @@ const AIDropdown = ({ isOpen, onClose }) => {
             
             {item.type === 'sub' && openSubmenu === index && (
               <div 
-                className="absolute left-full top-0 ml-1 w-64 bg-white border-b-4 text-sky-800 border-sky-900 rounded-r-lg shadow-lg z-50 overflow-hidden"
+                className="absolute left-full top-0 ml-1 w-72 bg-sky-200 border-b-sky-900 border border-gray-200 rounded-r-lg shadow-lg z-50 overflow-hidden"
                 onMouseEnter={() => handleMouseEnter(index)}
                 onMouseLeave={handleMouseLeave}
               >
-                {item.children.map((subItem, subIndex) => (
-                  <a 
-                    key={subIndex} 
-                    href={subItem.path}
-                    className="block px-4 py-3 text-sky-800 hover:text-blue-800 transition-colors"
-                  >
-                    {subItem.title}
-                  </a>
-                ))}
+                <div className="max-h-96 overflow-y-auto">
+                  {item.children.map((subItem, subIndex) => (
+                    <a 
+                      key={subIndex} 
+                      href={subItem.path}
+                      className="block px-4 py-3 hover:bg-sky-50 transition-colors border-b border-gray-100 last:border-b-0 text-sm text-sky-800"
+                    >
+                      {subItem.title}
+                    </a>
+                  ))}
+                </div>
               </div>
             )}
           </div>
