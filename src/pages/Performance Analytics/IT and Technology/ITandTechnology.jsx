@@ -134,12 +134,12 @@ export const ITSpendAnalytics = () => {
   ];
 
   const navItems = [
-    { name: "IT Spend Breakdown", icon: <BsPieChart />, path: "/it-technology-spend" },
-    { name: "License Utilization", icon: <BsBarChart />, path: "/it-technology-spend" },
-    { name: "Infra Efficiency", icon: <BsServer />, path: "/it-technology-spend" },
-    { name: "Budget vs Actuals", icon: <BsGraphUp />, path: "/it-technology-spend" },
-    { name: "Security Analytics", icon: <BsShieldLock />, path: "/it-technology-spend" },
-    { name: "Tech Debt Index", icon: <BsCodeSquare />, path: "/it-technology-spend" }
+    { name: "IT Spend Breakdown", icon: <BsPieChart />, path: "/it-spend-breakdown" },
+    { name: "License Utilization", icon: <BsBarChart />, path: "/software-license-utilization" },
+    { name: "Infra Efficiency", icon: <BsServer />, path: "/infrastructure-cost-efficiency" },
+    { name: "Budget vs Actuals", icon: <BsGraphUp />, path: "/it-budget-tracker" },
+    { name: "Security Analytics", icon: <BsShieldLock />, path: "/security-compliance" },
+    { name: "Tech Debt Index", icon: <BsCodeSquare />, path: "/tech-debt-modernization" }
   ];
 
   // Chart data
@@ -746,6 +746,28 @@ export const ITSpendAnalytics = () => {
         ))}
       </div>
 
+
+        {/* Quick Links to Sub-Pages */}
+      <div className="bg-white p-5 rounded-xl shadow-sm border border-sky-100 mt-6">
+        <h3 className="text-md font-semibold text-sky-800 mb-4">Explore Detailed Analytics</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          {navItems.map((item, index) => (
+            <Link 
+              to={item.path} 
+              key={index} 
+              className="bg-sky-50 hover:bg-sky-100 p-3 rounded-lg text-center text-sm font-medium text-sky-800 transition-colors"
+            >
+              <div className="mx-auto w-8 h-8 bg-sky-100 rounded-full flex items-center justify-center mb-2 text-sky-600">
+                {item.icon}
+              </div>
+              {item.name}
+            </Link>
+          ))}
+        </div>
+      </div>
+
+
+
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="charts" isDropDisabled={false}>
           {(provided) => (
@@ -817,25 +839,6 @@ export const ITSpendAnalytics = () => {
           )}
         </Droppable>
       </DragDropContext>
-
-      {/* Quick Links to Sub-Pages */}
-      <div className="bg-white p-5 rounded-xl shadow-sm border border-sky-100 mt-6">
-        <h3 className="text-md font-semibold text-sky-800 mb-4">Explore Detailed Analytics</h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          {navItems.map((item, index) => (
-            <Link 
-              to={item.path} 
-              key={index} 
-              className="bg-sky-50 hover:bg-sky-100 p-3 rounded-lg text-center text-sm font-medium text-sky-800 transition-colors"
-            >
-              <div className="mx-auto w-8 h-8 bg-sky-100 rounded-full flex items-center justify-center mb-2 text-sky-600">
-                {item.icon}
-              </div>
-              {item.name}
-            </Link>
-          ))}
-        </div>
-      </div>
 
       {/* AI Insights Panel */}
       <div className="bg-gradient-to-r from-sky-100 to-blue-50 p-5 rounded-xl shadow-sm border border-sky-200 mt-6">

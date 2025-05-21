@@ -293,46 +293,46 @@ const reports = [
 		desc: "Actual vs. Budget vs. Forecast",
 	},
 	{
-		id: "balanceSheet",
+		id: "",
 		title: "Balance Sheet",
 		desc: "Assets, Liabilities, and Equity Summary",
 	},
 	{
-		id: "cashFlow",
+		id: " ",
 		title: "Cash Flow Statement",
 		desc: "Operational, Investing, and Financing Cash Flow",
 	},
 	{
-		id: "arAging",
+		id: "   ",
 		title: "AR Aging Reports",
 		desc: "Overdue Receivables Breakdown",
 	},
 	{
-		id: "apAging",
+		id: "    ",
 		title: "AP Aging Reports",
 		desc: "Overdue Payments Breakdown",
 	},
 	{
-		id: "budgetVsActuals",
+		id: "     ",
 		title: "Budget vs. Actuals",
 		desc: "Variance Analysis & Cost Overruns",
 	},
 	{
-		id: "financialRatios",
+		id: "       ",
 		title: "Financial Ratio Analysis",
 		desc: "Liquidity, Profitability, and Efficiency Ratios",
 	},
 	{
-		id: "departmental",
+		id: "        ",
 		title: "Departmental Performance Reports",
 		desc: "Cost Centers, P&L by Business Unit",
 	},
 	{
-		id: "custom1",
+		id: "          ",
 		title: "Custom Revenue Report",
 		desc: "Revenue vs. Expenses by Quarter",
 	},
-	{ id: "custom2", title: "Regional Sales Report", desc: "Sales by Region" },
+	{ id: "            ", title: "Regional Sales Report", desc: "Sales by Region" },
 ];
 
 const timePeriods = [
