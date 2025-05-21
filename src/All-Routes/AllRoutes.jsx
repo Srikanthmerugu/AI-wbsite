@@ -11,7 +11,7 @@ import LoginPage from '../pages/Login';
 import ExpenseForecastingDashboard from '../pages/ForecastingOverview/ExpenseForecastingDashboard';
 import HelpSupport from '../pages/Suport/HelpSupport';
 import CashFlowProjections from '../pages/CashFlowProjections';
-import SmartFinancialAlerts from '../pages/SmartFinancialAlerts';
+import SmartFinancialAlerts from '../pages/SmartFinancialAlerts/SmartFinancialAlerts';
 import AIFinancialRecommendations from '../pages/AI-driven Insights & Alerts/AI-Financial Recommendations/AIFinancialRecommendations';
 import CompanyManagementTable from '../pages/All Company management/CompanyManagementTable';
 import ForecastingOverview from '../pages/ForecastingOverview/ForecastingOverview';
@@ -60,6 +60,12 @@ import BenchmarkingPeerComparisons from '../pages/AI-driven Insights & Alerts/Be
 import PredictiveRiskManagement from '../pages/AI-driven Insights & Alerts/PredictiveRiskManagement/PredictiveRiskManagement';
 import SupplyChainAnalytics from '../pages/Supply Chain & Procurement Analytics/SupplyChainAnalytics';
 import SupplierPerformanceScorecard from '../pages/Supply Chain & Procurement Analytics/SupplierPerformanceScorecard';
+import InventoryTurnoverAnalysis from '../pages/Supply Chain & Procurement Analytics/InventoryTurnoverAnalysis';
+import ProcurementSpendBreakdown from '../pages/Supply Chain & Procurement Analytics/ProcurementSpendBreakdown';
+import FreightLogisticsOptimization from '../pages/Supply Chain & Procurement Analytics/FreightLogisticsOptimization';
+import OperationalRiskAssessment from '../pages/Supply Chain & Procurement Analytics/OperationalRiskAssessment';
+import CostSavingOpportunities from '../pages/Supply Chain & Procurement Analytics/CostSavingOpportunities';
+import CashShortfallWarning from '../pages/SmartFinancialAlerts/CashShortfallWarning';
 
 
 
@@ -87,6 +93,10 @@ function AllRoutes() {
               <Route path="/user-management" element={<UserManagement />} />
               <Route path="/cashFlow-projections" element={<CashFlowProjections />} />
               <Route path="/smart-financial-alerts" element={<SmartFinancialAlerts />} />
+              <Route path="/CashShortfallWarning" element={<CashShortfallWarning />} />
+
+
+
               <Route path="/expenseForecasting" element={<ExpenseForecastingDashboard />} />
               <Route path="/aI-financial-recommendations" element={<AIFinancialRecommendations />} />
               <Route path="/cost-optimization-suggestions" element={<CostOptimizationSuggestions />} />
@@ -108,6 +118,11 @@ function AllRoutes() {
 
               <Route path="/SupplyChainAnalytics" element={<SupplyChainAnalytics />} />
               <Route path="/SupplierPerformanceScorecard" element={<SupplierPerformanceScorecard />} />
+              <Route path="/InventoryTurnoverAnalysis" element={<InventoryTurnoverAnalysis />} />
+              <Route path="/ProcurementSpendBreakdown" element={<ProcurementSpendBreakdown />} />
+              <Route path="/FreightLogisticsOptimization" element={<FreightLogisticsOptimization />} />
+              <Route path="/OperationalRiskAssessment" element={<OperationalRiskAssessment />} />
+              <Route path="/CostSavingOpportunities" element={<CostSavingOpportunities />} />
 
 
               
