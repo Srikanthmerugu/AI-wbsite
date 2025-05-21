@@ -297,12 +297,12 @@ const MENUITEMS = [
             title: "Supply Chain & Procurement Analytics ",
             icon: { name: "FiFile" },
             children: [
-              { path: "#", type: "link", title: "Supplier Performance Scorecard ", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Inventory Turnover Analysis", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Procurement Spend Breakdown ", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Freight & Logistics Optimization ", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Operational Risk Assessment", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Cost-Saving Opportunity Identification ", icon: { name: "FiFile" } },
+              { path: "/SupplierPerformanceScorecard", type: "link", title: "Supplier Performance Scorecard ", icon: { name: "FiFile" } },
+              { path: "/InventoryTurnoverAnalysis", type: "link", title: "Inventory Turnover Analysis", icon: { name: "FiFile" } },
+              { path: "/ProcurementSpendBreakdown", type: "link", title: "Procurement Spend Breakdown ", icon: { name: "FiFile" } },
+              { path: "/FreightLogisticsOptimization", type: "link", title: "Freight & Logistics Optimization ", icon: { name: "FiFile" } },
+              { path: "/OperationalRiskAssessment", type: "link", title: "Operational Risk Assessment", icon: { name: "FiFile" } },
+              { path: "/CostSavingOpportunities", type: "link", title: "Cost-Saving Opportunity Identification ", icon: { name: "FiFile" } },
             ],
           },
           // {

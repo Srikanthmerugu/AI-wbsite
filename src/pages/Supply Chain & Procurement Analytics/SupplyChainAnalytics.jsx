@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+import { Pie } from 'react-chartjs-2';
+import Chart from 'react-apexcharts';
+import { Bar } from 'react-chartjs-2';
+import { Tooltip as ReactTooltip } from 'react-tooltip';
 
 const SupplyChainAnalytics = () => {
   const [activeTab, setActiveTab] = useState('scorecard');
@@ -23,39 +27,183 @@ const SupplyChainAnalytics = () => {
     "Switch to regional packaging supplier to reduce freight costs by 22%",
   ];
 
+  // Supplier Performance Trend Data
+  const supplierTrendData = {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    datasets: [
+      {
+        label: 'Acme Materials',
+        data: [92, 94, 96, 95, 97, 98],
+        borderColor: '#004a80',
+        backgroundColor: 'rgba(0, 74, 128, 0.1)',
+        tension: 0.3,
+        fill: true
+      },
+      {
+        label: 'Global Logistics',
+        data: [85, 86, 88, 87, 89, 89],
+        borderColor: '#3a7ca5',
+        backgroundColor: 'rgba(58, 124, 165, 0.1)',
+        tension: 0.3,
+        fill: true
+      },
+      {
+        label: 'Tech Components',
+        data: [90, 91, 92, 92, 93, 93],
+        borderColor: '#7fb2d0',
+        backgroundColor: 'rgba(127, 178, 208, 0.1)',
+        tension: 0.3,
+        fill: true
+      }
+    ]
+  };
+
+  // Inventory Turnover Chart
+  const inventoryTurnoverOptions = {
+    chart: {
+      type: 'bar',
+      height: 350,
+      toolbar: {
+        show: false
+      }
+    },
+    colors: ['#004a80', '#3a7ca5', '#7fb2d0'],
+    plotOptions: {
+      bar: {
+        borderRadius: 4,
+        horizontal: true,
+      }
+    },
+    dataLabels: {
+      enabled: false
+    },
+    xaxis: {
+      categories: inventoryData.map(item => item.category),
+    },
+    tooltip: {
+      theme: 'light'
+    }
+  };
+
+  const inventoryTurnoverSeries = [{
+    name: 'Turnover Rate',
+    data: inventoryData.map(item => parseFloat(item.turnover))
+  }];
+
+  // Spend by Category Pie Chart
+  const spendData = {
+    labels: ['Electronics', 'Raw Materials', 'Packaging', 'Logistics', 'Services'],
+    datasets: [
+      {
+        data: [35, 25, 15, 15, 10],
+        backgroundColor: [
+          '#004a80',
+          '#3a7ca5',
+          '#7fb2d0',
+          '#a8cfe0',
+          '#cfe6f7'
+        ],
+        borderWidth: 0,
+      }
+    ]
+  };
+
+  // Freight Costs Chart
+  const freightOptions = {
+    chart: {
+      type: 'line',
+      height: 350,
+      toolbar: {
+        show: false
+      }
+    },
+    colors: ['#004a80'],
+    stroke: {
+      width: 3,
+      curve: 'smooth'
+    },
+    markers: {
+      size: 6,
+      colors: ['#004a80'],
+      strokeWidth: 0,
+      hover: {
+        size: 8
+      }
+    },
+    xaxis: {
+      categories: ['Q1', 'Q2', 'Q3', 'Q4'],
+    },
+    yaxis: {
+      title: {
+        text: 'Cost (in thousands)'
+      }
+    },
+    tooltip: {
+      theme: 'light'
+    }
+  };
+
+  const freightSeries = [{
+    name: 'Freight Costs',
+    data: [45, 52, 38, 45]
+  }];
+
+  // Risk Heatmap
+  const riskData = {
+    labels: ['Supplier A', 'Supplier B', 'Supplier C', 'Supplier D', 'Supplier E'],
+    datasets: [
+      {
+        label: 'Financial Risk',
+        data: [3, 5, 2, 4, 1],
+        backgroundColor: 'rgba(0, 74, 128, 0.7)',
+      },
+      {
+        label: 'Operational Risk',
+        data: [4, 3, 5, 2, 3],
+        backgroundColor: 'rgba(58, 124, 165, 0.7)',
+      },
+      {
+        label: 'Geopolitical Risk',
+        data: [2, 4, 3, 5, 2],
+        backgroundColor: 'rgba(127, 178, 208, 0.7)',
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-blue-50 p-6">
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-        <h1 className="text-3xl font-bold text-blue-800">Supply Chain & Procurement Analytics</h1>
-        <p className="text-blue-600 mt-2">Optimize vendor performance and cost efficiency across your supply chain</p>
-        
-        {/* Time Period Selector */}
-        <div className="flex flex-wrap gap-4 mt-4">
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-blue-700">Time Period</label>
-            <select className="mt-1 block w-full rounded-md border-blue-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-blue-50 text-blue-800">
-              <option>Last Quarter</option>
-              <option>Year to Date</option>
-              <option>Custom Range</option>
-            </select>
+      <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-lg font-bold text-white">Supply Chain & Procurement Analytics</h1>
+            <p className="text-sky-100 text-xs">Optimize vendor performance and cost efficiency across your supply chain</p>
           </div>
-          
-          {/* Business Unit Selector */}
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-blue-700">Business Unit</label>
-            <select className="mt-1 block w-full rounded-md border-blue-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-blue-50 text-blue-800">
-              <option>All Units</option>
-              <option>North America</option>
-              <option>Europe</option>
-              <option>Asia-Pacific</option>
-            </select>
+          <div className="flex space-x-2">
+            <div className="flex justify-between items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
+              <label className="block w-full text-sm font-medium text-blue-50">Time Period</label>
+              <select className="mt-1 p-2 outline-0 block w-full rounded-md border-blue-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-blue-50 text-blue-800">
+                <option>Last Quarter</option>
+                <option>Year to Date</option>
+                <option>Custom Range</option>
+              </select>
+            </div>
+            
+            <div className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
+              <label className="block w-full text-sm font-medium text-blue-50">Business Unit</label>
+              <select className="mt-1 p-2 block outline-0 w-full rounded-md border-blue-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-blue-50 text-blue-800">
+                <option>All Units</option>
+                <option>North America</option>
+                <option>Europe</option>
+                <option>Asia-Pacific</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex overflow-x-auto mb-6 bg-white rounded-xl shadow-sm">
+      <div className="flex mt-5 overflow-x-auto mb-6 bg-white rounded-xl shadow-sm">
         {[
           { id: 'scorecard', label: 'Supplier Scorecard' },
           { id: 'inventory', label: 'Inventory Analysis' },
@@ -113,8 +261,34 @@ const SupplyChainAnalytics = () => {
             </table>
           </div>
           
-          <div className="mt-4 h-64 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
-            [Supplier Performance Trend Chart]
+          <div className="mt-4 h-64 bg-white rounded-lg p-4">
+            <Bar 
+              data={supplierTrendData}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: {
+                    position: 'top',
+                  },
+                  tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: false,
+                    min: 80,
+                    max: 100,
+                    ticks: {
+                      callback: function(value) {
+                        return value + '%';
+                      }
+                    }
+                  }
+                }
+              }}
+            />
           </div>
         </div>
 
@@ -143,8 +317,13 @@ const SupplyChainAnalytics = () => {
             </table>
           </div>
           
-          <div className="h-48 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 mb-4">
-            [Inventory Turnover Visualization]
+          <div className="h-48 bg-white rounded-lg p-4 mb-4">
+            <Chart
+              options={inventoryTurnoverOptions}
+              series={inventoryTurnoverSeries}
+              type="bar"
+              height="100%"
+            />
           </div>
           
           <div className="space-y-3">
@@ -199,29 +378,80 @@ const SupplyChainAnalytics = () => {
         </div>
       </div>
 
+
       {/* Additional Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-xl shadow-md p-6">
           <h3 className="text-lg font-medium text-blue-800 mb-3">Procurement Spend</h3>
-          <div className="h-48 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
-            [Spend by Category Pie Chart]
+          <div className="h-48">
+            <Pie
+              data={spendData}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: {
+                    position: 'right',
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function(context) {
+                        return `${context.label}: $${context.raw * 1000} (${context.raw}%)`;
+                      }
+                    }
+                  }
+                }
+              }}
+            />
           </div>
         </div>
         
         <div className="bg-white rounded-xl shadow-md p-6">
           <h3 className="text-lg font-medium text-blue-800 mb-3">Freight Costs</h3>
-          <div className="h-48 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
-            [Shipping Cost Trend]
+          <div className="h-48">
+            <Chart
+              options={freightOptions}
+              series={freightSeries}
+              type="line"
+              height="100%"
+            />
           </div>
         </div>
         
         <div className="bg-white rounded-xl shadow-md p-6">
           <h3 className="text-lg font-medium text-blue-800 mb-3">Supplier Risk</h3>
-          <div className="h-48 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
-            [Risk Heatmap]
+          <div className="h-48">
+            <Bar
+              data={riskData}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: {
+                    position: 'top',
+                  },
+                  tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                  }
+                },
+                scales: {
+                  x: {
+                    stacked: true,
+                  },
+                  y: {
+                    stacked: true,
+                    max: 15,
+                    ticks: {
+                      stepSize: 3
+                    }
+                  }
+                }
+              }}
+            />
           </div>
         </div>
       </div>
+
+      <ReactTooltip place="top" type="dark" effect="solid" />
     </div>
   );
 };
