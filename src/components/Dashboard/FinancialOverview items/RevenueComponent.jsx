@@ -4,7 +4,7 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import { CSVLink } from 'react-csv';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { FaDownload, FaArrowLeft, FaInfoCircle, FaChevronDown, FaChevronRight } from 'react-icons/fa';
+import { FaDownload, FaArrowLeft, FaInfoCircle, FaChevronDown, FaChevronRight, FaHome } from 'react-icons/fa';
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
@@ -247,26 +247,28 @@ const RevenueComponent = () => {
 
   return (
     <motion.div
-      className="bg-white p-6 rounded-lg shadow-md"
+      className="rounded-lg "
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      <div className="flex justify-between items-center mb-6">
+       <button
+                 onClick={() => navigate('/financial-overview')}
+                 className="flex items-center justify-between text-sky-800 mb-2"
+               >
+                 <FaHome className="mr-2" /> Dashboard |<span className='ml-2 text-gray-400'>Revenue Analytics</span>
+               </button>
+           <div className="flex bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm justify-between items-center mb-6">
+        
         <div className="flex items-center space-x-4">
-          <button
-            onClick={() => navigate('/financial-overview')}
-            className="flex items-center bg-gray-200 text-sky-700 px-4 py-2 rounded-md hover:bg-gray-300 transition"
-          >
-            <FaArrowLeft className="mr-2" /> Back to Dashboard
-          </button>
-          <h2 className="text-2xl font-bold text-sky-900">Revenue Analytics</h2>
+          
+          <h2 className="text-2xl font-bold text-sky-50">Revenue Analytics</h2>
         </div>
         <div className="flex space-x-4 items-center">
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
-            className="border rounded-md px-3 py-2 text-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500"
+            className=" rounded-md px-3 text-white bg-sky-900 py-2  outline-0 "
           >
             <option value="2023">2023</option>
             <option value="2024">2024</option>
@@ -275,7 +277,7 @@ const RevenueComponent = () => {
           <select
             value={selectedDataset}
             onChange={(e) => setSelectedDataset(e.target.value)}
-            className="border rounded-md px-3 py-2 text-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500"
+            className=" rounded-md px-3 py-2 text-sky-50 bg-sky-900  "
           >
             <option value="both">Actual & Forecasted</option>
             <option value="actual">Actual Only</option>
@@ -284,7 +286,7 @@ const RevenueComponent = () => {
           <select
             value={selectedView}
             onChange={(e) => setSelectedView(e.target.value)}
-            className="border rounded-md px-3 py-2 text-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500"
+            className=" rounded-md px-3 py-2 text-sky-50  bg-sky-900  "
           >
             <option value="trend">Trend View</option>
             <option value="breakdown">Breakdown View</option>
@@ -292,7 +294,7 @@ const RevenueComponent = () => {
           <CSVLink
             data={csvData}
             filename={`revenue-analytics-${selectedYear}.csv`}
-            className="flex items-center bg-sky-500 text-white px-4 py-2 rounded-md hover:bg-sky-600 transition"
+            className="flex items-center bg-sky-800 text-white px-4 py-2 rounded-md hover:bg-sky-600 transition"
           >
             <FaDownload className="mr-2" /> Export
           </CSVLink>

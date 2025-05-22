@@ -138,17 +138,20 @@ const CostSavingOpportunities = () => {
         }
       }
     }
-  };
+  }; 
 
   if (loading) {
-    return <div className="flex justify-center items-center h-64">Loading cost-saving opportunities...</div>;
+    return <div className="flex justify-center items-center h-64">Loading cost-saving opportunities..</div>;
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className=" bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Cost-Saving Opportunity Identification</h1>
-        
+
+      	<div className=" mb-5 bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
+
+        <h1 className="text-2xl font-bold text-white">Cost-Saving Opportunity Identification</h1>
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Vendor Spend Chart */}
           <div className="lg:col-span-2 bg-white p-4 rounded-lg shadow">
@@ -157,7 +160,7 @@ const CostSavingOpportunities = () => {
               data={{
                 labels: vendors.map(v => v.name),
                 datasets: [
-                  {
+                  {                                      
                     label: 'Annual Spend',
                     data: vendors.map(v => v.spend),
                     backgroundColor: 'rgba(59, 130, 246, 0.5)',
