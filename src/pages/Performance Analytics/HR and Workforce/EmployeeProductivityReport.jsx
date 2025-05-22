@@ -68,14 +68,14 @@ const kpiData = {
   revenuePerEmployee: { 
     value: 125000, 
     change: "+8%", 
-    componentPath: "/employee-productivity-report", 
+    componentPath: "/hr-workforce-table", 
     forecast: "$132K predicted next quarter",
     definition: "Total revenue divided by number of full-time employees"
   },
   outputPerEmployee: { 
     value: 420, 
     change: "+5%", 
-    componentPath: "/employee-productivity-report", 
+    componentPath: "/hr-workforce-table", 
     forecast: "440 units predicted next quarter",
     definition: "Total output units divided by number of employees"
   },

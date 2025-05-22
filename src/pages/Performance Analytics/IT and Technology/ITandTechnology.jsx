@@ -146,7 +146,7 @@ export const ITSpendAnalytics = () => {
   const chartData = {
     spendByCategory: {
       title: "IT Spend by Category",
-      componentPath: "/it-technology-spend",
+      componentPath: "/it-spend-table",
       data: {
         labels: ['Cloud Services', 'SaaS Subscriptions', 'Infrastructure', 'Security', 'Personnel', 'Other'],
         datasets: [{
@@ -170,7 +170,7 @@ export const ITSpendAnalytics = () => {
     },
     budgetVsActual: {
       title: "Budget vs Actuals",
-      componentPath: "/it-technology-spend",
+      componentPath: "/it-spend-table",
       data: {
         labels: ['ERP Upgrade', 'Cloud Migration', 'Security Suite', 'HR System', 'Marketing Platform'],
         datasets: [

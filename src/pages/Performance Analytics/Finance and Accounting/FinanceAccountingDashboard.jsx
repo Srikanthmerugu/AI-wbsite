@@ -62,8 +62,8 @@ const navItems = [
   { name: "Liquidity Analysis", icon: <BsCashStack />, path: "/liquidity-working-capital" },
   { name: "Profitability Ratios", icon: <FiTrendingUp />, path: "/profitability-ratios" },
   { name: "Debt Coverage", icon: <FiCreditCard />, path: "/debt-coverage" },
-  { name: "Budget Variance", icon: <FiBarChart2 />, path: "/finance-accounting-dashboard" },
-  { name: "Tax Compliance", icon: <FiShield />, path: "/finance-accounting-dashboard" },
+  { name: "Budget Variance", icon: <FiBarChart2 />, path: "/budget-utilization" },
+  { name: "Tax Compliance", icon: <FiShield />, path: "/tax-compliance" },
   { name: "Expense Trends", icon: <FiFileText />, path: "/finance-accounting-dashboard" }
 ];
 
@@ -73,7 +73,7 @@ const kpiData = {
     value: 1.8, 
     change: "+0.2", 
     isPositive: true, 
-    componentPath: "/finance-accounting-dashboard",
+    componentPath: "/finance-accounting-table",
     forecast: "1.9 next quarter",
     description: "Current Assets / Current Liabilities"
   },
@@ -89,7 +89,7 @@ const kpiData = {
     value: 42, 
     change: "+1.5", 
     isPositive: true, 
-    componentPath: "/finance-accounting-dashboard",
+    componentPath: "/finance-accounting-tablee",
     forecast: "43% next quarter",
     description: "Gross Profit / Revenue"
   },
