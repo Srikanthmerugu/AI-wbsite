@@ -41,7 +41,7 @@ import { BsStars, BsThreeDotsVertical } from "react-icons/bs";
 import { Tooltip as ReactTooltip } from "react-tooltip";
 import { RiDragMove2Fill } from "react-icons/ri";
 // import { AuthContext } from "../../context/AuthContext";
-import { AuthContext } from "@/context/AuthContext";
+// import { AuthContext } from "@/context/AuthContext";
 
 // Register ChartJS components
 ChartJS.register(
@@ -445,7 +445,7 @@ const charts = {
 
 const ITBudgetVsActuals = () => {
   const navigate = useNavigate();
-  const { currentUser } = useContext(AuthContext);
+  // const { currentUser } = useContext(AuthContext);
   const [showFilters, setShowFilters] = useState(false);
   const [activeWidgets, setActiveWidgets] = useState([
     "budgetVsActual",

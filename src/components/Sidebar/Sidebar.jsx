@@ -366,20 +366,20 @@ const MENUITEMS = [
 
 
 
-      {
-        title: "AI Insights & Alerts",
-        icon: { name: "FiBell" },
-        path: "/smart-financial-alerts",
-        type: "sub",
-        active: false,
-        children: [
-          { path: "/smart-financial-alerts", title: "Smart Financial Alerts", type: "link", icon: { name: "FiFile" } },
-          { path: "/aI-financial-recommendations", title: "AI-Powered Financial Recommendations", type: "link", icon: { name: "FiFile" } },
-          { path: "/PredictiveRiskManagement", title: "Predictive Risk Management", type: "link", icon: { name: "FiFile" } },
-          { path: "/ForecastAccuracyMonitoring", title: "AI-Driven Forecast Accuracy Monitoring", type: "link", icon: { name: "FiFile" } },
-          { path: "/BenchmarkingPeerComparisons", title: "AI-Powered Benchmarking & Peer Comparisons", type: "link", icon: { name: "FiFile" } },
-        ],
-      },
+      // {
+      //   title: "AI Insights & Alerts",
+      //   icon: { name: "FiBell" },
+      //   path: "/smart-financial-alerts",
+      //   type: "sub",
+      //   active: false,
+      //   children: [
+      //     { path: "/smart-financial-alerts", title: "Smart Financial Alerts", type: "link", icon: { name: "FiFile" } },
+      //     { path: "/aI-financial-recommendations", title: "AI-Powered Financial Recommendations", type: "link", icon: { name: "FiFile" } },
+      //     { path: "/PredictiveRiskManagement", title: "Predictive Risk Management", type: "link", icon: { name: "FiFile" } },
+      //     { path: "/ForecastAccuracyMonitoring", title: "AI-Driven Forecast Accuracy Monitoring", type: "link", icon: { name: "FiFile" } },
+      //     { path: "/BenchmarkingPeerComparisons", title: "AI-Powered Benchmarking & Peer Comparisons", type: "link", icon: { name: "FiFile" } },
+      //   ],
+      // },
       // {
       //   title: "User Management",
       //   path: "/user-management",
@@ -392,6 +392,12 @@ const MENUITEMS = [
       //   path: "/company-management-table",
       //   icon: { name: "FaLayerGroup" },
       //   title: "All Companies Management",
+      //   type: "link",
+      // },
+      // {
+      //   path: "/settings-customization",
+      //   icon: { name: "FiSettings" },
+      //   title: "Settings & Customization",
       //   type: "link",
       // },
       {
