@@ -10,7 +10,6 @@ import AIChatBot from '../pages/AIChatBot';
 import LoginPage from '../pages/Login';
 import ExpenseForecastingDashboard from '../pages/ForecastingOverview/ExpenseForecastingDashboard';
 import HelpSupport from '../pages/Suport/HelpSupport';
-import UserManagement from '../pages/Suport/User Management/UserManagement';
 import CashFlowProjections from '../pages/CashFlowProjections';
 import SmartFinancialAlerts from '../pages/SmartFinancialAlerts/SmartFinancialAlerts';
 import AIFinancialRecommendations from '../pages/AI-driven Insights & Alerts/AI-Financial Recommendations/AIFinancialRecommendations';
@@ -62,7 +61,6 @@ import ProfitabilityRatios from '../pages/Performance Analytics/Finance and Acco
 import DebtCoverage from '../pages/Performance Analytics/Finance and Accounting/DebtCoverage';
 
 
-import UserManagement from '../pages/Suport/User Management/UserManagement';
 import CostOptimizationSuggestions from '../pages/AI-driven Insights & Alerts/AI-Financial Recommendations/CostOptimizationSuggestions';
 import RevenueGrowthStrategies from '../pages/AI-driven Insights & Alerts/AI-Financial Recommendations/RevenueGrowthStrategies';
 import InvestmentCapitalAllocation from '../pages/AI-driven Insights & Alerts/AI-Financial Recommendations/InvestmentCapitalAllocation';
@@ -78,6 +76,8 @@ import FreightLogisticsOptimization from '../pages/Supply Chain & Procurement An
 import OperationalRiskAssessment from '../pages/Supply Chain & Procurement Analytics/OperationalRiskAssessment';
 import CostSavingOpportunities from '../pages/Supply Chain & Procurement Analytics/CostSavingOpportunities';
 import CashShortfallWarning from '../pages/SmartFinancialAlerts/CashShortfallWarning';
+import UserManagement from '../pages/Suport/User Management/UserManagement';
+import SettingsCustomization from '../pages/SettingsCustomization/SettingsCustomization';
 
 
 
@@ -129,7 +129,7 @@ function AllRoutes() {
 
 
 
-
+ 
               <Route path="/SupplyChainAnalytics" element={<SupplyChainAnalytics />} />
               <Route path="/SupplierPerformanceScorecard" element={<SupplierPerformanceScorecard />} />
               <Route path="/InventoryTurnoverAnalysis" element={<InventoryTurnoverAnalysis />} />
@@ -182,6 +182,7 @@ function AllRoutes() {
               <Route path="/liquidity-working-capital" element={<LiquidityWorkingCapital />} />
               <Route path="/profitability-ratios" element={<ProfitabilityRatios />} />
               <Route path="/debt-coverage" element={<DebtCoverage />} />
+              <Route path="/settings-customization" element={<SettingsCustomization />} />
 
             </Route>
           </Route>
