@@ -15,13 +15,13 @@ const MenuItem = ({ item, isSidebarOpen, level = 0, isLastChild = false }) => {
   // Single Link Item
   if (item.type === "link" && !hasChildren) {
     return (
-      <li className={`relative ${level > 0 ? 'pl-6' : ''}`}>
+      <li className={`relative ${level > 0 ? "pl-6" : ""}`}>
         <NavLink
           to={item.path}
           className={({ isActive }) =>
             `flex items-center py-1.5 text-xs transition-all duration-200 hover:bg-blue-50 hover:text-blue-600 group ${
               isActive ? "text-sky-900 bg-blue-50" : "text-gray-700 hover:text-blue-600"
-            } ${level > 0 ? 'pl-6' : 'pl-4'}`
+            } ${level > 0 ? "pl-6" : "pl-4"}`
           }
         >
           {level > 0 && <BsArrowBarRight className="absolute left-2 text-gray-400 text-xs" />}
@@ -30,7 +30,7 @@ const MenuItem = ({ item, isSidebarOpen, level = 0, isLastChild = false }) => {
               <Icon size="1rem" className="transition-all duration-200" />
             </span>
           )}
-          <span className={`${level > 0 ? 'text-xs' : 'text-sm'}`}>{item.title}</span>
+          <span className={`${level > 0 ? "text-xs" : "text-sm"}`}>{item.title}</span>
         </NavLink>
       </li>
     );
@@ -38,12 +38,12 @@ const MenuItem = ({ item, isSidebarOpen, level = 0, isLastChild = false }) => {
 
   // Submenu Item
   return (
-    <li className={`relative ${level > 0 ? 'pl-6' : ''}`}>
+    <li className={`relative ${level > 0 ? "pl-6" : ""}`}>
       <div
         onClick={toggleSubmenu}
         className={`flex items-center justify-between w-full py-1.5 text-xs transition-all duration-200 hover:bg-blue-50 hover:text-gray-900 cursor-pointer ${
           isOpen ? "text-sky-700 bg-sky-50" : "text-sky-900"
-        } ${level > 0 ? 'pl-6' : 'pl-4'}`}
+        } ${level > 0 ? "pl-6" : "pl-4"}`}
       >
         <div className="flex items-center">
           {Icon && level === 0 && (
@@ -51,9 +51,9 @@ const MenuItem = ({ item, isSidebarOpen, level = 0, isLastChild = false }) => {
               <Icon size="1rem" className="transition-all duration-200" />
             </span>
           )}
-          <span className={`${level > 0 ? 'text-xs' : 'text-sm'}`}>{item.title}</span>
+          <span className={`${level > 0 ? "text-xs" : "text-sm"}`}>{item.title}</span>
         </div>
-        
+
         {hasChildren && (
           <span>
             {isOpen ? (
@@ -66,7 +66,7 @@ const MenuItem = ({ item, isSidebarOpen, level = 0, isLastChild = false }) => {
       </div>
 
       {hasChildren && isOpen && (
-        <ul className={`${level > 0 ? 'pl-2' : 'pl-4'}`}>
+        <ul className={`${level > 0 ? "pl-2" : "pl-4"}`}>
           {item.children.map((child, childIndex) => (
             <MenuItem
               key={childIndex}
