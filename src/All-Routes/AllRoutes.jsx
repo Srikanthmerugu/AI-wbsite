@@ -139,7 +139,7 @@ function AllRoutes() {
               <Route path="/CostSavingOpportunities" element={<CostSavingOpportunities />} />
 
 
-              
+
               <Route path="/company-management-table" element={<CompanyManagementTable />} />
               <Route path="/forecasting-overview" element={<ForecastingOverview />} />
               <Route path="/CAPEX-forecast-screen" element={<CAPEXForecastScreen />} />
