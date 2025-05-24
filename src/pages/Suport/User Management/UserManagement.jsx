@@ -632,6 +632,7 @@ const UserManagement = () => {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                       </tr>
@@ -655,6 +656,11 @@ const UserManagement = () => {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 capitalize">
                                 {user.role || 'N/A'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="px-2 py-1 text-xs   text-blue-800 capitalize">
+                                {user.department || 'N/A'}
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
