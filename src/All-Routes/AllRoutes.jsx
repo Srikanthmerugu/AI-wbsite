@@ -49,6 +49,7 @@ import MarketingCampaign from '../pages/Performance Analytics/Sales and Marketin
 import RevenueBreakdown from '../pages/Performance Analytics/Sales and Marketing/RevenueBreakdown';
 import EmployeeProductivityReport from '../pages/Performance Analytics/HR and Workforce/EmployeeProductivityReport';
 import UtilizationRateReport from '../pages/Performance Analytics/HR and Workforce/UtilizationRate';
+import RetentionAttritionRate from '../pages/Performance Analytics/HR and Workforce/RetentionAttritionRate';
 
 import ITSpendBreakdown from '../pages/Performance Analytics/IT and Technology/ITSpendBreakdown';
 import ITSpendTable from '../pages/Performance Analytics/IT and Technology/ITSpendTable';
@@ -170,6 +171,7 @@ function AllRoutes() {
               <Route path="/hr-workforce-table" element={<HRWorkforceTable  />} />
               <Route path="/employee-productivity-report" element={<EmployeeProductivityReport  />} />
               <Route path="/utilization-rate-report" element={<UtilizationRateReport  />} />  
+              <Route path="/retention-attrition-rate" element={<RetentionAttritionRate  />} />  
               <Route path="/it-technology-spend" element={<ITandTechnology  />} />
               <Route path="/it-spend-table" element={<ITSpendTable  />} />
               <Route path="/it-spend-breakdown" element={<ITSpendBreakdown />} />

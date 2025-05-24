@@ -34,6 +34,7 @@
     import { BsStars, BsThreeDotsVertical } from "react-icons/bs";
     import { Tooltip as ReactTooltip } from "react-tooltip";
     import { RiDragMove2Fill } from "react-icons/ri";
+    import { GrLinkNext } from "react-icons/gr";
     // import { AuthContext } from "../../context/AuthContext";
     // import { AuthContext } from "@/context/AuthContext";
 
@@ -365,7 +366,7 @@
     const SecurityCompliance= () => {
     const navigate = useNavigate();
     const [showFilters, setShowFilters] = useState(false);
-    const { currentUser } = useContext(AuthContext);
+    // const { currentUser } = useContext(AuthContext);
     const [activeWidgets, setActiveWidgets] = useState([
         "incidentsByCategory",
         "incidentTrend",
@@ -863,7 +864,7 @@
                 <h1 className="text-lg font-bold text-white">
                 Security & Compliance Analytics
                 </h1>
-                <p className="text-sky-100 text-xs">{currentUser.company_name}</p>
+                {/* <p className="text-sky-100 text-xs">{currentUser.company_name}</p> */}
             </div>
             <div className="flex space-x-2">
                 <button
@@ -873,12 +874,20 @@
                 <FiFilter className="mr-1" />
                 Filters
                 </button>
-                <button
+                {/* <button
                 type="button"
                 className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
                 <FiPlus className="mr-1" />
                 Add Widget
-                </button>
+                </button> */}
+                <Link to="/it-spend-table">
+                              <button
+                                type="button"
+                                className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
+                                View More
+                                <GrLinkNext className="ml-1 w-4 h-4 hover:w-5 hover:h-5 transition-all" />
+                              </button>
+                            </Link>
             </div>
             </div>
         </div>
