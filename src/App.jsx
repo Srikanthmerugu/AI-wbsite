@@ -5,11 +5,12 @@ import 'ag-grid-community/styles/ag-theme-alpine.css';
 // import 'react-toastify/dist/ReactToastify.css';
 import "./App.css"
 import './styles/animations.css'
+import { ToastContainer } from 'react-toastify';
 
 const App = () => {
   return (
     <div>
-     {/* <ToastContainer /> */}
+     <ToastContainer />
       <AllRoutes />
     </div>
   )
