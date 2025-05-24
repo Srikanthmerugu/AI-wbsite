@@ -29,6 +29,7 @@ import { motion } from "framer-motion";
 import {
 	FiTrendingUp,
 	FiTrendingDown,
+	FiDownload,
 	FiDollarSign,
 	FiPieChart,
 	FiFilter,
@@ -734,6 +735,12 @@ const FinancialOverview = () => {
 							<FiPlus className="mr-1" />
 							Add Widget
 						</button>
+						<button 
+									  className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white  bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-900 transition-colors duration-200"
+									  >
+									<FiDownload className='text-sky-50 hover:text-sky-900' />
+									<span className="text-sky-50 hover:text-sky-900">Export</span>
+								  </button>
 					</div>
 				</div>
 			</div>

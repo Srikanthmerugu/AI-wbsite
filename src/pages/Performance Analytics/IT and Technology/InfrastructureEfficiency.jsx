@@ -33,6 +33,7 @@ import {
 import { BsStars, BsThreeDotsVertical } from "react-icons/bs";
 import { Tooltip as ReactTooltip } from "react-tooltip";
 import { RiDragMove2Fill } from "react-icons/ri";
+import { GrLinkNext } from "react-icons/gr";
 // import { AuthContext } from "../../../../context/AuthContext";
 // import { AuthContext } from "@/context/AuthContext";
 
@@ -304,7 +305,7 @@ const charts = {
 const InfrastructureCostEfficiency = () => {
   const navigate = useNavigate();
   const [showFilters, setShowFilters] = useState(false);
-  const { currentUser } = useContext(AuthContext);
+  // const { currentUser } = useContext(AuthContext);
   const [activeWidgets, setActiveWidgets] = useState([
     "monthlySpendTrend",
     "spendBreakdown",
@@ -796,7 +797,7 @@ const InfrastructureCostEfficiency = () => {
                                     <nav className="flex mb-4" aria-label="Breadcrumb">
                                       <ol className="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
                                         <li className="inline-flex items-center">
-                                          <Link to="/" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                                          <Link to="/financial-overview" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
                                             <svg className="w-3 h-3 me-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                                               <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z"/>
                                             </svg>
@@ -836,12 +837,20 @@ const InfrastructureCostEfficiency = () => {
               <FiFilter className="mr-1" />
               Filters
             </button>
-            <button
+            {/* <button
               type="button"
               className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
               <FiPlus className="mr-1" />
               Add Widget
-            </button>
+            </button> */}
+            <Link to="/it-spend-table">
+                          <button
+                            type="button"
+                            className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
+                            View More
+                            <GrLinkNext className="ml-1 w-4 h-4 hover:w-5 hover:h-5 transition-all" />
+                          </button>
+                        </Link>
           </div>
         </div>
       </div>

@@ -257,7 +257,7 @@ const MENUITEMS = [
             children: [
               { path: "/employee-productivity-report", type: "link", title: "Employee Productivity Report ", icon: { name: "FiFile" } },
               { path: "/utilization-rate-report", type: "link", title: "Utilization Rate Report ", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Retention & Attrition Rate Analysis ", icon: { name: "FiFile" } },
+              { path: "/retention-attrition-rate", type: "link", title: "Retention & Attrition Rate Analysis ", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Hiring Funnel Metrics ", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Diversity & Inclusion Metrics", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Compensation & Benefits Analysis ", icon: { name: "FiFile" } },
@@ -319,23 +319,6 @@ const MENUITEMS = [
           // },
         ],
       },
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
