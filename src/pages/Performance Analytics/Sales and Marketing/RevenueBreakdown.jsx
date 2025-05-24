@@ -33,6 +33,7 @@ import {
 import { BsStars, BsThreeDotsVertical } from "react-icons/bs";
 import { Tooltip as ReactTooltip } from "react-tooltip";
 import { RiDragMove2Fill } from "react-icons/ri";
+import { GrLinkNext } from "react-icons/gr";
 
 ChartJS.register(
   CategoryScale,
@@ -548,6 +549,16 @@ const RevenueBreakdown = () => {
             <p className="text-sky-100 text-xs">Detailed analysis across multiple business dimensions</p>
             <p className="text-sky-100 text-xs mt-1">Data showing from Q1 2024 - Q4 2024</p>
           </div>
+          <Link
+                                                  to="/sales-performance-table"
+                                                  >
+                                                       <button
+                                                           type="button"
+                                                           className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
+                                                            View More
+                                                            <GrLinkNext className="ml-1 w-4 h-4 hover:w-5 hover:h-5 transition-all" />
+                                                       </button>
+                                               </Link>
           {/* <div className="flex space-x-2">
             <button 
               type="button" 

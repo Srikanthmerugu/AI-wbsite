@@ -64,7 +64,7 @@ const navItems = [
   { name: "Debt Coverage", icon: <FiCreditCard />, path: "/debt-coverage" },
   { name: "Budget Variance", icon: <FiBarChart2 />, path: "/budget-utilization" },
   { name: "Tax Compliance", icon: <FiShield />, path: "/tax-compliance" },
-  { name: "Expense Trends", icon: <FiFileText />, path: "/finance-accounting-dashboard" }
+  { name: "Expense Trends", icon: <FiFileText />, path: "/expense-trend-analysis" }
 ];
 
 // KPI Data for finance dashboard
@@ -766,12 +766,21 @@ const FinanceAccountingDashboard = () => {
             >
               <FiFilter className="mr-1" /> Filters
             </button>
-            <button
+            {/* <button
               type="button"
               className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200"
             >
               <GrLinkNext className="mr-1" /> Export Report
-            </button>
+            </button> */}
+             <Link
+     to="/finance-accounting-table">
+   <button
+     type="button"
+     className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
+      View More
+	<GrLinkNext className="ml-1 w-4 h-4 hover:w-5 hover:h-5 transition-all" />
+   </button>
+</Link>
           </div>
         </div>
       </div>

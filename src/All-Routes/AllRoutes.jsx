@@ -58,7 +58,7 @@ import ITBudgetVsActuals from '../pages/Performance Analytics/IT and Technology/
 import SecurityCompliance from '../pages/Performance Analytics/IT and Technology/SecurityCompliance';
 import TechDebtModernization from '../pages/Performance Analytics/IT and Technology/TechDebtModernization';
 import FinanceAccountingDashboard from '../pages/Performance Analytics/Finance and Accounting/FinanceAccountingDashboard';
-// import FinanceAccountingTable from '../pages/Performance Analytics/Finance and Accounting/FinanceAccountingTable';
+import FinanceAccountingTable from '../pages/Performance Analytics/Finance and Accounting/FinanceAccountingTable';
 import LiquidityWorkingCapital from '../pages/Performance Analytics/Finance and Accounting/LiquidityWorkingCapital';
 import TaxCompliance from '../pages/Performance Analytics/Finance and Accounting/TaxCompliance';
 import BudgetUtilization from '../pages/Performance Analytics/Finance and Accounting/BudgetUtilization';
@@ -83,6 +83,7 @@ import CostSavingOpportunities from '../pages/Performance Analytics/Supply Chain
 import CashShortfallWarning from '../pages/SmartFinancialAlerts/CashShortfallWarning';
 import UserManagement from '../pages/Suport/User Management/UserManagement';
 import SettingsCustomization from '../pages/SettingsCustomization/SettingsCustomization'; 
+import ExpenseTrendAnalysis from '../pages/Performance Analytics/Finance and Accounting/ExpendTrendAnalysis';
 
 
 
@@ -178,8 +179,9 @@ function AllRoutes() {
               <Route path="/security-compliance" element={<SecurityCompliance />} />
               <Route path="/tech-debt-modernization" element={<TechDebtModernization />} />
               <Route path="/finance-accounting-dashboard" element={<FinanceAccountingDashboard />} /> 
-              {/* <Route path="/finance-accounting-table" element={<FinanceAccountingTable />} />  */}
+              <Route path="/finance-accounting-table" element={<FinanceAccountingTable />} /> 
               <Route path="/tax-compliance" element={<TaxCompliance />} /> 
+              <Route path="/expense-trend-analysis" element={<ExpenseTrendAnalysis />} /> 
               <Route path="/liquidity-working-capital" element={<LiquidityWorkingCapital />} />
               <Route path="/budget-utilization" element={<BudgetUtilization />} />
               <Route path="/profitability-ratios" element={<ProfitabilityRatios />} />

@@ -288,7 +288,7 @@ const MENUITEMS = [
               { path: "/debt-coverage", type: "link", title: "Debt & Interest Coverage Metrics ", icon: { name: "FiFile" } },
               { path: "/budget-utilization", type: "link", title: "Budget Utilization & Variance Reports", icon: { name: "FiFile" } },
               { path: "/tax-compliance", type: "link", title: "Tax & Compliance Risk Assessments", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Expense Trend Analysis", icon: { name: "FiFile" } },
+              { path: "/expense-trend-analysis", type: "link", title: "Expense Trend Analysis", icon: { name: "FiFile" } },
             ],
           },
           {

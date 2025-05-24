@@ -421,7 +421,7 @@ const ITSpendTable = () => {
           <li>
             <div className="flex items-center">
               <FiChevronRight className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" />
-              <Link to="/it-analytics-dashboard" className="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2">
+              <Link to="/it-technology-spend" className="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2">
                 IT Analytics Dashboard
               </Link>
             </div>
