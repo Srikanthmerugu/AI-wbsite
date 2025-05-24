@@ -40,6 +40,7 @@ import ProfileDetailsScreen from '../pages/Organizations List Screen/Organizatio
 import SalesPerformanceDashboard from '../pages/Performance Analytics/Sales and Marketing/SalesPerformanceDashboard';
 import SalesPerformanceTable from '../pages/Performance Analytics/Sales and Marketing/SalesPerformanceTable';
 import HRworkForce from '../pages/Performance Analytics/HR and Workforce/HRworkForce';
+import HRWorkforceTable from '../pages/Performance Analytics/HR and Workforce/HRWorkforceTable';
 import ITandTechnology from '../pages/Performance Analytics/IT and Technology/ITandTechnology';
 import PipelineConversion from '../pages/Performance Analytics/Sales and Marketing/PipelineConversion';
 import CACandCLV from '../pages/Performance Analytics/Sales and Marketing/CACandCLV';
@@ -50,13 +51,17 @@ import EmployeeProductivityReport from '../pages/Performance Analytics/HR and Wo
 import UtilizationRateReport from '../pages/Performance Analytics/HR and Workforce/UtilizationRate';
 
 import ITSpendBreakdown from '../pages/Performance Analytics/IT and Technology/ITSpendBreakdown';
+import ITSpendTable from '../pages/Performance Analytics/IT and Technology/ITSpendTable';
 import SoftwareLicenseUtilization from '../pages/Performance Analytics/IT and Technology/SoftwareLicenseutilization';
 import InfrastructureCostEfficiency from '../pages/Performance Analytics/IT and Technology/InfrastructureEfficiency';
 import ITBudgetVsActuals from '../pages/Performance Analytics/IT and Technology/ITBudgetVsActuals';
 import SecurityCompliance from '../pages/Performance Analytics/IT and Technology/SecurityCompliance';
 import TechDebtModernization from '../pages/Performance Analytics/IT and Technology/TechDebtModernization';
 import FinanceAccountingDashboard from '../pages/Performance Analytics/Finance and Accounting/FinanceAccountingDashboard';
+import FinanceAccountingTable from '../pages/Performance Analytics/Finance and Accounting/FinanceAccountingTable';
 import LiquidityWorkingCapital from '../pages/Performance Analytics/Finance and Accounting/LiquidityWorkingCapital';
+import TaxCompliance from '../pages/Performance Analytics/Finance and Accounting/TaxCompliance';
+import BudgetUtilization from '../pages/Performance Analytics/Finance and Accounting/BudgetUtilization';
 import ProfitabilityRatios from '../pages/Performance Analytics/Finance and Accounting/ProfitabilityRatios';
 import DebtCoverage from '../pages/Performance Analytics/Finance and Accounting/DebtCoverage';
 
@@ -68,16 +73,17 @@ import ProfitabilityEnhancement from '../pages/AI-driven Insights & Alerts/AI-Fi
 import ForecastAccuracyMonitoring from '../pages/AI-driven Insights & Alerts/Forecast Accuracy Monitoring/ForecastAccuracyMonitoring';
 import BenchmarkingPeerComparisons from '../pages/AI-driven Insights & Alerts/BenchmarkingDashboard/BenchmarkingDashboard';
 import PredictiveRiskManagement from '../pages/AI-driven Insights & Alerts/PredictiveRiskManagement/PredictiveRiskManagement';
-import SupplyChainAnalytics from '../pages/Supply Chain & Procurement Analytics/SupplyChainAnalytics';
-import SupplierPerformanceScorecard from '../pages/Supply Chain & Procurement Analytics/SupplierPerformanceScorecard';
-import InventoryTurnoverAnalysis from '../pages/Supply Chain & Procurement Analytics/InventoryTurnoverAnalysis';
-import ProcurementSpendBreakdown from '../pages/Supply Chain & Procurement Analytics/ProcurementSpendBreakdown';
-import FreightLogisticsOptimization from '../pages/Supply Chain & Procurement Analytics/FreightLogisticsOptimization';
-import OperationalRiskAssessment from '../pages/Supply Chain & Procurement Analytics/OperationalRiskAssessment';
-import CostSavingOpportunities from '../pages/Supply Chain & Procurement Analytics/CostSavingOpportunities';
+import SupplyChainAnalytics from '../pages/Performance Analytics/Supply Chain & Procurement Analytics/SupplyChainAnalytics';
+import SupplierPerformanceScorecard from '../pages/Performance Analytics/Supply Chain & Procurement Analytics/SupplierPerformanceScorecard';
+import InventoryTurnoverAnalysis from '../pages/Performance Analytics/Supply Chain & Procurement Analytics/InventoryTurnoverAnalysis';
+import ProcurementSpendBreakdown from '../pages/Performance Analytics/Supply Chain & Procurement Analytics/ProcurementSpendBreakdown';
+import FreightLogisticsOptimization from '../pages/Performance Analytics/Supply Chain & Procurement Analytics/FreightLogisticsOptimization';
+import OperationalRiskAssessment from '../pages/Performance Analytics/Supply Chain & Procurement Analytics/OperationalRiskAssessment';
+import CostSavingOpportunities from '../pages/Performance Analytics/Supply Chain & Procurement Analytics/CostSavingOpportunities';
 import CashShortfallWarning from '../pages/SmartFinancialAlerts/CashShortfallWarning';
 import UserManagement from '../pages/Suport/User Management/UserManagement';
-import SettingsCustomization from '../pages/SettingsCustomization/SettingsCustomization';
+import SettingsCustomization from '../pages/SettingsCustomization/SettingsCustomization'; 
+import ExpenseTrendAnalysis from '../pages/Performance Analytics/Finance and Accounting/ExpendTrendAnalysis';
 
 
 
@@ -121,14 +127,6 @@ function AllRoutes() {
               <Route path="/BenchmarkingPeerComparisons" element={<BenchmarkingPeerComparisons />} />
               <Route path="/PredictiveRiskManagement" element={<PredictiveRiskManagement />} />
 
-
-
-
-
-              
-
-
-
  
               <Route path="/SupplyChainAnalytics" element={<SupplyChainAnalytics />} />
               <Route path="/SupplierPerformanceScorecard" element={<SupplierPerformanceScorecard />} />
@@ -169,9 +167,11 @@ function AllRoutes() {
               <Route path="/marketing-campaign" element={<MarketingCampaign />} />
               <Route path="/revenue-breakdown" element={<RevenueBreakdown />} />
               <Route path="/hr-workforce" element={<HRworkForce  />} /> 
+              <Route path="/hr-workforce-table" element={<HRWorkforceTable  />} />
               <Route path="/employee-productivity-report" element={<EmployeeProductivityReport  />} />
               <Route path="/utilization-rate-report" element={<UtilizationRateReport  />} />  
               <Route path="/it-technology-spend" element={<ITandTechnology  />} />
+              <Route path="/it-spend-table" element={<ITSpendTable  />} />
               <Route path="/it-spend-breakdown" element={<ITSpendBreakdown />} />
               <Route path="/software-license-utilization" element={<SoftwareLicenseUtilization />} />
               <Route path="/infrastructure-cost-efficiency" element={<InfrastructureCostEfficiency />} />
@@ -179,7 +179,11 @@ function AllRoutes() {
               <Route path="/security-compliance" element={<SecurityCompliance />} />
               <Route path="/tech-debt-modernization" element={<TechDebtModernization />} />
               <Route path="/finance-accounting-dashboard" element={<FinanceAccountingDashboard />} /> 
+              <Route path="/finance-accounting-table" element={<FinanceAccountingTable />} /> 
+              <Route path="/tax-compliance" element={<TaxCompliance />} /> 
+              <Route path="/expense-trend-analysis" element={<ExpenseTrendAnalysis />} /> 
               <Route path="/liquidity-working-capital" element={<LiquidityWorkingCapital />} />
+              <Route path="/budget-utilization" element={<BudgetUtilization />} />
               <Route path="/profitability-ratios" element={<ProfitabilityRatios />} />
               <Route path="/debt-coverage" element={<DebtCoverage />} />
               <Route path="/settings-customization" element={<SettingsCustomization />} />

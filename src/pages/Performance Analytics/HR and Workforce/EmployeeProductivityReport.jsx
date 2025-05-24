@@ -33,6 +33,7 @@ import {
 import { BsStars, BsThreeDotsVertical, BsLightningFill } from "react-icons/bs";
 import { Tooltip as ReactTooltip } from "react-tooltip";
 import { RiDragMove2Fill } from "react-icons/ri";
+import { GrLinkNext } from "react-icons/gr";
 
 ChartJS.register(
   CategoryScale,
@@ -68,14 +69,14 @@ const kpiData = {
   revenuePerEmployee: { 
     value: 125000, 
     change: "+8%", 
-    componentPath: "/employee-productivity-report", 
+    componentPath: "/hr-workforce-table", 
     forecast: "$132K predicted next quarter",
     definition: "Total revenue divided by number of full-time employees"
   },
   outputPerEmployee: { 
     value: 420, 
     change: "+5%", 
-    componentPath: "/employee-productivity-report", 
+    componentPath: "/hr-workforce-table", 
     forecast: "440 units predicted next quarter",
     definition: "Total output units divided by number of employees"
   },
@@ -612,6 +613,15 @@ const EmployeeProductivityReport = () => {
             >
               <FiFilter className="mr-1" /> Filters
             </button>
+             <Link
+     to="/hr-workforce-table">
+   <button
+     type="button"
+     className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
+      View More
+	<GrLinkNext className="ml-1 w-4 h-4 hover:w-5 hover:h-5 transition-all" />
+   </button>
+</Link>
           </div>
         </div>
       </div>

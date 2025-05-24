@@ -16,6 +16,7 @@ import {
 import { FiSend, FiChevronDown } from 'react-icons/fi';
 import { RiDragMove2Fill } from 'react-icons/ri';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
+import { GrLinkNext } from "react-icons/gr";
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import {
   Chart as ChartJS,
@@ -146,7 +147,7 @@ export const ITSpendAnalytics = () => {
   const chartData = {
     spendByCategory: {
       title: "IT Spend by Category",
-      componentPath: "/it-technology-spend",
+      componentPath: "/it-spend-table",
       data: {
         labels: ['Cloud Services', 'SaaS Subscriptions', 'Infrastructure', 'Security', 'Personnel', 'Other'],
         datasets: [{
@@ -170,7 +171,7 @@ export const ITSpendAnalytics = () => {
     },
     budgetVsActual: {
       title: "Budget vs Actuals",
-      componentPath: "/it-technology-spend",
+      componentPath: "/it-spend-table",
       data: {
         labels: ['ERP Upgrade', 'Cloud Migration', 'Security Suite', 'HR System', 'Marketing Platform'],
         datasets: [
@@ -667,11 +668,20 @@ export const ITSpendAnalytics = () => {
             >
               <BsFilter className="mr-1" /> Filters
             </button>
-            <button 
+            {/* <button 
               className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200"
             >
               <BsDownload className="mr-1" /> Export Report
-            </button>
+            </button> */}
+             <Link
+     to="/it-spend-table">
+   <button
+     type="button"
+     className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
+      View More
+	<GrLinkNext className="ml-1 w-4 h-4 hover:w-5 hover:h-5 transition-all" />
+   </button>
+</Link>
           </div>
         </div>
       </div>

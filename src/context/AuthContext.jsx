@@ -16,8 +16,6 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
 
-  console.log(currentUser, "from the auth context");
-
   // Check for token on initial load
   useEffect(() => {
     const storedToken = localStorage.getItem('token');

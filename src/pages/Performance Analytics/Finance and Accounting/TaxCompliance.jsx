@@ -7,13 +7,12 @@ import {
   BarElement,
   PointElement,
   LineElement,
-  ArcElement,
   Title,
   Tooltip,
   Legend,
   Filler,
 } from "chart.js";
-import { Bar, Line, Doughnut } from "react-chartjs-2";
+import { Bar, Line } from "react-chartjs-2";
 import { motion } from "framer-motion";
 import { 
   FiTrendingUp, 
@@ -21,18 +20,19 @@ import {
   FiChevronRight,
   FiFilter, 
   FiDollarSign,
-  FiServer,
-  FiCloud,
-  FiShield,
-  FiPackage,
+  FiUsers,
   FiChevronDown,
   FiSend,
-  FiPieChart
+  FiPieChart,
+  FiShield,
+  FiAlertTriangle,
+  FiFileText,
+  FiCheckCircle,
+  FiDownload
 } from "react-icons/fi";
 import { BsStars, BsThreeDotsVertical } from "react-icons/bs";
 import { Tooltip as ReactTooltip } from "react-tooltip";
 import { RiDragMove2Fill } from "react-icons/ri";
-import { GrLinkNext } from "react-icons/gr";
 
 ChartJS.register(
   CategoryScale,
@@ -40,7 +40,6 @@ ChartJS.register(
   BarElement,
   PointElement,
   LineElement,
-  ArcElement,
   Title,
   Tooltip,
   Legend,
@@ -66,18 +65,19 @@ const cardVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
-const ITSpendBreakdown = () => {
+const TaxCompliance = () => {
   const navigate = useNavigate();
   const [filters, setFilters] = useState({
     timePeriod: "Last Quarter",
-    category: "All Categories",
-    department: "All Departments",
-    vendor: "All Vendors"
+    taxType: "All Types",
+    region: "All Regions",
+    riskLevel: "All Levels",
+    showOverdueOnly: false
   });
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
   const [selectedChartType, setSelectedChartType] = useState({
-    spendByCategory: "bar",
-    cloudTrend: "line"
+    complianceTrend: "line",
+    filingStatus: "bar"
   });
   const [aiInput, setAiInput] = useState({});
   const [showAIDropdown, setShowAIDropdown] = useState(null);
@@ -85,47 +85,14 @@ const ITSpendBreakdown = () => {
   const [hoveredChartType, setHoveredChartType] = useState(null);
   const filtersRef = useRef(null);
 
-  // Sample data for IT spend metrics
-  const spendData = {
-    spendByCategory: {
-      labels: ["Q1", "Q2", "Q3", "Q4"],
-      datasets: [
-        {
-          label: "Cloud Services",
-          data: [120, 135, 145, 160],
-          backgroundColor: "rgba(59, 130, 246, 0.7)",
-          borderColor: "rgba(59, 130, 246, 1)",
-          borderWidth: 1
-        },
-        {
-          label: "SaaS Subscriptions",
-          data: [85, 92, 105, 115],
-          backgroundColor: "rgba(16, 185, 129, 0.7)",
-          borderColor: "rgba(16, 185, 129, 1)",
-          borderWidth: 1
-        },
-        {
-          label: "Infrastructure",
-          data: [65, 70, 75, 80],
-          backgroundColor: "rgba(234, 179, 8, 0.7)",
-          borderColor: "rgba(234, 179, 8, 1)",
-          borderWidth: 1
-        },
-        {
-          label: "Security",
-          data: [45, 50, 55, 60],
-          backgroundColor: "rgba(239, 68, 68, 0.7)",
-          borderColor: "rgba(239, 68, 68, 1)",
-          borderWidth: 1
-        }
-      ]
-    },
-    cloudTrend: {
+  // Sample data for compliance metrics
+  const complianceData = {
+    complianceTrend: {
       labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"],
       datasets: [
         {
-          label: "Cloud Spend ($K)",
-          data: [45, 48, 52, 55, 58, 62, 65, 68],
+          label: "Compliance Score (%)",
+          data: [92, 90, 88, 85, 84, 83, 82, 82],
           backgroundColor: "rgba(59, 130, 246, 0.2)",
           borderColor: "rgba(59, 130, 246, 1)",
           borderWidth: 2,
@@ -133,7 +100,7 @@ const ITSpendBreakdown = () => {
         },
         {
           label: "AI Forecast",
-          data: [null, null, null, null, null, null, 65, 68],
+          data: [null, null, null, null, null, null, 82, 78],
           backgroundColor: "rgba(59, 130, 246, 0.1)",
           borderColor: "rgba(59, 130, 246, 0.5)",
           borderWidth: 2,
@@ -143,186 +110,140 @@ const ITSpendBreakdown = () => {
         }
       ]
     },
-    spendDistribution: {
-      labels: ["Cloud", "SaaS", "Infrastructure", "Security", "IT Services"],
-      datasets: [{
-        label: "Spend ($K)",
-        data: [160, 115, 80, 60, 45],
-        backgroundColor: [
-          "rgba(59, 130, 246, 0.7)",
-          "rgba(16, 185, 129, 0.7)",
-          "rgba(234, 179, 8, 0.7)",
-          "rgba(239, 68, 68, 0.7)",
-          "rgba(139, 92, 246, 0.7)"
-        ],
-        borderColor: [
-          "rgba(59, 130, 246, 1)",
-          "rgba(16, 185, 129, 1)",
-          "rgba(234, 179, 8, 1)",
-          "rgba(239, 68, 68, 1)",
-          "rgba(139, 92, 246, 1)"
-        ],
-        borderWidth: 1
-      }]
-    },
-    spendVsRoi: {
-      labels: ["Cloud", "SaaS", "Infrastructure", "Security", "IT Services"],
-      datasets: [{
-        label: "Spend vs ROI",
-        data: [
-          { x: 160, y: 2.8, r: 20 },
-          { x: 115, y: 3.2, r: 15 },
-          { x: 80, y: 1.5, r: 10 },
-          { x: 60, y: 3.4, r: 8 },
-          { x: 45, y: 2.1, r: 6 }
-        ],
-        backgroundColor: "rgba(139, 92, 246, 0.7)",
-        borderColor: "rgba(139, 92, 246, 1)",
-        borderWidth: 1
-      }]
+    filingStatus: {
+      labels: ["Q1", "Q2", "Q3", "Q4"],
+      datasets: [
+        {
+          label: "Filed",
+          data: [28, 25, 22, 18],
+          backgroundColor: "rgba(16, 185, 129, 0.7)",
+        },
+        {
+          label: "Pending",
+          data: [2, 5, 8, 7],
+          backgroundColor: "rgba(234, 179, 8, 0.7)",
+        },
+        {
+          label: "Overdue",
+          data: [0, 0, 0, 5],
+          backgroundColor: "rgba(239, 68, 68, 0.7)",
+        }
+      ]
     }
   };
 
   const kpiData = [
     {
-      title: "Total IT Spend",
-      value: "$460K",
-      change: "+18%",
+      title: "Compliance Score",
+      value: "82%",
+      change: "-8%",
       isPositive: false,
-      icon: <FiDollarSign />,
-      description: "Total IT expenditure this quarter",
-      forecast: "$490K predicted next quarter",
-      componentPath: "/it-spend-breakdown"
-    },
-    {
-      title: "% of OpEx",
-      value: "22%",
-      change: "+3%",
-      isPositive: false,
-      icon: <FiPieChart />,
-      description: "IT spend as % of operating expenses",
-      forecast: "23% predicted next quarter",
-      componentPath: "/it-spend-breakdown"
-    },
-    {
-      title: "Cloud Spend",
-      value: "$160K",
-      change: "+25%",
-      isPositive: false,
-      icon: <FiCloud />,
-      description: "Quarterly cloud services spend",
-      forecast: "$175K predicted next quarter",
-      componentPath: "/it-spend-breakdown"
-    },
-    {
-      title: "SaaS Spend",
-      value: "$115K",
-      change: "+12%",
-      isPositive: false,
-      icon: <FiPackage />,
-      description: "Quarterly SaaS subscriptions",
-      forecast: "$120K predicted next quarter",
-      componentPath: "/it-spend-breakdown"
-    },
-    {
-      title: "Security Spend",
-      value: "$60K",
-      change: "+20%",
-      isPositive: true,
       icon: <FiShield />,
-      description: "Quarterly security investments",
-      forecast: "$65K predicted next quarter",
-      componentPath: "/it-spend-breakdown"
+      description: "Overall compliance rating",
+      forecast: "78% predicted next quarter",
+      componentPath: "/compliance-dashboard"
     },
     {
-      title: "IT ROI",
-      value: "2.8x",
-      change: "+0.3x",
+      title: "Penalty Exposure",
+      value: "₹3,50,000",
+      change: "+45%",
+      isPositive: false,
+      icon: <FiAlertTriangle />,
+      description: "Potential financial risk",
+      forecast: "₹4,20,000 if unresolved",
+      componentPath: "/compliance-dashboard"
+    },
+    {
+      title: "Pending Returns",
+      value: "5",
+      change: "+2",
+      isPositive: false,
+      icon: <FiFileText />,
+      description: "Unfiled tax documents",
+      forecast: "3 likely to miss deadline",
+      componentPath: "/compliance-dashboard"
+    },
+    {
+      title: "On-Time Filing Rate",
+      value: "89%",
+      change: "+3%",
       isPositive: true,
-      icon: <FiTrendingUp />,
-      description: "Return on IT investments",
-      forecast: "3.0x predicted next quarter",
-      componentPath: "/it-spend-breakdown"
+      icon: <FiCheckCircle />,
+      description: "Historical compliance",
+      forecast: "91% next quarter",
+      componentPath: "/compliance-dashboard"
     }
   ];
 
-  const spendTableData = [
+  const complianceTableData = [
     {
-      category: "Cloud Services",
-      vendor: "AWS",
-      department: "Engineering",
-      monthlySpend: "$45K",
-      annualized: "$540K",
-      roi: "2.8x",
-      costPerUser: "$450",
-      budgetConsumed: "32%"
+      entity: "India Finance",
+      taxType: "GST Monthly",
+      dueDate: "10-May-2025",
+      status: "filed",
+      daysOverdue: 0,
+      penaltyRisk: "₹0",
+      riskLevel: "low",
+      complianceScore: "98%",
+      suggestedAction: "No action needed"
     },
     {
-      category: "SaaS",
-      vendor: "Salesforce",
-      department: "Sales",
-      monthlySpend: "$28K",
-      annualized: "$336K",
-      roi: "3.2x",
-      costPerUser: "$280",
-      budgetConsumed: "24%"
+      entity: "US Ops",
+      taxType: "Income Tax",
+      dueDate: "15-Apr-2025",
+      status: "missed",
+      daysOverdue: 37,
+      penaltyRisk: "₹80,000",
+      riskLevel: "high",
+      complianceScore: "72%",
+      suggestedAction: "File immediately"
     },
     {
-      category: "Infrastructure",
-      vendor: "Dell",
-      department: "IT",
-      monthlySpend: "$20K",
-      annualized: "$240K",
-      roi: "1.5x",
-      costPerUser: "$200",
-      budgetConsumed: "18%"
+      entity: "UK Marketing",
+      taxType: "VAT Quarterly",
+      dueDate: "05-May-2025",
+      status: "pending",
+      daysOverdue: -2,
+      penaltyRisk: "₹0",
+      riskLevel: "medium",
+      complianceScore: "88%",
+      suggestedAction: "Reminder sent"
     },
     {
-      category: "Security",
-      vendor: "CrowdStrike",
-      department: "Security",
-      monthlySpend: "$15K",
-      annualized: "$180K",
-      roi: "3.4x",
-      costPerUser: "$150",
-      budgetConsumed: "13%"
-    },
-    {
-      category: "IT Services",
-      vendor: "Accenture",
-      department: "Operations",
-      monthlySpend: "$12K",
-      annualized: "$144K",
-      roi: "2.1x",
-      costPerUser: "$120",
-      budgetConsumed: "10%"
+      entity: "R&D Division",
+      taxType: "TDS Quarterly",
+      dueDate: "31-Mar-2025",
+      status: "missed",
+      daysOverdue: 50,
+      penaltyRisk: "₹1,20,000",
+      riskLevel: "high",
+      complianceScore: "64%",
+      suggestedAction: "Investigate reasons"
     }
   ];
 
-  const efficiencyMetrics = [
+  const heatmapData = [
+    { department: "Finance", gst: "compliant", incomeTax: "compliant", tds: "compliant", vat: "compliant" },
+    { department: "US Ops", gst: "na", incomeTax: "atRisk", tds: "compliant", vat: "na" },
+    { department: "UK Marketing", gst: "na", incomeTax: "na", tds: "na", vat: "atRisk" },
+    { department: "R&D", gst: "compliant", incomeTax: "compliant", tds: "nonCompliant", vat: "na" }
+  ];
+
+  const aiRecommendations = [
     {
-      metric: "Cloud Utilization",
-      value: "68%",
-      trend: "+5%",
-      benchmark: "65%"
+      title: "TDS Compliance Issue",
+      description: "TDS filings for R&D have been delayed 3 quarters in a row. Recommend centralizing responsibility under Finance Ops.",
+      priority: "high"
     },
     {
-      metric: "SaaS License Usage",
-      value: "72%",
-      trend: "-3%",
-      benchmark: "75%"
+      title: "US Entity Alert",
+      description: "US entity missed filing twice. Suggest setting automated reminders and assigning local compliance head.",
+      priority: "medium"
     },
     {
-      metric: "Infra Uptime",
-      value: "99.95%",
-      trend: "+0.1%",
-      benchmark: "99.9%"
-    },
-    {
-      metric: "Security ROI",
-      value: "3.4x",
-      trend: "+0.2x",
-      benchmark: "3.0x"
+      title: "Score Projection",
+      description: "Compliance score projected to drop below 80% next quarter. 3 high-risk filings still pending.",
+      priority: "high"
     }
   ];
 
@@ -342,7 +263,6 @@ const ITSpendBreakdown = () => {
     switch (type) {
       case "line": return <Line data={data} options={options} />;
       case "bar": return <Bar data={data} options={options} />;
-      case "doughnut": return <Doughnut data={data} options={options} />;
       default: return <Bar data={data} options={options} />;
     }
   };
@@ -372,7 +292,7 @@ const ITSpendBreakdown = () => {
                       </div>
                       {hoveredChartType === widgetId && (
                         <div className="absolute top-0 left-full w-40 bg-white rounded-md shadow-lg border border-gray-200 z-20 py-1" style={{ marginLeft: "-1px" }}>
-                          {["line", "bar", "doughnut"].map((type) => (
+                          {["line", "bar"].map((type) => (
                             <button 
                               key={type} 
                               onClick={(e) => { 
@@ -530,6 +450,163 @@ const ITSpendBreakdown = () => {
     );
   };
 
+  const RiskHeatmap = ({ data }) => {
+    return (
+      <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100">
+        <h3 className="text-md font-semibold text-sky-800 mb-4">Compliance Risk by Department</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-xs text-sky-700 uppercase bg-sky-50">
+                <th className="p-2">Department</th>
+                <th className="p-2">GST</th>
+                <th className="p-2">Income Tax</th>
+                <th className="p-2">TDS</th>
+                <th className="p-2">VAT</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((row, i) => (
+                <tr key={i} className="border-b">
+                  <td className="p-2 font-medium">{row.department}</td>
+                  {['gst', 'incomeTax', 'tds', 'vat'].map((taxType) => (
+                    <td key={taxType} className="p-2 text-center">
+                      <span className={`inline-block w-6 h-6 rounded-full ${
+                        row[taxType] === 'compliant' ? 'bg-green-500' :
+                        row[taxType] === 'atRisk' ? 'bg-amber-500' : 
+                        row[taxType] === 'nonCompliant' ? 'bg-red-500' : 'bg-gray-300'
+                      }`} />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
+  const ComplianceTable = ({ data }) => {
+    return (
+      <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-md font-semibold text-sky-800">Tax & Compliance Tracking</h3>
+          <div className="flex space-x-2">
+            <button className="text-xs text-sky-600 hover:text-sky-800 flex items-center">
+              <FiDownload className="mr-1" /> Export
+            </button>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="text-xs text-sky-700 uppercase bg-sky-50">
+              <tr>
+                <th className="px-4 py-2">Entity</th>
+                <th className="px-4 py-2">Tax Type</th>
+                <th className="px-4 py-2">Due Date</th>
+                <th className="px-4 py-2">Status</th>
+                <th className="px-4 py-2">Days Overdue</th>
+                <th className="px-4 py-2">Penalty Risk</th>
+                <th className="px-4 py-2">AI Forecast</th>
+                <th className="px-4 py-2">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((item, i) => (
+                <tr key={i} className="border-b hover:bg-sky-50">
+                  <td className="px-4 py-2 font-medium">{item.entity}</td>
+                  <td className="px-4 py-2">{item.taxType}</td>
+                  <td className="px-4 py-2">{item.dueDate}</td>
+                  <td className="px-4 py-2">
+                    {item.status === 'filed' ? (
+                      <span className="text-green-500">✅ Filed</span>
+                    ) : item.status === 'pending' ? (
+                      <span className="text-amber-500">⏳ Pending</span>
+                    ) : (
+                      <span className="text-red-500">❌ Missed</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2">{item.daysOverdue || '-'}</td>
+                  <td className="px-4 py-2">{item.penaltyRisk}</td>
+                  <td className="px-4 py-2">
+                    {item.riskLevel === 'high' ? '🔴 High' : 
+                     item.riskLevel === 'medium' ? '🟠 Medium' : '🟢 Low'}
+                  </td>
+                  <td className="px-4 py-2 text-sky-600 hover:text-sky-800 cursor-pointer">
+                    {item.suggestedAction}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
+  const AIRecommendations = ({ recommendations }) => {
+    const [showQuery, setShowQuery] = useState(false);
+    const [aiInput, setAiInput] = useState("");
+    
+    const handleSendQuery = () => {
+      if (aiInput.trim()) {
+        console.log("AI Query:", aiInput);
+        setAiInput("");
+        setShowQuery(false);
+      }
+    };
+
+    return (
+      <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-md font-semibold text-sky-800">AI Insights & Recommendations</h3>
+          <button 
+            onClick={() => setShowQuery(!showQuery)}
+            className="flex items-center text-xs text-sky-600 hover:text-sky-800"
+          >
+            <BsStars className="mr-1" /> Ask AI
+          </button>
+        </div>
+        
+        {showQuery && (
+          <div className="mb-4 bg-sky-50 p-3 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                value={aiInput}
+                onChange={(e) => setAiInput(e.target.value)}
+                placeholder="Ask about compliance risks, optimization..."
+                className="w-full p-2 border border-gray-300 rounded-md text-sm"
+              />
+              <button
+                onClick={handleSendQuery}
+                className="p-2 bg-sky-500 text-white rounded hover:bg-sky-600"
+                disabled={!aiInput.trim()}
+              >
+                <FiSend />
+              </button>
+            </div>
+          </div>
+        )}
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {recommendations.map((rec, i) => (
+            <div key={i} className="bg-sky-50 p-3 rounded-lg">
+              <h4 className="text-sm font-medium text-sky-800 mb-2">{rec.title}</h4>
+              <p className="text-xs text-gray-700">{rec.description}</p>
+              {rec.priority === 'high' && (
+                <span className="inline-block mt-2 px-2 py-1 text-xs bg-red-100 text-red-800 rounded">
+                  High Priority
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -557,15 +634,15 @@ const ITSpendBreakdown = () => {
           <li>
             <div className="flex items-center">
               <FiChevronRight className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" />
-              <Link to="/it-technology-spend" className="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2">
-                IT & Technology
+              <Link to="/finance-accounting-dashboard" className="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2">
+                Finance Dashboard
               </Link>
             </div>
           </li>
           <li aria-current="page">
             <div className="flex items-center">
               <FiChevronRight className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" />
-              <span className="ms-1 text-sm font-medium text-gray-500 md:ms-2">IT Spend Breakdown</span>
+              <span className="ms-1 text-sm font-medium text-gray-500 md:ms-2">Tax & Compliance</span>
             </div>
           </li>
         </ol>
@@ -575,8 +652,8 @@ const ITSpendBreakdown = () => {
       <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-lg font-bold text-white">IT Spend Breakdown</h1>
-            <p className="text-sky-100 text-xs">Cloud, SaaS, Infrastructure, Security & IT Services</p>
+            <h1 className="text-lg font-bold text-white">Tax & Compliance Risk Assessments</h1>
+            <p className="text-sky-100 text-xs">Monitor filings, audit readiness, and compliance status</p>
             <p className="text-sky-100 text-xs mt-1">Data showing from 01/01/24 - 08/31/24</p>
           </div>
           <div className="flex space-x-2">
@@ -587,15 +664,6 @@ const ITSpendBreakdown = () => {
             >
               <FiFilter className="mr-1" /> Filters
             </button>
-             <Link
-     to="/it-spend-table">
-   <button
-     type="button"
-     className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
-      View More
-	<GrLinkNext className="ml-1 w-4 h-4 hover:w-5 hover:h-5 transition-all" />
-   </button>
-</Link>
           </div>
         </div>
       </div>
@@ -603,7 +671,7 @@ const ITSpendBreakdown = () => {
       {/* Filters */}
       {showFilters && (
         <div className="bg-white p-4 rounded-lg shadow-sm" ref={filtersRef}>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Time Period</label>
               <select 
@@ -611,63 +679,70 @@ const ITSpendBreakdown = () => {
                 value={filters.timePeriod}
                 onChange={(e) => setFilters({...filters, timePeriod: e.target.value})}
               >
-                <option>Last Quarter</option>
                 <option>Last Month</option>
+                <option>Last Quarter</option>
                 <option>Year to Date</option>
                 <option>Custom Range</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tax Type</label>
               <select 
                 className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                value={filters.category}
-                onChange={(e) => setFilters({...filters, category: e.target.value})}
+                value={filters.taxType}
+                onChange={(e) => setFilters({...filters, taxType: e.target.value})}
               >
-                <option>All Categories</option>
-                <option>Cloud Services</option>
-                <option>SaaS</option>
-                <option>Infrastructure</option>
-                <option>Security</option>
-                <option>IT Services</option>
+                <option>All Types</option>
+                <option>GST</option>
+                <option>Income Tax</option>
+                <option>TDS</option>
+                <option>VAT</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
               <select 
                 className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                value={filters.department}
-                onChange={(e) => setFilters({...filters, department: e.target.value})}
+                value={filters.region}
+                onChange={(e) => setFilters({...filters, region: e.target.value})}
               >
-                <option>All Departments</option>
-                <option>Engineering</option>
-                <option>Sales</option>
-                <option>Marketing</option>
-                <option>Operations</option>
-                <option>Security</option>
+                <option>All Regions</option>
+                <option>India</option>
+                <option>US</option>
+                <option>UK</option>
+                <option>EU</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Vendor</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Risk Level</label>
               <select 
                 className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                value={filters.vendor}
-                onChange={(e) => setFilters({...filters, vendor: e.target.value})}
+                value={filters.riskLevel}
+                onChange={(e) => setFilters({...filters, riskLevel: e.target.value})}
               >
-                <option>All Vendors</option>
-                <option>AWS</option>
-                <option>Azure</option>
-                <option>Salesforce</option>
-                <option>Google Cloud</option>
-                <option>CrowdStrike</option>
+                <option>All Levels</option>
+                <option>High</option>
+                <option>Medium</option>
+                <option>Low</option>
               </select>
+            </div>
+            <div className="flex items-end">
+              <label className="inline-flex items-center mt-1">
+                <input 
+                  type="checkbox" 
+                  checked={filters.showOverdueOnly}
+                  onChange={(e) => setFilters({...filters, showOverdueOnly: e.target.checked})}
+                  className="rounded border-gray-300 text-sky-600 shadow-sm focus:border-sky-300 focus:ring focus:ring-offset-0 focus:ring-sky-200 focus:ring-opacity-50"
+                />
+                <span className="ml-2 text-sm text-gray-700">Show Overdue Only</span>
+              </label>
             </div>
           </div>
         </div>
       )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpiData.map((kpi, index) => (
           <KPICard
             key={index}
@@ -685,12 +760,12 @@ const ITSpendBreakdown = () => {
 
       {/* Main Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Spend by Category */}
+        {/* Compliance Score Trend */}
         <EnhancedChartCard 
-          title="IT Spend by Category" 
-          chartType={selectedChartType.spendByCategory} 
+          title="Compliance Score Trend" 
+          chartType={selectedChartType.complianceTrend} 
           chartData={{
-            data: spendData.spendByCategory,
+            data: complianceData.complianceTrend,
             options: {
               responsive: true,
               maintainAspectRatio: false,
@@ -699,26 +774,28 @@ const ITSpendBreakdown = () => {
               },
               scales: {
                 y: {
-                  beginAtZero: true,
+                  beginAtZero: false,
+                  min: 70,
+                  max: 100,
                   title: {
                     display: true,
-                    text: 'Spend ($K)'
+                    text: 'Score (%)'
                   }
                 }
               }
             }
           }} 
-          widgetId="spendByCategory" 
+          widgetId="complianceTrend" 
           index={0} 
-          componentPath="/it-spend-breakdown" 
+          componentPath="/compliance-dashboard" 
         />
 
-        {/* Cloud Spend Trend */}
+        {/* Filing Status */}
         <EnhancedChartCard 
-          title="Cloud Spend Trend with AI Forecast" 
-          chartType={selectedChartType.cloudTrend} 
+          title="Filed vs Pending Tax Returns" 
+          chartType={selectedChartType.filingStatus} 
           chartData={{
-            data: spendData.cloudTrend,
+            data: complianceData.filingStatus,
             options: {
               responsive: true,
               maintainAspectRatio: false,
@@ -726,192 +803,31 @@ const ITSpendBreakdown = () => {
                 legend: { position: 'bottom' }
               },
               scales: {
-                y: {
-                  beginAtZero: true,
+                x: { stacked: true },
+                y: { 
+                  stacked: true,
                   title: {
                     display: true,
-                    text: 'Spend ($K)'
+                    text: 'Number of Returns'
                   }
                 }
               }
             }
           }} 
-          widgetId="cloudTrend" 
+          widgetId="filingStatus" 
           index={1} 
-          componentPath="/it-spend-breakdown" 
+          componentPath="/compliance-dashboard" 
         />
       </div>
 
-      {/* Secondary Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Spend Distribution */}
-        <EnhancedChartCard 
-          title="IT Spend Distribution" 
-          chartType="doughnut" 
-          chartData={{
-            data: spendData.spendDistribution,
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { position: 'right' },
-                tooltip: {
-                  callbacks: {
-                    label: function(context) {
-                      return `${context.label}: $${context.raw}K (${Math.round(context.parsed * 100 / context.dataset.data.reduce((a, b) => a + b, 0))}%)`;
-                    }
-                  }
-                }
-              }
-            }
-          }} 
-          widgetId="spendDistribution" 
-          index={2} 
-          componentPath="/it-spend-breakdown" 
-        />
+      {/* Risk Heatmap */}
+      <RiskHeatmap data={heatmapData} />
 
-        {/* Spend vs ROI */}
-        <EnhancedChartCard 
-          title="Spend vs ROI by Category" 
-          chartType="bar" 
-          chartData={{
-            data: spendData.spendVsRoi,
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { display: false }
-              },
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  title: {
-                    display: true,
-                    text: 'ROI (x)'
-                  }
-                },
-                x: {
-                  title: {
-                    display: true,
-                    text: 'Spend ($K)'
-                  }
-                }
-              }
-            }
-          }} 
-          widgetId="spendVsRoi" 
-          index={3} 
-          componentPath="/it-spend-breakdown" 
-        />
-      </div>
+      {/* Compliance Table */}
+      <ComplianceTable data={complianceTableData} />
 
-      {/* IT Spend Table */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-md font-semibold text-sky-800">Detailed IT Spend Breakdown</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left text-gray-700">
-            <thead className="text-xs text-sky-700 uppercase bg-sky-50">
-              <tr>
-                <th className="px-4 py-2">Category</th>
-                <th className="px-4 py-2">Vendor</th>
-                <th className="px-4 py-2">Department</th>
-                <th className="px-4 py-2">Monthly Spend</th>
-                <th className="px-4 py-2">Annualized</th>
-                <th className="px-4 py-2">ROI</th>
-                <th className="px-4 py-2">Cost/User</th>
-                <th className="px-4 py-2">% Budget</th>
-              </tr>
-            </thead>
-            <tbody>
-              {spendTableData.map((row, i) => (
-                <tr key={i} className="border-b hover:bg-sky-50">
-                  <td className="px-4 py-2 font-medium">{row.category}</td>
-                  <td className="px-4 py-2">{row.vendor}</td>
-                  <td className="px-4 py-2">{row.department}</td>
-                  <td className="px-4 py-2">{row.monthlySpend}</td>
-                  <td className="px-4 py-2">{row.annualized}</td>
-                  <td className={`px-4 py-2 font-medium ${
-                    parseFloat(row.roi.replace('x', '')) > 3 ? "text-green-500" : 
-                    parseFloat(row.roi.replace('x', '')) > 2 ? "text-amber-500" : "text-red-500"
-                  }`}>{row.roi}</td>
-                  <td className="px-4 py-2">{row.costPerUser}</td>
-                  <td className="px-4 py-2">{row.budgetConsumed}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Efficiency Metrics */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-md font-semibold text-sky-800">IT Efficiency Metrics</h3>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {efficiencyMetrics.map((metric, i) => (
-            <div key={i} className="bg-sky-50 p-3 rounded-lg">
-              <p className="text-xs font-semibold text-sky-700">{metric.metric}</p>
-              <div className="flex items-end mt-1">
-                <p className="text-lg font-bold text-sky-900">{metric.value}</p>
-                <p className={`text-xs ml-2 ${metric.trend.startsWith('+') ? "text-green-500" : "text-red-500"}`}>
-                  {metric.trend} vs last period
-                </p>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">Benchmark: {metric.benchmark}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* AI Recommendations Section */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-md font-semibold text-sky-800">AI Insights & Recommendations</h3>
-          <button 
-            className="flex items-center text-xs text-sky-600 hover:text-sky-800"
-            onClick={() => setShowAIDropdown("aiRecommendations")}
-          >
-            <BsStars className="mr-1" /> Ask AI
-          </button>
-        </div>
-        {showAIDropdown === "aiRecommendations" && (
-          <div className="mb-4 bg-sky-50 p-3 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <input
-                type="text"
-                value={aiInput["aiRecommendations"] || ""}
-                onChange={(e) => setAiInput(prev => ({ ...prev, ["aiRecommendations"]: e.target.value }))}
-                placeholder="Ask about IT spend optimization..."
-                className="w-full p-2 border border-gray-300 rounded-md text-sm"
-              />
-              <button
-                onClick={() => handleSendAIQuery("aiRecommendations")}
-                className="p-2 bg-sky-500 text-white rounded hover:bg-sky-600"
-                disabled={!aiInput["aiRecommendations"]?.trim()}
-              >
-                <FiSend />
-              </button>
-            </div>
-          </div>
-        )}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-sky-50 p-3 rounded-lg">
-            <h4 className="text-sm font-medium text-sky-800 mb-2">Cloud Optimization</h4>
-            <p className="text-xs text-gray-700">"AWS spend increased 25% QoQ. AI recommends rightsizing EC2 instances for potential 15% cost savings."</p>
-          </div>
-          <div className="bg-sky-50 p-3 rounded-lg">
-            <h4 className="text-sm font-medium text-sky-800 mb-2">SaaS License Waste</h4>
-            <p className="text-xs text-gray-700">"28% of Salesforce licenses are unused. Consolidating could save $8,400/month."</p>
-          </div>
-          <div className="bg-sky-50 p-3 rounded-lg">
-            <h4 className="text-sm font-medium text-sky-800 mb-2">Security ROI</h4>
-            <p className="text-xs text-gray-700">"Security investments show highest ROI (3.4x). Consider reallocating 5% from Infrastructure to Security."</p>
-          </div>
-        </div>
-      </div>
+      {/* AI Recommendations */}
+      <AIRecommendations recommendations={aiRecommendations} />
 
       <ReactTooltip id="chart-type-tooltip" place="top" effect="solid" />
       <ReactTooltip id="ai-tooltip" place="top" effect="solid" />
@@ -919,4 +835,4 @@ const ITSpendBreakdown = () => {
   );
 };
 
-export default ITSpendBreakdown;
+export default TaxCompliance;

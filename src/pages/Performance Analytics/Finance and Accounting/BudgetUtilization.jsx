@@ -7,13 +7,12 @@ import {
   BarElement,
   PointElement,
   LineElement,
-  ArcElement,
   Title,
   Tooltip,
   Legend,
   Filler,
 } from "chart.js";
-import { Bar, Line, Doughnut } from "react-chartjs-2";
+import { Bar, Line } from "react-chartjs-2";
 import { motion } from "framer-motion";
 import { 
   FiTrendingUp, 
@@ -21,18 +20,16 @@ import {
   FiChevronRight,
   FiFilter, 
   FiDollarSign,
-  FiServer,
-  FiCloud,
-  FiShield,
-  FiPackage,
+  FiPieChart,
+  FiDownload,
+  FiSearch,
   FiChevronDown,
   FiSend,
-  FiPieChart
+  FiAlertCircle
 } from "react-icons/fi";
 import { BsStars, BsThreeDotsVertical } from "react-icons/bs";
 import { Tooltip as ReactTooltip } from "react-tooltip";
 import { RiDragMove2Fill } from "react-icons/ri";
-import { GrLinkNext } from "react-icons/gr";
 
 ChartJS.register(
   CategoryScale,
@@ -40,7 +37,6 @@ ChartJS.register(
   BarElement,
   PointElement,
   LineElement,
-  ArcElement,
   Title,
   Tooltip,
   Legend,
@@ -66,263 +62,236 @@ const cardVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
-const ITSpendBreakdown = () => {
+const BudgetUtilization= () => {
   const navigate = useNavigate();
   const [filters, setFilters] = useState({
-    timePeriod: "Last Quarter",
-    category: "All Categories",
+    timePeriod: "Current Quarter",
     department: "All Departments",
-    vendor: "All Vendors"
+    riskLevel: "All Levels"
   });
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedChartType, setSelectedChartType] = useState({
-    spendByCategory: "bar",
-    cloudTrend: "line"
-  });
   const [aiInput, setAiInput] = useState({});
   const [showAIDropdown, setShowAIDropdown] = useState(null);
   const [dropdownWidget, setDropdownWidget] = useState(null);
-  const [hoveredChartType, setHoveredChartType] = useState(null);
   const filtersRef = useRef(null);
 
-  // Sample data for IT spend metrics
-  const spendData = {
-    spendByCategory: {
-      labels: ["Q1", "Q2", "Q3", "Q4"],
+  // Sample data for budget metrics
+  const budgetData = {
+    departments: ["HR", "Marketing", "IT", "Operations", "Finance", "R&D"],
+    budgetVsActual: {
+      labels: ["HR", "Marketing", "IT", "Operations", "Finance", "R&D"],
       datasets: [
         {
-          label: "Cloud Services",
-          data: [120, 135, 145, 160],
+          label: "Budgeted (₹L)",
+          data: [50, 80, 100, 120, 60, 90],
           backgroundColor: "rgba(59, 130, 246, 0.7)",
           borderColor: "rgba(59, 130, 246, 1)",
           borderWidth: 1
         },
         {
-          label: "SaaS Subscriptions",
-          data: [85, 92, 105, 115],
+          label: "Actual Spend (₹L)",
+          data: [47, 86, 92, 115, 51, 95],
           backgroundColor: "rgba(16, 185, 129, 0.7)",
           borderColor: "rgba(16, 185, 129, 1)",
           borderWidth: 1
         },
         {
-          label: "Infrastructure",
-          data: [65, 70, 75, 80],
-          backgroundColor: "rgba(234, 179, 8, 0.7)",
-          borderColor: "rgba(234, 179, 8, 1)",
-          borderWidth: 1
-        },
-        {
-          label: "Security",
-          data: [45, 50, 55, 60],
+          label: "Forecasted (₹L)",
+          data: [58, 92, 103, 135, 55, 105],
           backgroundColor: "rgba(239, 68, 68, 0.7)",
           borderColor: "rgba(239, 68, 68, 1)",
-          borderWidth: 1
+          borderWidth: 1,
+          borderDash: [5, 5],
+          type: 'line',
+          tension: 0.1
         }
       ]
     },
-    cloudTrend: {
+    varianceTrend: {
       labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"],
       datasets: [
         {
-          label: "Cloud Spend ($K)",
-          data: [45, 48, 52, 55, 58, 62, 65, 68],
-          backgroundColor: "rgba(59, 130, 246, 0.2)",
+          label: "HR Variance (₹L)",
+          data: [-2, -3, -5, -4, -3, -2.5, -3, -3.5],
           borderColor: "rgba(59, 130, 246, 1)",
-          borderWidth: 2,
-          tension: 0.4
+          backgroundColor: "rgba(59, 130, 246, 0.1)",
+          tension: 0.4,
+          fill: false
         },
         {
-          label: "AI Forecast",
-          data: [null, null, null, null, null, null, 65, 68],
-          backgroundColor: "rgba(59, 130, 246, 0.1)",
+          label: "Marketing Variance (₹L)",
+          data: [3, 4, 5, 6, 5.5, 6, 6.5, 6],
+          borderColor: "rgba(239, 68, 68, 1)",
+          backgroundColor: "rgba(239, 68, 68, 0.1)",
+          tension: 0.4,
+          fill: false
+        },
+        {
+          label: "IT Variance (₹L)",
+          data: [-5, -6, -8, -7, -8, -8.5, -8, -8.5],
+          borderColor: "rgba(234, 179, 8, 1)",
+          backgroundColor: "rgba(234, 179, 8, 0.1)",
+          tension: 0.4,
+          fill: false
+        },
+        {
+          label: "Forecast Trend",
+          data: [null, null, null, null, null, null, -3.5, -4],
           borderColor: "rgba(59, 130, 246, 0.5)",
-          borderWidth: 2,
+          backgroundColor: "rgba(59, 130, 246, 0.05)",
           borderDash: [5, 5],
           tension: 0.4,
           pointRadius: 0
         }
       ]
-    },
-    spendDistribution: {
-      labels: ["Cloud", "SaaS", "Infrastructure", "Security", "IT Services"],
-      datasets: [{
-        label: "Spend ($K)",
-        data: [160, 115, 80, 60, 45],
-        backgroundColor: [
-          "rgba(59, 130, 246, 0.7)",
-          "rgba(16, 185, 129, 0.7)",
-          "rgba(234, 179, 8, 0.7)",
-          "rgba(239, 68, 68, 0.7)",
-          "rgba(139, 92, 246, 0.7)"
-        ],
-        borderColor: [
-          "rgba(59, 130, 246, 1)",
-          "rgba(16, 185, 129, 1)",
-          "rgba(234, 179, 8, 1)",
-          "rgba(239, 68, 68, 1)",
-          "rgba(139, 92, 246, 1)"
-        ],
-        borderWidth: 1
-      }]
-    },
-    spendVsRoi: {
-      labels: ["Cloud", "SaaS", "Infrastructure", "Security", "IT Services"],
-      datasets: [{
-        label: "Spend vs ROI",
-        data: [
-          { x: 160, y: 2.8, r: 20 },
-          { x: 115, y: 3.2, r: 15 },
-          { x: 80, y: 1.5, r: 10 },
-          { x: 60, y: 3.4, r: 8 },
-          { x: 45, y: 2.1, r: 6 }
-        ],
-        backgroundColor: "rgba(139, 92, 246, 0.7)",
-        borderColor: "rgba(139, 92, 246, 1)",
-        borderWidth: 1
-      }]
     }
   };
 
   const kpiData = [
     {
-      title: "Total IT Spend",
-      value: "$460K",
-      change: "+18%",
-      isPositive: false,
+      title: "Total Budget",
+      value: "₹50M",
+      change: "+10%",
+      isPositive: true,
       icon: <FiDollarSign />,
-      description: "Total IT expenditure this quarter",
-      forecast: "$490K predicted next quarter",
-      componentPath: "/it-spend-breakdown"
+      description: "Total budget allocated this year",
+      forecast: "₹55M next fiscal year",
+      componentPath: "/budget-utilization"
     },
     {
-      title: "% of OpEx",
-      value: "22%",
-      change: "+3%",
-      isPositive: false,
-      icon: <FiPieChart />,
-      description: "IT spend as % of operating expenses",
-      forecast: "23% predicted next quarter",
-      componentPath: "/it-spend-breakdown"
-    },
-    {
-      title: "Cloud Spend",
-      value: "$160K",
-      change: "+25%",
-      isPositive: false,
-      icon: <FiCloud />,
-      description: "Quarterly cloud services spend",
-      forecast: "$175K predicted next quarter",
-      componentPath: "/it-spend-breakdown"
-    },
-    {
-      title: "SaaS Spend",
-      value: "$115K",
+      title: "Actual Spend",
+      value: "₹48.6M",
       change: "+12%",
       isPositive: false,
-      icon: <FiPackage />,
-      description: "Quarterly SaaS subscriptions",
-      forecast: "$120K predicted next quarter",
-      componentPath: "/it-spend-breakdown"
-    },
-    {
-      title: "Security Spend",
-      value: "$60K",
-      change: "+20%",
-      isPositive: true,
-      icon: <FiShield />,
-      description: "Quarterly security investments",
-      forecast: "$65K predicted next quarter",
-      componentPath: "/it-spend-breakdown"
-    },
-    {
-      title: "IT ROI",
-      value: "2.8x",
-      change: "+0.3x",
-      isPositive: true,
       icon: <FiTrendingUp />,
-      description: "Return on IT investments",
-      forecast: "3.0x predicted next quarter",
-      componentPath: "/it-spend-breakdown"
+      description: "Total actual spend YTD",
+      forecast: "₹53.5M projected",
+      componentPath: "/budget-utilization"
+    },
+    {
+      title: "Avg Variance",
+      value: "-2.8%",
+      change: "+1.2%",
+      isPositive: true,
+      icon: <FiTrendingDown />,
+      description: "Average variance across departments",
+      forecast: "-3.5% projected",
+      componentPath: "/budget-utilization"
+    },
+    {
+      title: "Utilization Rate",
+      value: "97.2%",
+      change: "+2.5%",
+      isPositive: false,
+      icon: <FiPieChart />,
+      description: "Average budget utilization",
+      forecast: "102% projected",
+      componentPath: "/budget-utilization"
     }
   ];
 
-  const spendTableData = [
+  const budgetTableData = [
     {
-      category: "Cloud Services",
-      vendor: "AWS",
-      department: "Engineering",
-      monthlySpend: "$45K",
-      annualized: "$540K",
-      roi: "2.8x",
-      costPerUser: "$450",
-      budgetConsumed: "32%"
+      department: "HR",
+      budgeted: "₹5,00,000",
+      actual: "₹4,70,000",
+      variance: "-₹30,000",
+      variancePct: "-6%",
+      utilization: "94%",
+      forecasted: "₹5,80,000",
+      riskLevel: "High",
+      aiSuggestion: "Review training vendor costs"
     },
     {
-      category: "SaaS",
-      vendor: "Salesforce",
-      department: "Sales",
-      monthlySpend: "$28K",
-      annualized: "$336K",
-      roi: "3.2x",
-      costPerUser: "$280",
-      budgetConsumed: "24%"
+      department: "Marketing",
+      budgeted: "₹8,00,000",
+      actual: "₹8,60,000",
+      variance: "+₹60,000",
+      variancePct: "+7.5%",
+      utilization: "107.5%",
+      forecasted: "₹9,20,000",
+      riskLevel: "Medium",
+      aiSuggestion: "Cut ad budget for Q4 campaigns"
     },
     {
-      category: "Infrastructure",
-      vendor: "Dell",
       department: "IT",
-      monthlySpend: "$20K",
-      annualized: "$240K",
-      roi: "1.5x",
-      costPerUser: "$200",
-      budgetConsumed: "18%"
+      budgeted: "₹10,00,000",
+      actual: "₹9,20,000",
+      variance: "-₹80,000",
+      variancePct: "-8%",
+      utilization: "92%",
+      forecasted: "₹10,30,000",
+      riskLevel: "Low",
+      aiSuggestion: "Allocate extra to cloud infrastructure"
     },
     {
-      category: "Security",
-      vendor: "CrowdStrike",
-      department: "Security",
-      monthlySpend: "$15K",
-      annualized: "$180K",
-      roi: "3.4x",
-      costPerUser: "$150",
-      budgetConsumed: "13%"
-    },
-    {
-      category: "IT Services",
-      vendor: "Accenture",
       department: "Operations",
-      monthlySpend: "$12K",
-      annualized: "$144K",
-      roi: "2.1x",
-      costPerUser: "$120",
-      budgetConsumed: "10%"
+      budgeted: "₹12,00,000",
+      actual: "₹11,50,000",
+      variance: "-₹50,000",
+      variancePct: "-4.2%",
+      utilization: "95.8%",
+      forecasted: "₹13,50,000",
+      riskLevel: "Medium",
+      aiSuggestion: "Optimize logistics routes"
+    },
+    {
+      department: "Finance",
+      budgeted: "₹6,00,000",
+      actual: "₹5,10,000",
+      variance: "-₹90,000",
+      variancePct: "-15%",
+      utilization: "85%",
+      forecasted: "₹5,50,000",
+      riskLevel: "Low",
+      aiSuggestion: "Reallocate surplus to high-performing departments"
+    },
+    {
+      department: "R&D",
+      budgeted: "₹9,00,000",
+      actual: "₹9,50,000",
+      variance: "+₹50,000",
+      variancePct: "+5.6%",
+      utilization: "105.6%",
+      forecasted: "₹10,50,000",
+      riskLevel: "High",
+      aiSuggestion: "Prioritize projects with highest ROI"
     }
   ];
 
-  const efficiencyMetrics = [
+  const utilizationHeatmap = [
     {
-      metric: "Cloud Utilization",
-      value: "68%",
-      trend: "+5%",
-      benchmark: "65%"
+      department: "HR",
+      jan: "85%",
+      feb: "88%",
+      mar: "92%",
+      apr: "90%",
+      may: "93%",
+      jun: "94%",
+      jul: "95%",
+      aug: "96%"
     },
     {
-      metric: "SaaS License Usage",
-      value: "72%",
-      trend: "-3%",
-      benchmark: "75%"
+      department: "Marketing",
+      jan: "98%",
+      feb: "102%",
+      mar: "105%",
+      apr: "104%",
+      may: "106%",
+      jun: "107%",
+      jul: "108%",
+      aug: "107.5%"
     },
     {
-      metric: "Infra Uptime",
-      value: "99.95%",
-      trend: "+0.1%",
-      benchmark: "99.9%"
-    },
-    {
-      metric: "Security ROI",
-      value: "3.4x",
-      trend: "+0.2x",
-      benchmark: "3.0x"
+      department: "IT",
+      jan: "88%",
+      feb: "89%",
+      mar: "90%",
+      apr: "91%",
+      may: "91.5%",
+      jun: "92%",
+      jul: "92.5%",
+      aug: "92%"
     }
   ];
 
@@ -342,7 +311,6 @@ const ITSpendBreakdown = () => {
     switch (type) {
       case "line": return <Line data={data} options={options} />;
       case "bar": return <Bar data={data} options={options} />;
-      case "doughnut": return <Doughnut data={data} options={options} />;
       default: return <Bar data={data} options={options} />;
     }
   };
@@ -366,39 +334,26 @@ const ITSpendBreakdown = () => {
               {dropdownWidget === widgetId && (
                 <div ref={dropdownRef} className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-10 border border-gray-200">
                   <div className="py-1 text-xs text-gray-800">
-                    <div className="relative" onMouseEnter={() => setHoveredChartType(widgetId)} onMouseLeave={() => setHoveredChartType(null)}>
-                      <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex justify-between items-center">
-                        All Chart Types <FiChevronDown className="ml-1 text-xs" />
-                      </div>
-                      {hoveredChartType === widgetId && (
-                        <div className="absolute top-0 left-full w-40 bg-white rounded-md shadow-lg border border-gray-200 z-20 py-1" style={{ marginLeft: "-1px" }}>
-                          {["line", "bar", "doughnut"].map((type) => (
-                            <button 
-                              key={type} 
-                              onClick={(e) => { 
-                                e.stopPropagation(); 
-                                toggleChartType(widgetId, type); 
-                                setDropdownWidget(null); 
-                                setHoveredChartType(null); 
-                              }} 
-                              className="block w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-100 transition"
-                            >
-                              {type.charAt(0).toUpperCase() + type.slice(1)} Chart
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
                     <div 
                       className="px-4 py-2 hover:bg-gray-100 cursor-pointer" 
                       onClick={(e) => { 
                         e.stopPropagation(); 
                         navigate(componentPath); 
                         setDropdownWidget(null); 
-                        setHoveredChartType(null); 
                       }}
                     >
                       Analyze
+                    </div>
+                    <div 
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Implement export functionality
+                        console.log(`Exporting ${title} data`);
+                        setDropdownWidget(null);
+                      }}
+                    >
+                      Export Data
                     </div>
                   </div>
                 </div>
@@ -541,6 +496,22 @@ const ITSpendBreakdown = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const getRiskLevelColor = (level) => {
+    switch (level.toLowerCase()) {
+      case "high": return "bg-red-100 text-red-800";
+      case "medium": return "bg-amber-100 text-amber-800";
+      case "low": return "bg-green-100 text-green-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getUtilizationColor = (value) => {
+    const percent = parseFloat(value);
+    if (percent < 90) return "bg-green-100 text-green-800";
+    if (percent <= 100) return "bg-amber-100 text-amber-800";
+    return "bg-red-100 text-red-800";
+  };
+
   return (
     <div className="space-y-6 p-4 min-h-screen relative bg-sky-50">
       {/* Breadcrumb Navigation */}
@@ -557,15 +528,15 @@ const ITSpendBreakdown = () => {
           <li>
             <div className="flex items-center">
               <FiChevronRight className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" />
-              <Link to="/it-technology-spend" className="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2">
-                IT & Technology
+              <Link to="/finance-accounting-dashboard" className="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2">
+                Finance Dashboard
               </Link>
             </div>
           </li>
           <li aria-current="page">
             <div className="flex items-center">
               <FiChevronRight className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" />
-              <span className="ms-1 text-sm font-medium text-gray-500 md:ms-2">IT Spend Breakdown</span>
+              <span className="ms-1 text-sm font-medium text-gray-500 md:ms-2">Budget Utilization</span>
             </div>
           </li>
         </ol>
@@ -575,9 +546,9 @@ const ITSpendBreakdown = () => {
       <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-lg font-bold text-white">IT Spend Breakdown</h1>
-            <p className="text-sky-100 text-xs">Cloud, SaaS, Infrastructure, Security & IT Services</p>
-            <p className="text-sky-100 text-xs mt-1">Data showing from 01/01/24 - 08/31/24</p>
+            <h1 className="text-lg font-bold text-white">Budget Utilization & Variance Reports</h1>
+            <p className="text-sky-100 text-xs">Track spending against budgets, identify variances</p>
+            <p className="text-sky-100 text-xs mt-1">Data showing from 01/04/24 - 30/09/24 (Current Fiscal Year)</p>
           </div>
           <div className="flex space-x-2">
             <button 
@@ -587,15 +558,12 @@ const ITSpendBreakdown = () => {
             >
               <FiFilter className="mr-1" /> Filters
             </button>
-             <Link
-     to="/it-spend-table">
-   <button
-     type="button"
-     className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
-      View More
-	<GrLinkNext className="ml-1 w-4 h-4 hover:w-5 hover:h-5 transition-all" />
-   </button>
-</Link>
+            <button 
+              type="button" 
+              className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200"
+            >
+              <FiDownload className="mr-1" /> Export
+            </button>
           </div>
         </div>
       </div>
@@ -611,25 +579,11 @@ const ITSpendBreakdown = () => {
                 value={filters.timePeriod}
                 onChange={(e) => setFilters({...filters, timePeriod: e.target.value})}
               >
-                <option>Last Quarter</option>
-                <option>Last Month</option>
+                <option>Current Quarter</option>
+                <option>Current Month</option>
                 <option>Year to Date</option>
+                <option>Last Fiscal Year</option>
                 <option>Custom Range</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-              <select 
-                className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                value={filters.category}
-                onChange={(e) => setFilters({...filters, category: e.target.value})}
-              >
-                <option>All Categories</option>
-                <option>Cloud Services</option>
-                <option>SaaS</option>
-                <option>Infrastructure</option>
-                <option>Security</option>
-                <option>IT Services</option>
               </select>
             </div>
             <div>
@@ -640,34 +594,46 @@ const ITSpendBreakdown = () => {
                 onChange={(e) => setFilters({...filters, department: e.target.value})}
               >
                 <option>All Departments</option>
-                <option>Engineering</option>
-                <option>Sales</option>
+                <option>HR</option>
                 <option>Marketing</option>
+                <option>IT</option>
                 <option>Operations</option>
-                <option>Security</option>
+                <option>Finance</option>
+                <option>R&D</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Vendor</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Risk Level</label>
               <select 
                 className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                value={filters.vendor}
-                onChange={(e) => setFilters({...filters, vendor: e.target.value})}
+                value={filters.riskLevel}
+                onChange={(e) => setFilters({...filters, riskLevel: e.target.value})}
               >
-                <option>All Vendors</option>
-                <option>AWS</option>
-                <option>Azure</option>
-                <option>Salesforce</option>
-                <option>Google Cloud</option>
-                <option>CrowdStrike</option>
+                <option>All Levels</option>
+                <option>High</option>
+                <option>Medium</option>
+                <option>Low</option>
               </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <FiSearch className="text-gray-400" />
+                </div>
+                <input 
+                  type="text" 
+                  className="w-full p-2 pl-10 border border-gray-300 rounded-md text-sm" 
+                  placeholder="Search departments..." 
+                />
+              </div>
             </div>
           </div>
         </div>
       )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpiData.map((kpi, index) => (
           <KPICard
             key={index}
@@ -685,159 +651,117 @@ const ITSpendBreakdown = () => {
 
       {/* Main Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Spend by Category */}
+        {/* Budget vs Actual */}
         <EnhancedChartCard 
-          title="IT Spend by Category" 
-          chartType={selectedChartType.spendByCategory} 
-          chartData={{
-            data: spendData.spendByCategory,
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { position: 'bottom' }
-              },
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  title: {
-                    display: true,
-                    text: 'Spend ($K)'
-                  }
-                }
-              }
-            }
-          }} 
-          widgetId="spendByCategory" 
-          index={0} 
-          componentPath="/it-spend-breakdown" 
-        />
-
-        {/* Cloud Spend Trend */}
-        <EnhancedChartCard 
-          title="Cloud Spend Trend with AI Forecast" 
-          chartType={selectedChartType.cloudTrend} 
-          chartData={{
-            data: spendData.cloudTrend,
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { position: 'bottom' }
-              },
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  title: {
-                    display: true,
-                    text: 'Spend ($K)'
-                  }
-                }
-              }
-            }
-          }} 
-          widgetId="cloudTrend" 
-          index={1} 
-          componentPath="/it-spend-breakdown" 
-        />
-      </div>
-
-      {/* Secondary Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Spend Distribution */}
-        <EnhancedChartCard 
-          title="IT Spend Distribution" 
-          chartType="doughnut" 
-          chartData={{
-            data: spendData.spendDistribution,
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { position: 'right' },
-                tooltip: {
-                  callbacks: {
-                    label: function(context) {
-                      return `${context.label}: $${context.raw}K (${Math.round(context.parsed * 100 / context.dataset.data.reduce((a, b) => a + b, 0))}%)`;
-                    }
-                  }
-                }
-              }
-            }
-          }} 
-          widgetId="spendDistribution" 
-          index={2} 
-          componentPath="/it-spend-breakdown" 
-        />
-
-        {/* Spend vs ROI */}
-        <EnhancedChartCard 
-          title="Spend vs ROI by Category" 
+          title="Department Budget vs Actual Spend" 
           chartType="bar" 
           chartData={{
-            data: spendData.spendVsRoi,
+            data: budgetData.budgetVsActual,
             options: {
               responsive: true,
               maintainAspectRatio: false,
               plugins: {
-                legend: { display: false }
+                legend: { position: 'bottom' }
               },
               scales: {
                 y: {
                   beginAtZero: true,
                   title: {
                     display: true,
-                    text: 'ROI (x)'
-                  }
-                },
-                x: {
-                  title: {
-                    display: true,
-                    text: 'Spend ($K)'
+                    text: 'Amount (₹L)'
                   }
                 }
               }
             }
           }} 
-          widgetId="spendVsRoi" 
-          index={3} 
-          componentPath="/it-spend-breakdown" 
+          widgetId="budgetVsActual" 
+          index={0} 
+          componentPath="/budget-utilization" 
+        />
+
+        {/* Variance Trend */}
+        <EnhancedChartCard 
+          title="Variance Trend Over Time" 
+          chartType="line" 
+          chartData={{
+            data: budgetData.varianceTrend,
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { position: 'bottom' }
+              },
+              scales: {
+                y: {
+                  title: {
+                    display: true,
+                    text: 'Variance (₹L)'
+                  }
+                }
+              }
+            }
+          }} 
+          widgetId="varianceTrend" 
+          index={1} 
+          componentPath="/budget-utilization" 
         />
       </div>
 
-      {/* IT Spend Table */}
+      {/* Budget Utilization Table */}
       <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-md font-semibold text-sky-800">Detailed IT Spend Breakdown</h3>
+          <h3 className="text-md font-semibold text-sky-800">Department Budget Utilization</h3>
+          <div className="flex space-x-2">
+            <button 
+              className="flex items-center text-xs text-sky-600 hover:text-sky-800"
+              onClick={() => navigate("/budget-utilization-detail")}
+            >
+              View Details <FiChevronDown className="ml-1" />
+            </button>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left text-gray-700">
             <thead className="text-xs text-sky-700 uppercase bg-sky-50">
               <tr>
-                <th className="px-4 py-2">Category</th>
-                <th className="px-4 py-2">Vendor</th>
                 <th className="px-4 py-2">Department</th>
-                <th className="px-4 py-2">Monthly Spend</th>
-                <th className="px-4 py-2">Annualized</th>
-                <th className="px-4 py-2">ROI</th>
-                <th className="px-4 py-2">Cost/User</th>
-                <th className="px-4 py-2">% Budget</th>
+                <th className="px-4 py-2">Budgeted (₹)</th>
+                <th className="px-4 py-2">Actual Spend (₹)</th>
+                <th className="px-4 py-2">Variance (₹)</th>
+                <th className="px-4 py-2">Variance (%)</th>
+                <th className="px-4 py-2">Utilization</th>
+                <th className="px-4 py-2">Forecasted (₹)</th>
+                <th className="px-4 py-2">Risk Level</th>
+                <th className="px-4 py-2">AI Suggestion</th>
               </tr>
             </thead>
             <tbody>
-              {spendTableData.map((row, i) => (
+              {budgetTableData.map((row, i) => (
                 <tr key={i} className="border-b hover:bg-sky-50">
-                  <td className="px-4 py-2 font-medium">{row.category}</td>
-                  <td className="px-4 py-2">{row.vendor}</td>
-                  <td className="px-4 py-2">{row.department}</td>
-                  <td className="px-4 py-2">{row.monthlySpend}</td>
-                  <td className="px-4 py-2">{row.annualized}</td>
-                  <td className={`px-4 py-2 font-medium ${
-                    parseFloat(row.roi.replace('x', '')) > 3 ? "text-green-500" : 
-                    parseFloat(row.roi.replace('x', '')) > 2 ? "text-amber-500" : "text-red-500"
-                  }`}>{row.roi}</td>
-                  <td className="px-4 py-2">{row.costPerUser}</td>
-                  <td className="px-4 py-2">{row.budgetConsumed}</td>
+                  <td className="px-4 py-2 font-medium">{row.department}</td>
+                  <td className="px-4 py-2">{row.budgeted}</td>
+                  <td className="px-4 py-2">{row.actual}</td>
+                  <td className={`px-4 py-2 ${row.variance.startsWith('+') ? "text-red-500" : "text-green-500"}`}>
+                    {row.variance}
+                  </td>
+                  <td className={`px-4 py-2 ${row.variancePct.startsWith('+') ? "text-red-500" : "text-green-500"}`}>
+                    {row.variancePct}
+                  </td>
+                  <td className="px-4 py-2">
+                    <span className={`px-2 py-1 rounded-full text-xs ${getUtilizationColor(row.utilization)}`}>
+                      {row.utilization}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2">{row.forecasted}</td>
+                  <td className="px-4 py-2">
+                    <span className={`px-2 py-1 rounded-full text-xs ${getRiskLevelColor(row.riskLevel)}`}>
+                      {row.riskLevel}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2 text-xs text-gray-600 flex items-center">
+                    <FiAlertCircle className="mr-1 text-amber-500" />
+                    {row.aiSuggestion}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -845,24 +769,80 @@ const ITSpendBreakdown = () => {
         </div>
       </div>
 
-      {/* Efficiency Metrics */}
+      {/* Utilization Heatmap */}
       <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-md font-semibold text-sky-800">IT Efficiency Metrics</h3>
+          <h3 className="text-md font-semibold text-sky-800">Monthly Utilization Heatmap</h3>
+          <button 
+            className="flex items-center text-xs text-sky-600 hover:text-sky-800"
+            onClick={() => navigate("/utilization-heatmap")}
+          >
+            View Full Heatmap <FiChevronDown className="ml-1" />
+          </button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {efficiencyMetrics.map((metric, i) => (
-            <div key={i} className="bg-sky-50 p-3 rounded-lg">
-              <p className="text-xs font-semibold text-sky-700">{metric.metric}</p>
-              <div className="flex items-end mt-1">
-                <p className="text-lg font-bold text-sky-900">{metric.value}</p>
-                <p className={`text-xs ml-2 ${metric.trend.startsWith('+') ? "text-green-500" : "text-red-500"}`}>
-                  {metric.trend} vs last period
-                </p>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">Benchmark: {metric.benchmark}</p>
-            </div>
-          ))}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left text-gray-700">
+            <thead className="text-xs text-sky-700 uppercase bg-sky-50">
+              <tr>
+                <th className="px-4 py-2">Department</th>
+                <th className="px-4 py-2">Jan</th>
+                <th className="px-4 py-2">Feb</th>
+                <th className="px-4 py-2">Mar</th>
+                <th className="px-4 py-2">Apr</th>
+                <th className="px-4 py-2">May</th>
+                <th className="px-4 py-2">Jun</th>
+                <th className="px-4 py-2">Jul</th>
+                <th className="px-4 py-2">Aug</th>
+              </tr>
+            </thead>
+            <tbody>
+              {utilizationHeatmap.map((row, i) => (
+                <tr key={i} className="border-b hover:bg-sky-50">
+                  <td className="px-4 py-2 font-medium">{row.department}</td>
+                  <td className="px-4 py-2">
+                    <span className={`px-2 py-1 rounded-full text-xs ${getUtilizationColor(row.jan)}`}>
+                      {row.jan}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2">
+                    <span className={`px-2 py-1 rounded-full text-xs ${getUtilizationColor(row.feb)}`}>
+                      {row.feb}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2">
+                    <span className={`px-2 py-1 rounded-full text-xs ${getUtilizationColor(row.mar)}`}>
+                      {row.mar}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2">
+                    <span className={`px-2 py-1 rounded-full text-xs ${getUtilizationColor(row.apr)}`}>
+                      {row.apr}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2">
+                    <span className={`px-2 py-1 rounded-full text-xs ${getUtilizationColor(row.may)}`}>
+                      {row.may}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2">
+                    <span className={`px-2 py-1 rounded-full text-xs ${getUtilizationColor(row.jun)}`}>
+                      {row.jun}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2">
+                    <span className={`px-2 py-1 rounded-full text-xs ${getUtilizationColor(row.jul)}`}>
+                      {row.jul}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2">
+                    <span className={`px-2 py-1 rounded-full text-xs ${getUtilizationColor(row.aug)}`}>
+                      {row.aug}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -874,49 +854,49 @@ const ITSpendBreakdown = () => {
             className="flex items-center text-xs text-sky-600 hover:text-sky-800"
             onClick={() => setShowAIDropdown("aiRecommendations")}
           >
-            <BsStars className="mr-1" /> Ask AI
-          </button>
-        </div>
-        {showAIDropdown === "aiRecommendations" && (
-          <div className="mb-4 bg-sky-50 p-3 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <input
-                type="text"
-                value={aiInput["aiRecommendations"] || ""}
-                onChange={(e) => setAiInput(prev => ({ ...prev, ["aiRecommendations"]: e.target.value }))}
-                placeholder="Ask about IT spend optimization..."
-                className="w-full p-2 border border-gray-300 rounded-md text-sm"
-              />
-              <button
-                onClick={() => handleSendAIQuery("aiRecommendations")}
-                className="p-2 bg-sky-500 text-white rounded hover:bg-sky-600"
-                disabled={!aiInput["aiRecommendations"]?.trim()}
-              >
-                <FiSend />
-              </button>
-            </div>
-          </div>
-        )}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-sky-50 p-3 rounded-lg">
-            <h4 className="text-sm font-medium text-sky-800 mb-2">Cloud Optimization</h4>
-            <p className="text-xs text-gray-700">"AWS spend increased 25% QoQ. AI recommends rightsizing EC2 instances for potential 15% cost savings."</p>
-          </div>
-          <div className="bg-sky-50 p-3 rounded-lg">
-            <h4 className="text-sm font-medium text-sky-800 mb-2">SaaS License Waste</h4>
-            <p className="text-xs text-gray-700">"28% of Salesforce licenses are unused. Consolidating could save $8,400/month."</p>
-          </div>
-          <div className="bg-sky-50 p-3 rounded-lg">
-            <h4 className="text-sm font-medium text-sky-800 mb-2">Security ROI</h4>
-            <p className="text-xs text-gray-700">"Security investments show highest ROI (3.4x). Consider reallocating 5% from Infrastructure to Security."</p>
-          </div>
-        </div>
-      </div>
-
-      <ReactTooltip id="chart-type-tooltip" place="top" effect="solid" />
-      <ReactTooltip id="ai-tooltip" place="top" effect="solid" />
-    </div>
-  );
-};
-
-export default ITSpendBreakdown;
+            <BsStars className="mr-1" /> Ask Another Question
+                      </button>
+                    </div>
+                    {showAIDropdown === "aiRecommendations" && (
+                      <div className="mb-4 bg-sky-50 p-3 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="text"
+                            value={aiInput["aiRecommendations"] || ""}
+                            onChange={(e) => setAiInput(prev => ({ ...prev, ["aiRecommendations"]: e.target.value }))}
+                            placeholder="Ask about churn patterns, retention strategies..."
+                            className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                          />
+                          <button
+                            onClick={() => handleSendAIQuery("aiRecommendations")}
+                            className="p-2 bg-sky-500 text-white rounded hover:bg-sky-600"
+                            disabled={!aiInput["aiRecommendations"]?.trim()}
+                          >
+                            <FiSend />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-sky-50 p-3 rounded-lg">
+                        <h4 className="text-sm font-medium text-sky-800 mb-2">High Risk Segment</h4>
+                        <p className="text-xs text-gray-700">Startups have the highest churn rate at 8.5%. Consider adding onboarding support or tailored pricing for this segment.</p>
+                      </div>
+                      <div className="bg-sky-50 p-3 rounded-lg">
+                        <h4 className="text-sm font-medium text-sky-800 mb-2">Q3 Churn Spike</h4>
+                        <p className="text-xs text-gray-700">August saw 8.2% churn, likely due to competitor promotions. Recommend loyalty incentives during this period.</p>
+                      </div>
+                      <div className="bg-sky-50 p-3 rounded-lg">
+                        <h4 className="text-sm font-medium text-sky-800 mb-2">Retention Opportunity</h4>
+                        <p className="text-xs text-gray-700">Customers reaching 18 months show 92% retention. Consider extending contracts at this milestone.</p>
+                      </div>
+                    </div>
+                  </div>
+            
+                  <ReactTooltip id="chart-type-tooltip" place="top" effect="solid" />
+                  <ReactTooltip id="ai-tooltip" place="top" effect="solid" />
+                </div>
+              );
+            };
+            
+            export default BudgetUtilization;
