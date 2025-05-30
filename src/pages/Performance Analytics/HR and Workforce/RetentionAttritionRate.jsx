@@ -199,7 +199,7 @@ const RetentionAttritionRate = () => {
       icon: <FiTrendingUp />,
       description: "Percentage of employees who left",
       forecast: "15.7% by next quarter",
-      componentPath: "/retention-attrition"
+      componentPath: "/hr-workforce-table"
     },
     {
       title: "Voluntary Turnover",
@@ -209,7 +209,7 @@ const RetentionAttritionRate = () => {
       icon: <FiTrendingDown />,
       description: "Employees who resigned voluntarily",
       forecast: "9.1% if current trend holds",
-      componentPath: "/retention-attrition"
+      componentPath: "/hr-workforce-table"
     },
     {
       title: "Avg. Tenure",
@@ -219,7 +219,7 @@ const RetentionAttritionRate = () => {
       icon: <FiUsers />,
       description: "Average time before exit",
       forecast: "24 months forecasted",
-      componentPath: "/retention-attrition"
+      componentPath: "/hr-workforce-table"
     },
     {
       title: "High-risk Roles",
@@ -229,7 +229,7 @@ const RetentionAttritionRate = () => {
       icon: <FiPieChart />,
       description: "Roles with highest attrition risk",
       forecast: "3 new roles flagged this Q",
-      componentPath: "/retention-attrition"
+      componentPath: "/hr-workforce-table"
     },
     {
       title: "Rehire Cost",
@@ -239,7 +239,7 @@ const RetentionAttritionRate = () => {
       icon: <FiDollarSign />,
       description: "Average cost to replace employee",
       forecast: "₹92,000 next quarter",
-      componentPath: "/retention-attrition"
+      componentPath: "/hr-workforce-table"
     }
   ];
 
@@ -709,7 +709,7 @@ const RetentionAttritionRate = () => {
           }} 
           widgetId="attritionTrend" 
           index={0} 
-          componentPath="/retention-attrition" 
+          componentPath="/hr-workforce-table" 
         />
 
         {/* Attrition by Department */}
@@ -738,7 +738,7 @@ const RetentionAttritionRate = () => {
           }} 
           widgetId="attritionByDept" 
           index={1} 
-          componentPath="/retention-attrition" 
+          componentPath="/hr-workforce-table" 
         />
       </div>
 
@@ -767,7 +767,7 @@ const RetentionAttritionRate = () => {
           }} 
           widgetId="turnoverByRoleLevel" 
           index={2} 
-          componentPath="/retention-attrition" 
+          componentPath="/hr-workforce-table" 
         />
 
         {/* Retention Heatmap */}
@@ -795,7 +795,7 @@ const RetentionAttritionRate = () => {
           }} 
           widgetId="retentionHeatmap" 
           index={3} 
-          componentPath="/retention-attrition" 
+          componentPath="/hr-workforce-table" 
         />
       </div>
 

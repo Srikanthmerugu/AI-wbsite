@@ -83,21 +83,21 @@ const kpiData = {
   absenteeismRate: { 
     value: 3.2, 
     change: "-0.5", 
-    componentPath: "/employee-productivity-report", 
+    componentPath: "/hr-workforce-table", 
     forecast: "2.9% predicted next quarter",
     definition: "Percentage of unplanned days off"
   },
   spanOfControl: { 
     value: 6.8, 
     change: "+0.3", 
-    componentPath: "/employee-productivity-report", 
+    componentPath: "/hr-workforce-table", 
     forecast: "7.0 predicted next quarter",
     definition: "Average number of direct reports per manager"
   },
   overtimeRate: { 
     value: 12.5, 
     change: "+2.1", 
-    componentPath: "/employee-productivity-report", 
+    componentPath: "/hr-workforce-table", 
     forecast: "13.8% predicted next quarter",
     definition: "Percentage of hours worked as overtime"
   },
@@ -106,7 +106,7 @@ const kpiData = {
 const charts = {
   revenuePerDept: {
     title: "Revenue per Employee by Department",
-    componentPath: "/employee-productivity-report",
+    componentPath: "/hr-workforce-table",
     data: {
       labels: ["Sales", "Marketing", "Engineering", "Customer Support", "Finance", "HR"],
       datasets: [
@@ -136,7 +136,7 @@ const charts = {
   },
   productivityTrend: {
     title: "Productivity Trends Over the Last 12 Months",
-    componentPath: "/employee-productivity-report",
+    componentPath: "/hr-workforce-table",
     data: {
       labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
       datasets: [
@@ -175,7 +175,7 @@ const charts = {
   
   outputHeatmap: {
     title: "Output per Employee by Role & Business Unit",
-    componentPath: "/employee-productivity-report",
+    componentPath: "/hr-workforce-table",
     data: {
       labels: ["Sales", "Marketing", "Engineering", "Customer Support"],
       datasets: [

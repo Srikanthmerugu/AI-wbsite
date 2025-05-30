@@ -1,9 +1,11 @@
+
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import { 
   BsStars, 
   BsFilter, 
-  BsDownload,
+  // BsDownload, // Already have FiDownload
   BsInfoCircle,
   BsPieChart,
   BsBarChart,
@@ -13,11 +15,12 @@ import {
   BsCodeSquare,
   BsThreeDotsVertical
 } from 'react-icons/bs';
-import { FiSend, FiChevronDown } from 'react-icons/fi';
+import { FiSend, FiChevronDown, FiDownload} from 'react-icons/fi'; // FiDownload is used
 import { RiDragMove2Fill } from 'react-icons/ri';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { GrLinkNext } from "react-icons/gr";
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { motion } from "framer-motion"; // Added for consistent card animation
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -45,8 +48,30 @@ ChartJS.register(
   Legend
 );
 
+// Custom hook for detecting outside clicks (if needed for other dropdowns, good to have)
+const useOutsideClick = (callback) => {
+  const ref = useRef();
+  useEffect(() => {
+    const handleClick = (event) => {
+      if (ref.current && !ref.current.contains(event.target)) {
+        callback();
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [callback]);
+  return ref;
+};
+
+// Animation variants for cards
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+};
+
+
 export const ITSpendAnalytics = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Already available from top level
   const [timePeriod, setTimePeriod] = useState('Last Quarter');
   const [department, setDepartment] = useState('All Departments');
   const [region, setRegion] = useState('All Regions');
@@ -72,8 +97,8 @@ export const ITSpendAnalytics = () => {
   const [hoveredChartType, setHoveredChartType] = useState(null);
   const [aiInput, setAiInput] = useState({});
   const [showAIDropdown, setShowAIDropdown] = useState(null);
-  const filtersRef = useRef(null);
-  const aiChatbotRef = useRef(null);
+  const filtersRef = useOutsideClick(() => setShowFilters(false)); // Applied useOutsideClick
+  const aiChatbotRef = useRef(null); // Keep for chart AI
 
   // Mock data
   const departments = ['Engineering', 'Finance', 'HR', 'Marketing', 'Operations'];
@@ -87,50 +112,55 @@ export const ITSpendAnalytics = () => {
       name: 'Total IT Spend',
       value: '$2.45M',
       change: '+8%',
-      trend: 'up',
+      isPositive: true, // Assuming higher spend might be positive if aligned with growth, or false if cost focus
+      trend: 'up', // Kept for clarity, but isPositive will drive color
       forecast: '$2.6M next quarter',
-      icon: <BsGraphUp size={20} />,
-      color: 'text-amber-600'
+      icon: <BsGraphUp size={20} />, // Changed to size 20 to match icon prop, not color class
+      componentPath: "/it-spend-table", // Added for KPICard
     },
     {
       id: 2,
       name: 'Avg License Utilization',
       value: '68%',
       change: '+5%',
+      isPositive: true,
       trend: 'up',
       forecast: '72% next quarter',
       icon: <BsPieChart size={20} />,
-      color: 'text-green-600'
+      componentPath: "/it-spend-table",
     },
     {
       id: 3,
       name: 'Cloud vs On-Prem Ratio',
       value: '65% Cloud',
       change: '+12% Cloud',
+      isPositive: true, // Assuming increase in cloud is desired
       trend: 'up',
       forecast: '70% Cloud next quarter',
       icon: <BsServer size={20} />,
-      color: 'text-blue-600'
+      componentPath: "/it-spend-table",
     },
     {
       id: 4,
       name: 'Security Incidents',
       value: '8',
-      change: '-3',
+      change: '-3', // Fewer incidents is positive
+      isPositive: true, 
       trend: 'down',
       forecast: '6 next quarter',
       icon: <BsShieldLock size={20} />,
-      color: 'text-red-600'
+      componentPath: "/it-spend-table",
     },
     {
       id: 5,
       name: 'Tech Debt Score',
       value: '6.2/10',
-      change: '-0.4',
+      change: '-0.4', // Lower score is better
+      isPositive: true, 
       trend: 'down',
       forecast: '5.8 next quarter',
       icon: <BsCodeSquare size={20} />,
-      color: 'text-purple-600'
+      componentPath: "/it-spend-table",
     }
   ];
 
@@ -143,7 +173,7 @@ export const ITSpendAnalytics = () => {
     { name: "Tech Debt Index", icon: <BsCodeSquare />, path: "/tech-debt-modernization" }
   ];
 
-  // Chart data
+  // Chart data remains the same
   const chartData = {
     spendByCategory: {
       title: "IT Spend by Category",
@@ -210,7 +240,7 @@ export const ITSpendAnalytics = () => {
     },
     monthlySpendTrend: {
       title: "Monthly Spend Trend",
-      componentPath: "/it-technology-spend",
+      componentPath: "/it-spend-table",
       data: {
         labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
         datasets: [{
@@ -245,7 +275,7 @@ export const ITSpendAnalytics = () => {
     },
     cloudAdoption: {
       title: "Cloud Adoption",
-      componentPath: "/it-technology-spend",
+      componentPath: "/it-spend-table",
       data: {
         labels: ['Production', 'Development', 'Test', 'Disaster Recovery'],
         datasets: [{
@@ -269,7 +299,7 @@ export const ITSpendAnalytics = () => {
     },
     licenseUtilization: {
       title: "License Utilization",
-      componentPath: "/it-technology-spend",
+      componentPath: "/it-spend-table",
       data: {
         labels: ['Microsoft 365', 'Salesforce', 'Adobe CC', 'Zoom', 'Slack'],
         datasets: [{
@@ -302,7 +332,7 @@ export const ITSpendAnalytics = () => {
     },
     techDebtAnalysis: {
       title: "Tech Debt Analysis",
-      componentPath: "/it-technology-spend",
+      componentPath: "/it-spend-table",
       data: {
         labels: ['Legacy Systems', 'Custom Code', 'Security Patches', 'Documentation', 'Test Coverage'],
         datasets: [{
@@ -336,7 +366,6 @@ export const ITSpendAnalytics = () => {
     }
   };
 
-  // IT Projects table data
   const projectsTableData = [
     { name: "ERP Upgrade", budget: "$500K", spent: "$550K", completion: "85%", status: "On Track" },
     { name: "Cloud Migration", budget: "$750K", spent: "$800K", completion: "65%", status: "Over Budget" },
@@ -345,7 +374,6 @@ export const ITSpendAnalytics = () => {
     { name: "Marketing Platform", budget: "$200K", spent: "$220K", completion: "95%", status: "Over Budget" }
   ];
 
-  // Vendor spend table data
   const vendorTableData = [
     { vendor: "AWS", spend: "$420K", contractEnd: "2024-12-31", utilization: "78%", risk: "Low" },
     { vendor: "Microsoft", spend: "$380K", contractEnd: "2025-06-30", utilization: "65%", risk: "Medium" },
@@ -367,12 +395,13 @@ export const ITSpendAnalytics = () => {
   };
 
   const renderChart = (type, data, options = {}) => {
+    const chartOptions = { ...options, responsive: true, maintainAspectRatio: false };
     switch (type) {
-      case "line": return <Line data={data} options={options} />;
-      case "bar": return <Bar data={data} options={options} />;
-      case "pie": return <Pie data={data} options={options} />;
-      case "doughnut": return <Doughnut data={data} options={options} />;
-      default: return <Bar data={data} options={options} />;
+      case "line": return <Line data={data} options={chartOptions} />;
+      case "bar": return <Bar data={data} options={chartOptions} />;
+      case "pie": return <Pie data={data} options={chartOptions} />;
+      case "doughnut": return <Doughnut data={data} options={chartOptions} />;
+      default: return <Bar data={data} options={chartOptions} />;
     }
   };
 
@@ -384,18 +413,11 @@ export const ITSpendAnalytics = () => {
     setActiveWidgets(items);
   };
 
-  const EnhancedChartCard = ({ title, componentPath, chartType, chartData, widgetId, index }) => {
-    const dropdownRef = useRef(null);
-    
-    useEffect(() => {
-      const handleClickOutside = (event) => {
-        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-          setDropdownWidget(null);
-        }
-      };
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+  const EnhancedChartCard = ({ title, componentPath, chartType, chartData: currentChartData, widgetId, index }) => {
+    // Renamed chartData prop to currentChartData to avoid conflict with outer scope chartData
+    const chartDropdownRef = useOutsideClick(() => setDropdownWidget(null));
+    // Removed useEffect for dropdownRef, relying on useOutsideClick hook for its own cleanup.
+    // aiChatbotRef is already defined in the parent scope, can be used directly or passed if preferred.
 
     return (
       <Draggable draggableId={widgetId} index={index}>
@@ -415,13 +437,13 @@ export const ITSpendAnalytics = () => {
                       setDropdownWidget(dropdownWidget === widgetId ? null : widgetId); 
                     }} 
                     className="p-1 rounded hover:bg-gray-100" 
-                    data-tooltip-id="chart-type-tooltip" 
+                    data-tooltip-id={`chart-options-tooltip-${widgetId}`}
                     data-tooltip-content="Options"
                   >
                     <BsThreeDotsVertical />
                   </button>
                   {dropdownWidget === widgetId && (
-                    <div ref={dropdownRef} className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                    <div ref={chartDropdownRef} className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-10 border border-gray-200">
                       <div className="py-1 text-xs text-gray-800">
                         <div 
                           className="relative" 
@@ -468,26 +490,26 @@ export const ITSpendAnalytics = () => {
                 <button 
                   onClick={() => setShowAIDropdown(showAIDropdown === widgetId ? null : widgetId)} 
                   className="p-1 rounded hover:bg-gray-100" 
-                  data-tooltip-id="ai-tooltip" 
+                  data-tooltip-id={`ai-tooltip-chart-${widgetId}`}
                   data-tooltip-content="Ask AI"
                 >
                   <BsStars />
                 </button>
                 {showAIDropdown === widgetId && (
-                  <div ref={aiChatbotRef} className="absolute right-0 top-5 mt-2 w-full sm:w-64 bg-white rounded-md shadow-lg z-10 border border-gray-200 py-2">
-                    <div className="flex flex-col items-center space-x-2">
-                      <h1 className="text-xs">Ask regarding the {title}</h1>
-                      <div className="flex justify-between gap-3">
+                  <div ref={aiChatbotRef} className="absolute right-0 top-full mt-2 w-full sm:w-64 bg-white rounded-md shadow-lg z-10 border border-gray-200 py-2">
+                    <div className="flex flex-col items-center space-y-1 p-2">
+                      <h1 className="text-xs text-gray-700 self-start">Ask about {title}</h1>
+                      <div className="flex justify-between gap-2 w-full">
                         <input 
                           type="text" 
                           value={aiInput[widgetId] || ""} 
                           onChange={(e) => setAiInput(prev => ({ ...prev, [widgetId]: e.target.value }))} 
-                          placeholder="Ask AI..." 
+                          placeholder="Your question..." 
                           className="w-full p-1 border border-gray-300 rounded text-xs" 
                         />
                         <button 
                           onClick={() => handleSendAIQuery(widgetId)} 
-                          className="p-2 bg-sky-500 text-white rounded hover:bg-sky-600" 
+                          className="p-2 bg-sky-500 text-white rounded hover:bg-sky-600 text-xs" 
                           disabled={!aiInput[widgetId]?.trim()}
                         >
                           <FiSend />
@@ -496,13 +518,16 @@ export const ITSpendAnalytics = () => {
                     </div>
                   </div>
                 )}
-                <div {...provided.dragHandleProps} className="p-1 rounded hover:bg-gray-100 cursor-move">
+                <div {...provided.dragHandleProps} className="p-1 rounded hover:bg-gray-100 cursor-move" data-tooltip-id={`drag-tooltip-chart-${widgetId}`} data-tooltip-content="Rearrange">
                   <RiDragMove2Fill />
                 </div>
+                 <ReactTooltip id={`chart-options-tooltip-${widgetId}`} place="top" effect="solid" />
+                 <ReactTooltip id={`ai-tooltip-chart-${widgetId}`} place="top" effect="solid" />
+                 <ReactTooltip id={`drag-tooltip-chart-${widgetId}`} place="top" effect="solid" />
               </div>
             </div>
             <div className="h-48">
-              {renderChart(chartType, chartData.data, chartData.options)}
+              {renderChart(chartType, currentChartData.data, currentChartData.options)}
             </div>
           </div>
         )}
@@ -510,57 +535,64 @@ export const ITSpendAnalytics = () => {
     );
   };
 
-  const KPICard = ({ title, value, change, isPositive, icon, componentPath, forecast }) => {
-    const [showAIDropdown, setShowAIDropdown] = useState(false);
-    const [localAIInput, setLocalAIInput] = useState("");
-    const dropdownRef = useRef(null);
+  // --- Updated KPICard Component ---
+  const KPICard = ({ id, title, value, change, isPositive, icon, componentPath, forecast }) => {
+    const navigate = useNavigate(); // Use navigate hook from parent scope
+    const [showKpiAIDropdown, setShowKpiAIDropdown] = useState(false);
+    const [localKpiAIInput, setLocalKpiAIInput] = useState("");
+    const kpiDropdownRef = useOutsideClick(() => setShowKpiAIDropdown(false));
 
-    useEffect(() => {
-      const handleClickOutside = (event) => {
-        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-          setShowAIDropdown(false);
-        }
-      };
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    const handleSendAIQuery = () => {
-      if (localAIInput.trim()) {
-        console.log(`AI Query for ${title}:`, localAIInput);
-        setLocalAIInput("");
-        setShowAIDropdown(false);
+    const handleSendKpiAIQuery = (e) => {
+      e.stopPropagation(); // Prevent card navigation
+      if (localKpiAIInput.trim()) {
+        console.log(`AI Query for ${title}:`, localKpiAIInput);
+        setLocalKpiAIInput("");
+        setShowKpiAIDropdown(false);
       }
     };
+    
+    const kpiId = `kpi-${id}`; // Create unique ID for tooltip
 
     return (
-      <div className="bg-white p-4 rounded-lg border border-sky-100 shadow-sm relative">
+      <motion.div
+        key={id} // Use the passed id for the key
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+        whileHover={{ y: -3 }}
+        className="bg-white p-3 rounded-lg shadow-sm border border-sky-100 relative cursor-pointer"
+        onClick={() => navigate(componentPath)} // Make card clickable
+      >
         <div className="flex justify-between items-start">
           <div>
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-sky-600 uppercase tracking-wider">{title}</p>
+            <div className="flex items-center justify-between relative ">
+              <p className="text-[10px] font-semibold text-sky-600 uppercase tracking-wider truncate">{title}</p>
               <button 
-                onClick={(e) => { e.stopPropagation(); setShowAIDropdown(!showAIDropdown); }} 
-                className="p-1 rounded hover:bg-gray-100" 
-                data-tooltip-id="ai-tooltip" 
+                onClick={(e) => { 
+                  e.stopPropagation(); // Prevent card navigation
+                  setShowKpiAIDropdown(!showKpiAIDropdown); 
+                }} 
+                className="p-1 rounded hover:bg-gray-100 z-20" 
+                data-tooltip-id={`ai-tooltip-${kpiId}`}
                 data-tooltip-content="Ask AI"
               >
                 <BsStars />
               </button>
-              {showAIDropdown && (
-                <div ref={dropdownRef} className="absolute right-0 top-8 mt-2 w-44 bg-white rounded-md shadow-lg z-10 border border-gray-200 p-2">
+              {showKpiAIDropdown && (
+                <div ref={kpiDropdownRef} className="absolute right-0 top-5 mt-2 w-full sm:w-44 bg-white rounded-md shadow-lg z-30 border border-gray-200 p-2" onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center space-x-2">
                     <input 
                       type="text" 
-                      value={localAIInput} 
-                      onChange={(e) => setLocalAIInput(e.target.value)} 
+                      value={localKpiAIInput} 
+                      onChange={(e) => setLocalKpiAIInput(e.target.value)} 
                       placeholder="Ask AI..." 
                       className="w-full p-1 border border-gray-300 rounded text-xs" 
+                      onClick={(e) => e.stopPropagation()}
                     />
                     <button 
-                      onClick={handleSendAIQuery} 
+                      onClick={handleSendKpiAIQuery} 
                       className="p-1 bg-sky-500 text-white rounded hover:bg-sky-600" 
-                      disabled={!localAIInput.trim()}
+                      disabled={!localKpiAIInput.trim()}
                     >
                       <FiSend />
                     </button>
@@ -572,83 +604,102 @@ export const ITSpendAnalytics = () => {
             <div className={`flex items-center mt-2 ${isPositive ? "text-green-500" : "text-red-500"}`}>
               <span className="text-xs font-medium">{change} {isPositive ? "↑" : "↓"} vs last period</span>
             </div>
-            <div className="mt-1">
-              <p className="text-xs text-gray-500 italic">AI Forecast: {forecast}</p>
-            </div>
+            {forecast && (
+              <div className="mt-1">
+                <p className="text-xs text-gray-500 italic">AI Forecast: {forecast}</p>
+              </div>
+            )}
           </div>
           <div className="p-2 rounded-full bg-sky-100 hover:bg-sky-200 transition-colors duration-200">
             <div className="text-sky-600 hover:text-sky-800 transition-colors duration-200">{icon}</div>
           </div>
         </div>
-      </div>
+        <ReactTooltip id={`ai-tooltip-${kpiId}`} place="top" effect="solid" />
+      </motion.div>
     );
   };
+  // --- End of KPICard Component ---
+
 
   const ProjectsTable = () => (
     <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100">
-      <h3 className="text-sm font-semibold text-sky-800 mb-2">IT Projects Overview</h3>
-      <table className="w-full text-xs text-gray-700">
-        <thead>
-          <tr className="border-b">
-            <th className="p-2 text-left">Project</th>
-            <th className="p-2 text-left">Budget</th>
-            <th className="p-2 text-left">Spent</th>
-            <th className="p-2 text-left">Completion</th>
-            <th className="p-2 text-left">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {projectsTableData.map((row, i) => (
-            <tr key={i} className="border-b">
-              <td className="p-2">{row.name}</td>
-              <td className="p-2">{row.budget}</td>
-              <td className="p-2">{row.spent}</td>
-              <td className="p-2">{row.completion}</td>
-              <td className={`p-2 ${
-                row.status === "On Track" ? "text-green-500" : 
-                row.status === "Under Budget" ? "text-blue-500" : 
-                "text-red-500"
-              }`}>
-                {row.status}
-              </td>
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="text-sm font-semibold text-sky-800">IT Projects Overview</h3>
+        <Link to="/it-spend-table" className="text-xs text-sky-600 hover:text-sky-800 font-medium">
+          View Details <GrLinkNext className="inline-block w-3 h-3" />
+        </Link>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs text-gray-700">
+          <thead>
+            <tr className="border-b">
+              <th className="p-2 text-left">Project</th>
+              <th className="p-2 text-left">Budget</th>
+              <th className="p-2 text-left">Spent</th>
+              <th className="p-2 text-left">Completion</th>
+              <th className="p-2 text-left">Status</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {projectsTableData.map((row, i) => (
+              <tr key={i} className="border-b hover:bg-sky-50 cursor-pointer" onClick={() => navigate("/it-spend-table")}>
+                <td className="p-2">{row.name}</td>
+                <td className="p-2">{row.budget}</td>
+                <td className="p-2">{row.spent}</td>
+                <td className="p-2">{row.completion}</td>
+                <td className={`p-2 ${
+                  row.status === "On Track" ? "text-green-500" : 
+                  row.status === "Under Budget" ? "text-blue-500" : 
+                  "text-red-500"
+                }`}>
+                  {row.status}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 
   const VendorTable = () => (
     <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100">
-      <h3 className="text-sm font-semibold text-sky-800 mb-2">Vendor Spend Analysis</h3>
-      <table className="w-full text-xs text-gray-700">
-        <thead>
-          <tr className="border-b">
-            <th className="p-2 text-left">Vendor</th>
-            <th className="p-2 text-left">Spend</th>
-            <th className="p-2 text-left">Contract End</th>
-            <th className="p-2 text-left">Utilization</th>
-            <th className="p-2 text-left">Risk</th>
-          </tr>
-        </thead>
-        <tbody>
-          {vendorTableData.map((row, i) => (
-            <tr key={i} className="border-b">
-              <td className="p-2">{row.vendor}</td>
-              <td className="p-2">{row.spend}</td>
-              <td className="p-2">{row.contractEnd}</td>
-              <td className="p-2">{row.utilization}</td>
-              <td className={`p-2 ${
-                row.risk === "Low" ? "text-green-500" : 
-                row.risk === "Medium" ? "text-amber-500" : 
-                "text-red-500"
-              }`}>
-                {row.risk}
-              </td>
+       <div className="flex justify-between items-center mb-2">
+        <h3 className="text-sm font-semibold text-sky-800">Vendor Spend Analysis</h3>
+        <Link to="/it-spend-table" className="text-xs text-sky-600 hover:text-sky-800 font-medium">
+          View Details <GrLinkNext className="inline-block w-3 h-3" />
+        </Link>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs text-gray-700">
+          <thead>
+            <tr className="border-b">
+              <th className="p-2 text-left">Vendor</th>
+              <th className="p-2 text-left">Spend</th>
+              <th className="p-2 text-left">Contract End</th>
+              <th className="p-2 text-left">Utilization</th>
+              <th className="p-2 text-left">Risk</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {vendorTableData.map((row, i) => (
+              <tr key={i} className="border-b hover:bg-sky-50 cursor-pointer" onClick={() => navigate("/it-spend-table")}>
+                <td className="p-2">{row.vendor}</td>
+                <td className="p-2">{row.spend}</td>
+                <td className="p-2">{row.contractEnd}</td>
+                <td className="p-2">{row.utilization}</td>
+                <td className={`p-2 ${
+                  row.risk === "Low" ? "text-green-500" : 
+                  row.risk === "Medium" ? "text-amber-500" : 
+                  "text-red-500"
+                }`}>
+                  {row.risk}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 
@@ -668,20 +719,20 @@ export const ITSpendAnalytics = () => {
             >
               <BsFilter className="mr-1" /> Filters
             </button>
-            {/* <button 
-              className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200"
-            >
-              <BsDownload className="mr-1" /> Export Report
-            </button> */}
-             <Link
-     to="/it-spend-table">
-   <button
-     type="button"
-     className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
-      View More
-	<GrLinkNext className="ml-1 w-4 h-4 hover:w-5 hover:h-5 transition-all" />
-   </button>
-</Link>
+            <button
+                onClick={() => window.print()}
+                className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-50 transition-colors duration-200">
+                <FiDownload className="text-sky-50" />
+                <span className="text-sky-50">Export</span>
+            </button>
+             <Link to="/it-spend-table">
+                 <button
+                     type="button"
+                     className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
+                      View More
+                    <GrLinkNext className="ml-1 w-4 h-4 hover:w-5 hover:h-5 transition-all" />
+                 </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -740,24 +791,8 @@ export const ITSpendAnalytics = () => {
         </div>
       )}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        {kpis.map(kpi => (
-          <KPICard
-            key={kpi.id}
-            title={kpi.name}
-            value={kpi.value}
-            change={kpi.change}
-            isPositive={kpi.trend === 'up'}
-            icon={kpi.icon}
-            componentPath="/it-technology-spend"
-            forecast={kpi.forecast}
-          />
-        ))}
-      </div>
 
-
-        {/* Quick Links to Sub-Pages */}
+      {/* Quick Links to Sub-Pages */}
       <div className="bg-white p-5 rounded-xl shadow-sm border border-sky-100 mt-6">
         <h3 className="text-md font-semibold text-sky-800 mb-4">Explore Detailed Analytics</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -777,68 +812,78 @@ export const ITSpendAnalytics = () => {
       </div>
 
 
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        {kpis.map(kpi => (
+          <KPICard
+            key={kpi.id}
+            id={kpi.id} // Pass id for unique tooltip ids
+            title={kpi.name}
+            value={kpi.value}
+            change={kpi.change}
+            isPositive={kpi.isPositive}
+            icon={kpi.icon}
+            componentPath={kpi.componentPath} // ensure this is passed
+            forecast={kpi.forecast}
+          />
+        ))}
+      </div>
+
 
       <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="charts" isDropDisabled={false}>
+        <Droppable droppableId="itCharts" isDropDisabled={false}> 
+        {/* Changed droppableId to be unique */}
           {(provided) => (
             <div className="grid gap-6" {...provided.droppableProps} ref={provided.innerRef}>
               {/* First Row */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <EnhancedChartCard 
-                  title={chartData.spendByCategory.title} 
-                  chartType={chartTypes.spendByCategory} 
-                  chartData={chartData.spendByCategory} 
-                  widgetId="spendByCategory" 
-                  index={0} 
-                  componentPath={chartData.spendByCategory.componentPath} 
-                />
-                <EnhancedChartCard 
-                  title={chartData.budgetVsActual.title} 
-                  chartType={chartTypes.budgetVsActual} 
-                  chartData={chartData.budgetVsActual} 
-                  widgetId="budgetVsActual" 
-                  index={1} 
-                  componentPath={chartData.budgetVsActual.componentPath} 
-                />
-                <EnhancedChartCard 
-                  title={chartData.monthlySpendTrend.title} 
-                  chartType={chartTypes.monthlySpendTrend} 
-                  chartData={chartData.monthlySpendTrend} 
-                  widgetId="monthlySpendTrend" 
-                  index={2} 
-                  componentPath={chartData.monthlySpendTrend.componentPath} 
-                />
+                {activeWidgets.slice(0, 3).map((widgetId, index) => (
+                  <EnhancedChartCard 
+                    key={widgetId}
+                    title={chartData[widgetId].title} 
+                    chartType={chartTypes[widgetId]} 
+                    chartData={chartData[widgetId]} 
+                    widgetId={widgetId} 
+                    index={index} 
+                    componentPath={chartData[widgetId].componentPath} 
+                  />
+                ))}
               </div>
 
               {/* Second Row */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <EnhancedChartCard 
-                  title={chartData.cloudAdoption.title} 
-                  chartType={chartTypes.cloudAdoption} 
-                  chartData={chartData.cloudAdoption} 
-                  widgetId="cloudAdoption" 
-                  index={3} 
-                  componentPath={chartData.cloudAdoption.componentPath} 
-                />
-                <EnhancedChartCard 
-                  title={chartData.licenseUtilization.title} 
-                  chartType={chartTypes.licenseUtilization} 
-                  chartData={chartData.licenseUtilization} 
-                  widgetId="licenseUtilization" 
-                  index={4} 
-                  componentPath={chartData.licenseUtilization.componentPath} 
-                />
-                <EnhancedChartCard 
-                  title={chartData.techDebtAnalysis.title} 
-                  chartType={chartTypes.techDebtAnalysis} 
-                  chartData={chartData.techDebtAnalysis} 
-                  widgetId="techDebtAnalysis" 
-                  index={5} 
-                  componentPath={chartData.techDebtAnalysis.componentPath} 
-                />
+                {activeWidgets.slice(3, 6).map((widgetId, index) => (
+                   <EnhancedChartCard 
+                    key={widgetId}
+                    title={chartData[widgetId].title} 
+                    chartType={chartTypes[widgetId]} 
+                    chartData={chartData[widgetId]} 
+                    widgetId={widgetId} 
+                    index={index + 3} // Adjust index for dnd
+                    componentPath={chartData[widgetId].componentPath} 
+                  />
+                ))}
               </div>
+              
+              {/* Render remaining widgets if any (for future flexibility) */}
+              {activeWidgets.length > 6 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {activeWidgets.slice(6).map((widgetId, index) => (
+                    <EnhancedChartCard 
+                      key={widgetId}
+                      title={chartData[widgetId].title} 
+                      chartType={chartTypes[widgetId]} 
+                      chartData={chartData[widgetId]} 
+                      widgetId={widgetId} 
+                      index={index + 6} // Adjust index for dnd
+                      componentPath={chartData[widgetId].componentPath} 
+                    />
+                  ))}
+                </div>
+              )}
 
-              {/* Third Row */}
+
+              {/* Third Row for Tables */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <ProjectsTable />
                 <VendorTable />
@@ -871,9 +916,8 @@ export const ITSpendAnalytics = () => {
           </div>
         </div>
       </div>
-
-      <ReactTooltip id="chart-type-tooltip" place="top" effect="solid" />
-      <ReactTooltip id="ai-tooltip" place="top" effect="solid" />
+      {/* Global Tooltip for items not covered by specific tooltips in components */}
+      <ReactTooltip id="global-tooltip" place="top" effect="solid" /> 
     </div>
   );
 };

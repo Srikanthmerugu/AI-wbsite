@@ -96,7 +96,8 @@ export const HRworkForce = () => {
       trend: 'up',
       forecast: '$255,000 next quarter',
       icon: <BsCashStack size={20} />,
-      color: 'text-green-600'
+      color: 'text-green-600',
+      componentPath: "/hr-workforce-table"
     },
     {
       id: 2,
@@ -133,17 +134,17 @@ export const HRworkForce = () => {
   const navItems = [
     { name: "Employee Productivity Report", icon: <BsPieChart />, path: "/employee-productivity-report" },
     { name: "Utilization Rate Report", icon: <BsBarChart />, path: "/utilization-rate-report" },
-    { name: "Retention & Attrition Rate Analysis", icon: <BsServer />, path: "/hr-workforce" },
-    { name: "Hiring Funnel Metrics", icon: <BsGraphUp />, path: "/hr-workforce" },
-    { name: "Diversity & Inclusion Metrics", icon: <BsShieldLock />, path: "/hr-workforce" },
-    { name: "Compensation & Benefit Analysis", icon: <BsCodeSquare />, path: "/hr-workforce" }
+    { name: "Retention & Attrition Rate Analysis", icon: <BsServer />, path: "/retention-attrition-rate" },
+    { name: "Hiring Funnel Metrics", icon: <BsGraphUp />, path: "/hiring-funnel-metrics" },
+    { name: "Diversity & Inclusion Metrics", icon: <BsShieldLock />, path: "/diversity-inclusion-metrics" },
+    { name: "Compensation & Benefits Analysis", icon: <BsCodeSquare />, path: "/compensation-benefits" }
   ];
 
   // Chart data
   const chartData = {
     productivity: {
       title: "Revenue per Employee",
-      componentPath: "/hr-workforce",
+      componentPath: "/hr-workforce-table",
       data: {
         labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
         datasets: [
@@ -187,7 +188,7 @@ export const HRworkForce = () => {
     },
     utilization: {
       title: "Utilization Rate",
-      componentPath: "/hr-workforce",
+      componentPath: "/hr-workforce-table",
       data: {
         labels: departments,
         datasets: [
@@ -229,7 +230,7 @@ export const HRworkForce = () => {
     },
     retention: {
       title: "Retention Trends",
-      componentPath: "/hr-workforce",
+      componentPath: "/hr-workforce-table",
       data: {
         labels: ['Q1 2022', 'Q2 2022', 'Q3 2022', 'Q4 2022', 'Q1 2023'],
         datasets: [
@@ -268,7 +269,7 @@ export const HRworkForce = () => {
     },
     hiringFunnel: {
       title: "Hiring Funnel",
-      componentPath: "/hr-workforce",
+      componentPath: "/hr-workforce-table",
       data: {
         labels: ['Applicants', 'Screened', 'Interviews', 'Offers', 'Hires'],
         datasets: [
@@ -294,7 +295,7 @@ export const HRworkForce = () => {
     },
     diversity: {
       title: "Diversity Metrics",
-      componentPath: "/hr-workforce",
+      componentPath: "/hr-workforce-table",
       data: {
         labels: ['Male', 'Female', 'Non-binary', 'Prefer not to say'],
         datasets: [
@@ -320,7 +321,7 @@ export const HRworkForce = () => {
     },
     compensation: {
       title: "Compensation Analysis",
-      componentPath: "/hr-workforce",
+      componentPath: "/hr-workforce-table",
       data: {
         labels: jobLevels,
         datasets: [
@@ -521,36 +522,37 @@ export const HRworkForce = () => {
   };
 
   const KPICard = ({ title, value, change, isPositive, icon, componentPath, forecast }) => {
-    const [showAIDropdown, setShowAIDropdown] = useState(false);
-    const [localAIInput, setLocalAIInput] = useState("");
-    const dropdownRef = useRef(null);
+  const [showAIDropdown, setShowAIDropdown] = useState(false);
+  const [localAIInput, setLocalAIInput] = useState("");
+  const dropdownRef = useRef(null);
 
-    useEffect(() => {
-      const handleClickOutside = (event) => {
-        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-          setShowAIDropdown(false);
-        }
-      };
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    const handleSendAIQuery = () => {
-      if (localAIInput.trim()) {
-        console.log(`AI Query for ${title}:`, localAIInput);
-        setLocalAIInput("");
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowAIDropdown(false);
       }
     };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-    return (
-      <div className="bg-white p-4 rounded-lg border border-sky-100 shadow-sm relative">
+  const handleSendAIQuery = () => {
+    if (localAIInput.trim()) {
+      console.log(`AI Query for ${title}:`, localAIInput);
+      setLocalAIInput("");
+      setShowAIDropdown(false);
+    }
+  };
+
+  return (
+    <Link to={componentPath || "/hr-workforce-table"} className="block">
+      <div className="bg-white p-4 rounded-lg border border-sky-100 shadow-sm relative hover:shadow-md transition-shadow">
         <div className="flex justify-between items-start">
           <div>
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold text-sky-600 uppercase tracking-wider">{title}</p>
               <button 
-                onClick={(e) => { e.stopPropagation(); setShowAIDropdown(!showAIDropdown); }} 
+                onClick={(e) => { e.stopPropagation(); e.preventDefault(); setShowAIDropdown(!showAIDropdown); }} 
                 className="p-1 rounded hover:bg-gray-100" 
                 data-tooltip-id="ai-tooltip" 
                 data-tooltip-content="Ask AI"
@@ -568,7 +570,7 @@ export const HRworkForce = () => {
                       className="w-full p-1 border border-gray-300 rounded text-xs" 
                     />
                     <button 
-                      onClick={handleSendAIQuery} 
+                      onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleSendAIQuery(); }} 
                       className="p-1 bg-sky-500 text-white rounded hover:bg-sky-600" 
                       disabled={!localAIInput.trim()}
                     >
@@ -591,7 +593,8 @@ export const HRworkForce = () => {
           </div>
         </div>
       </div>
-    );
+    </Link>
+  );
 };
 
   return (
@@ -613,7 +616,7 @@ export const HRworkForce = () => {
             <button 
               className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200"
             >
-              <BsDownload className="mr-1" /> Export Report
+              <BsDownload className="mr-1" /> Export
             </button>
             <Link
                                                     to="/hr-workforce-table"
@@ -683,23 +686,7 @@ export const HRworkForce = () => {
         </div>
       )}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpis.map(kpi => (
-          <KPICard
-            key={kpi.id}
-            title={kpi.name}
-            value={kpi.value}
-            change={kpi.change}
-            isPositive={kpi.trend === 'up'}
-            icon={kpi.icon}
-            componentPath="/hr-workforce"
-            forecast={kpi.forecast}
-          />
-        ))}
-      </div>
-
-
+      
           {/* Quick Links to Sub-Pages */}
       <div className="bg-white p-5 rounded-xl shadow-sm border border-sky-100 mt-6">
         <h3 className="text-md font-semibold text-sky-800 mb-4">Explore Detailed Analytics</h3>
@@ -717,6 +704,22 @@ export const HRworkForce = () => {
             </Link>
           ))}
         </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {kpis.map(kpi => (
+          <KPICard
+            key={kpi.id}
+            title={kpi.name}
+            value={kpi.value}
+            change={kpi.change}
+            isPositive={kpi.trend === 'up'}
+            icon={kpi.icon}
+            componentPath={kpi.componentPath}
+            forecast={kpi.forecast}
+          />
+        ))}
       </div>
 
 

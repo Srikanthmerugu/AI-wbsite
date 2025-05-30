@@ -29,6 +29,7 @@ import {
   FiDollarSign,
   FiPieChart,
   FiFilter,
+  FiDownload,
   FiPlus,
   FiChevronDown,
   FiChevronRight,
@@ -90,37 +91,37 @@ const kpiData = {
     value: 3200000, 
     change: "+5%", 
     isPositive: true,
-    componentPath: "/it-budget-tracker" 
+    componentPath: "/it-spend-table" 
   },
   actualSpend: { 
     value: 2700000, 
     change: "-15%", 
     isPositive: false,
-    componentPath: "/it-budget-tracker" 
+    componentPath: "/it-spend-table" 
   },
   costVariance: { 
     value: "-15%", 
     change: "+2%", 
     isPositive: true,
-    componentPath: "/it-budget-tracker" 
+    componentPath: "/it-spend-table" 
   },
   projectsOnBudget: { 
     value: "65%", 
     change: "+8%", 
     isPositive: true,
-    componentPath: "/it-budget-tracker" 
+    componentPath: "/it-spend-table" 
   },
   avgROI: { 
     value: "3.8x", 
     change: "+0.2x", 
     isPositive: true,
-    componentPath: "/it-budget-tracker" 
+    componentPath: "/it-spend-table" 
   },
   projectsAtRisk: { 
     value: 4, 
     change: "-1", 
     isPositive: false,
-    componentPath: "/it-budget-tracker" 
+    componentPath: "/it-spend-table" 
   },
 };
 
@@ -218,7 +219,7 @@ const aiRecommendations = [
 const charts = {
   budgetVsActual: {
     title: "Budget vs. Actual by Project",
-    componentPath: "/it-budget-tracker",
+    componentPath: "/it-spend-table",
     data: {
       labels: projectsData.map(project => project.name),
       datasets: [
@@ -271,7 +272,7 @@ const charts = {
   },
   cumulativeSpend: {
     title: "Cumulative Spend Over Time",
-    componentPath: "/it-budget-tracker",
+    componentPath: "/it-spend-table",
     data: {
       labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"],
       datasets: [
@@ -328,7 +329,7 @@ const charts = {
   },
   roiVsSpend: {
     title: "ROI vs. Spend",
-    componentPath: "/it-budget-tracker",
+    componentPath: "/it-spend-table",
     data: {
       datasets: projectsData
         .filter(project => project.roi !== "TBD")
@@ -396,7 +397,7 @@ const charts = {
   },
   spendBreakdown: {
     title: "Spend Breakdown by Category",
-    componentPath: "/it-budget-tracker",
+    componentPath: "/it-spend-table",
     data: {
       labels: ["Software", "Hardware", "Consulting", "Salaries", "Misc"],
       datasets: [
@@ -943,6 +944,12 @@ const ITBudgetVsActuals = () => {
               <FiFilter className="mr-1" />
               Filters
             </button>
+            <button
+                                                                onClick={() => window.print()}
+                                                                className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-50 transition-colors duration-200">
+                                                                <FiDownload className="text-sky-50" />
+                                                                <span className="text-sky-50">Export</span>
+                                                            </button>
             {/* <button
               type="button"
               className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">

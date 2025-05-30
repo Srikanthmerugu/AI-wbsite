@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Chart from 'react-apexcharts';
+import { FiDownload} from "react-icons/fi";
 
 const CashFlowProjections = () => {
   // State for simulation controls
@@ -79,11 +80,25 @@ const CashFlowProjections = () => {
     <div className="sspace-y-6 p-4 min-h-screen relative bg-sky-50">
       {/* Header */}
       <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg mb-6">
-				<h1 className="text-lg font-bold text-white">Cash Flow Projections</h1>
-				<p className="text-sky-100 text-xs">
-					AI-driven liquidity predictions and scenario analysis
-				</p>
-			</div>
+  <div className="flex justify-between items-center">
+    <div>
+      <h1 className="text-lg font-bold text-white">Cash Flow Projections</h1>
+      <p className="text-sky-100 text-xs">
+        AI-driven liquidity predictions and scenario analysis
+      </p>
+    </div>
+
+    <button
+      onClick={() => window.print()}
+      className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-50 transition-colors duration-200"
+    >
+      <FiDownload className="text-sky-50" />
+      <span className="text-sky-50">Export</span>
+    </button>
+  </div>
+</div>
+
+
 
 
       {/* <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-6 rounded-lg shadow-sm ">

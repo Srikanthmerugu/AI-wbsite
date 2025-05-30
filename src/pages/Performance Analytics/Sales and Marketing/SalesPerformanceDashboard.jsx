@@ -16,7 +16,7 @@ import {
 } from "chart.js";
 import { Bar, Line, Pie, Doughnut } from "react-chartjs-2";
 import { motion } from "framer-motion";
-import { FiTrendingUp, FiTrendingDown, FiDollarSign, FiPieChart, FiFilter, FiPlus, FiChevronDown, FiSend, FiUser, FiMap, FiLayers, FiRefreshCw, FiUsers} from "react-icons/fi";
+import { FiTrendingUp, FiDownload, FiTrendingDown, FiDollarSign, FiPieChart, FiFilter, FiPlus, FiChevronDown, FiSend, FiUser, FiMap, FiLayers, FiRefreshCw, FiUsers} from "react-icons/fi";
 import { BsStars, BsThreeDotsVertical, BsCashCoin} from "react-icons/bs";
 import { Tooltip as ReactTooltip } from "react-tooltip";
 import { RiDragMove2Fill } from "react-icons/ri";
@@ -44,10 +44,10 @@ const cardVariants = {
 };
 
 const kpiData = {
-  totalRevenue: { value: 2546000, change: "-25%", componentPath: "/sales-performance-dashboard", forecast: "$2.8M predicted next quarter" },
-  revenuePerSegment: { value: 152000, change: "+8%", componentPath: "/sales-performance-dashboard", forecast: "$165K predicted next quarter" },
-  salesTeamCost: { value: 485000, change: "+12%", componentPath: "/sales-performance-dashboard", forecast: "$520K predicted next quarter" },
-  roi: { value: 5.2, change: "-0.8", componentPath: "/sales-performance-dashboard", forecast: "5.5 predicted next quarter" },
+  totalRevenue: { value: 2546000, change: "-25%", componentPath: "/sales-performance-table", forecast: "$2.8M predicted next quarter" },
+  revenuePerSegment: { value: 152000, change: "+8%", componentPath: "/sales-performance-table", forecast: "$165K predicted next quarter" },
+  salesTeamCost: { value: 485000, change: "+12%", componentPath: "/sales-performance-table", forecast: "$520K predicted next quarter" },
+  roi: { value: 5.2, change: "-0.8", componentPath: "/sales-performance-table", forecast: "5.5 predicted next quarter" },
   // leads: { value: 12500, change: "+15%", componentPath: "/sales-performance-dashboard", forecast: "13,500 predicted next quarter" },
   // opportunities: { value: 4890, change: "+10%", componentPath: "/sales-performance-dashboard", forecast: "5,200 predicted next quarter" },
   // wins: { value: 628, change: "+5%", componentPath: "/sales-performance-dashboard", forecast: "700 predicted next quarter" },
@@ -213,7 +213,7 @@ const charts = {
   },
   funnelMetrics: {
     title: "Leads to Wins ",
-    componentPath: "/funnel-metrics",
+    componentPath: "/sales-performance-table",
     data: {
       labels: ["Leads", "Opportunities", "Wins"],
       datasets: [{
@@ -461,6 +461,12 @@ const SalesPerformanceDashboard = () => {
             <button type="button" className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200" onClick={() => setShowFilters(!showFilters)}>
               <FiFilter className="mr-1" /> Filters
             </button>
+            <button
+                                                    onClick={() => window.print()}
+                                                    className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-50 transition-colors duration-200">
+                                                    <FiDownload className="text-sky-50" />
+                                                    <span className="text-sky-50">Export</span>
+                                                </button>
             <Link
                 to="/sales-performance-table"
                 >
@@ -500,6 +506,25 @@ const SalesPerformanceDashboard = () => {
         </div>
       )}
 
+      {/* Quick Links to Sub-Pages */}
+      <div className="bg-white p-5 rounded-xl shadow-sm border border-sky-100 mt-6">
+        <h3 className="text-md font-semibold text-sky-800 mb-4">Explore Detailed Analytics</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          {navItems.map((item, index) => (
+            <Link 
+              to={item.path} 
+              key={index} 
+              className="bg-sky-50 hover:bg-sky-100 p-3 rounded-lg text-center text-sm font-medium text-sky-800 transition-colors"
+            >
+              <div className="mx-auto w-8 h-8 bg-sky-100 rounded-full flex items-center justify-center mb-2 text-sky-600">
+                {item.icon}
+              </div>
+              {item.name}
+            </Link>
+          ))}
+        </div>
+      </div>
+
       <div className=" grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {Object.entries(kpiData).map(([key, value], index) => (
           <KPICard
@@ -518,25 +543,6 @@ const SalesPerformanceDashboard = () => {
         ))}
       </div>
 
-
-        {/* Quick Links to Sub-Pages */}
-      <div className="bg-white p-5 rounded-xl shadow-sm border border-sky-100 mt-6">
-        <h3 className="text-md font-semibold text-sky-800 mb-4">Explore Detailed Analytics</h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          {navItems.map((item, index) => (
-            <Link 
-              to={item.path} 
-              key={index} 
-              className="bg-sky-50 hover:bg-sky-100 p-3 rounded-lg text-center text-sm font-medium text-sky-800 transition-colors"
-            >
-              <div className="mx-auto w-8 h-8 bg-sky-100 rounded-full flex items-center justify-center mb-2 text-sky-600">
-                {item.icon}
-              </div>
-              {item.name}
-            </Link>
-          ))}
-        </div>
-      </div>
 
       {/* Navigation Cards
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">

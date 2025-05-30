@@ -24,6 +24,7 @@ import {
   FiClock,
   FiDollarSign,
   FiFilter,
+  FiDownload,
   FiChevronRight,
   FiPlus,
   FiChevronDown,
@@ -89,47 +90,47 @@ const kpiData = {
     value: 2500000,
     change: "+8%",
     isPositive: false,
-    componentPath: "/tech-debt-modernization",
+    componentPath: "/it-spend-table",
   },
   legacySystems: {
     value: 38,
     unit: "%",
     change: "-2%",
     isPositive: true,
-    componentPath: "/tech-debt-modernization",
+    componentPath: "/it-spend-table",
   },
   avgSystemAge: {
     value: 6.4,
     unit: "years",
     change: "+0.3",
     isPositive: false,
-    componentPath: "/tech-debt-modernization",
+    componentPath: "/it-spend-table",
   },
   modernizationCoverage: {
     value: 62,
     unit: "%",
     change: "+5%",
     isPositive: true,
-    componentPath: "/tech-debt-modernization",
+    componentPath: "/it-spend-table",
   },
   annualDelayCost: {
     value: 480000,
     change: "+12%",
     isPositive: false,
-    componentPath: "/tech-debt-modernization",
+    componentPath: "/it-spend-table",
   },
   highRiskSystems: {
     value: 7,
     change: "+2",
     isPositive: false,
-    componentPath: "/tech-debt-modernization",
+    componentPath: "/it-spend-table",
   },
 };
 
 const charts = {
   debtByDepartment: {
     title: "Technical Debt by Department",
-    componentPath: "/tech-debt-modernization",
+    componentPath: "/it-spend-table",
     data: {
       labels: ["IT", "Finance", "HR", "Operations", "Marketing"],
       datasets: [
@@ -193,7 +194,7 @@ const charts = {
   },
   costVsProgress: {
     title: "Cost of Delay vs. Modernization Progress",
-    componentPath: "/tech-debt-modernization",
+    componentPath: "/it-spend-table",
     data: {
       labels: ["Q1 2024", "Q2 2024", "Q3 2024", "Q4 2024", "Q1 2025", "Q2 2025"],
       datasets: [
@@ -267,7 +268,7 @@ const charts = {
   },
   systemAgeDistribution: {
     title: "System Age Distribution",
-    componentPath: "/tech-debt-modernization",
+    componentPath: "/it-spend-table",
     data: {
       labels: ["<3 years", "3-5 years", "6-10 years", "10+ years"],
       datasets: [
@@ -298,7 +299,7 @@ const charts = {
   },
   readinessScore: {
     title: "Modernization Readiness Score",
-    componentPath: "/tech-debt-modernization",
+    componentPath: "/it-spend-table",
     data: {
       labels: [
         "Security Risk",
@@ -990,6 +991,12 @@ const TechDebtModernization = () => {
               <FiFilter className="mr-1" />
               Filters
             </button>
+            <button
+                                                                onClick={() => window.print()}
+                                                                className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-50 transition-colors duration-200">
+                                                                <FiDownload className="text-sky-50" />
+                                                                <span className="text-sky-50">Export</span>
+                                                            </button>
             {/* <button
               type="button"
               className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200"

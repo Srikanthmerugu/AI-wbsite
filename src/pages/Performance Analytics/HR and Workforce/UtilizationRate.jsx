@@ -71,42 +71,42 @@ const kpiData = {
   utilizationRate: { 
     value: 72.5, 
     change: "+3.2", 
-    componentPath: "/utilization-rate-report", 
+    componentPath: "/hr-workforce-table", 
     forecast: "74% predicted next quarter",
     definition: "Billable Hours / Total Available Hours"
   },
   billableRatio: { 
     value: 65, 
     change: "-2.1", 
-    componentPath: "/utilization-rate-report", 
+    componentPath: "/hr-workforce-table", 
     forecast: "63% predicted next quarter",
     definition: "Billable Hours / Total Hours Worked"
   },
   avgOvertime: { 
     value: 8.2, 
     change: "+1.5", 
-    componentPath: "/utilization-rate-report", 
+    componentPath: "/hr-workforce-table", 
     forecast: "9.0 hours predicted next quarter",
     definition: "Average overtime hours per employee"
   },
   overtimeCost: { 
     value: 125000, 
     change: "+18%", 
-    componentPath: "/utilization-rate-report", 
+    componentPath: "/hr-workforce-table", 
     forecast: "$145K predicted next quarter",
     definition: "Total overtime cost for current period"
   },
   peakUtilizationDept: { 
     value: "Consulting", 
     change: "0", 
-    componentPath: "/utilization-rate-report", 
+    componentPath: "/hr-workforce-table", 
     forecast: "No change expected",
     definition: "Department with highest utilization rate"
   },
 //   underutilizedTeams: { 
 //     value: 3, 
 //     change: "-1", 
-//     componentPath: "/utilization-rate-report", 
+//     componentPath: "/hr-workforce-table", 
 //     forecast: "2 teams predicted next quarter",
 //     definition: "Teams with utilization below 60%"
 //   },
@@ -115,7 +115,7 @@ const kpiData = {
 const charts = {
   billableVsNonBillable: {
     title: "Billable vs. Non-Billable Hours by Department",
-    componentPath: "/utilization-rate-report",
+    componentPath: "/hr-workforce-table",
     data: {
       labels: ["Consulting", "Engineering", "Marketing", "Customer Success", "IT", "Admin"],
       datasets: [
@@ -155,7 +155,7 @@ const charts = {
   },
   utilizationTrend: {
     title: "Utilization Trend Over Last 12 Months",
-    componentPath: "/utilization-rate-report",
+    componentPath: "/hr-workforce-table",
     data: {
       labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
       datasets: [
@@ -216,7 +216,7 @@ const charts = {
   },
   timeAllocation: {
     title: "Time Allocation (Billable / Non-Billable / Overtime)",
-    componentPath: "/utilization-rate-report",
+    componentPath: "/hr-workforce-table",
     data: {
       labels: ["Billable", "Non-Billable", "Overtime"],
       datasets: [{
@@ -252,7 +252,7 @@ const charts = {
   },
   utilizationHeatmap: {
     title: "Utilization by Role & Business Unit",
-    componentPath: "/utilization-rate-report",
+    componentPath: "/hr-workforce-table",
     data: {
       labels: ["Junior", "Mid-level", "Senior", "Manager"],
       datasets: [

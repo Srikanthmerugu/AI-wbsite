@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { NavLink } from "react-router-dom";
-import { FiFilter, FiEdit, FiCheckCircle, FiSend } from "react-icons/fi";
+import { FiFilter, FiEdit, FiCheckCircle, FiSend, FiDownload} from "react-icons/fi";
 import { BsThreeDotsVertical, BsStars } from "react-icons/bs";
 import { RiDragMove2Fill } from "react-icons/ri";
 import Chart from "react-apexcharts";
@@ -126,7 +126,7 @@ const ForecastingOverview = () => {
 						</p>
 					</div>
 					<div className="flex space-x-2">
-						<div className="flex space-x-1 rounded-lg">
+						{/* <div className="flex space-x-1 rounded-lg">
 							<NavLink
 								to="#"
 								onClick={() => setActiveTab("create")}
@@ -157,13 +157,19 @@ const ForecastingOverview = () => {
 								}`}>
 								Compare Scenarios
 							</NavLink>
-						</div>
+						</div> */}
 						<button
 							onClick={() => setShowFilters(!showFilters)}
 							className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
 							<FiFilter className="mr-2" size={16} />
 							Filters
 						</button>
+						<button
+													onClick={() => window.print()}
+													className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white  bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-900 transition-colors duration-200">
+													<FiDownload className="text-sky-50 hover:text-sky-900" />
+													<span className="text-sky-50 hover:text-sky-900">Export</span>
+												</button>
 					</div>
 				</div>
 			</div>

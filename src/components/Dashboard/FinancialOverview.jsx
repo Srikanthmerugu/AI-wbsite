@@ -85,12 +85,32 @@ const cardVariants = {
 
 // Static Data
 const kpiData = {
-	Revenue: { value: 108325, target: "101%", change: "+1%", componentPath: "/revenue-component",},
-	grossProfit: { value: 31020, target: "108%", change: "+6%", componentPath: "/revenue-component"},
-	Expenses: { value: 17513, target: "110%", change: "+8%", componentPath: "/expense-component",},
-	netProfit: { value: 13968, target: "114%", change: "+9%", componentPath: "/revenue-component"},
-	cashFlow: { value: 221, change: "+5%", componentPath: "/revenue-component"},
-	headcount: { value: 126, change: "+1%", componentPath: "/revenue-component"},
+	Revenue: {
+		value: 108325,
+		target: "101%",
+		change: "+1%",
+		componentPath: "/revenue-component",
+	},
+	grossProfit: {
+		value: 31020,
+		target: "108%",
+		change: "+6%",
+		componentPath: "/revenue-component",
+	},
+	Expenses: {
+		value: 17513,
+		target: "110%",
+		change: "+8%",
+		componentPath: "/expense-component",
+	},
+	netProfit: {
+		value: 13968,
+		target: "114%",
+		change: "+9%",
+		componentPath: "/revenue-component",
+	},
+	cashFlow: { value: 221, change: "+5%", componentPath: "/revenue-component" },
+	headcount: { value: 126, change: "+1%", componentPath: "/revenue-component" },
 };
 
 const charts = {
@@ -314,7 +334,7 @@ const FinancialOverview = () => {
 	const [showAIChatbot, setShowAIChatbot] = useState(false);
 	const [showFilters, setShowFilters] = useState(false);
 	// const [selectedCompany, setSelectedCompany] = useState("Maven Group Global");
-	const {currentUser} = useContext(AuthContext)
+	const { currentUser } = useContext(AuthContext);
 	const [activeWidgets, setActiveWidgets] = useState([
 		"revenueTrend",
 		"expenseBreakdown",
@@ -546,7 +566,14 @@ const FinancialOverview = () => {
 	};
 
 	// KPI Card Component with AI Button
-	const KPICard = ({ title, value, change, isPositive, icon, componentPath }) => {
+	const KPICard = ({
+		title,
+		value,
+		change,
+		isPositive,
+		icon,
+		componentPath,
+	}) => {
 		const [showAIDropdown, setShowAIDropdown] = useState(false);
 		const [localAIInput, setLocalAIInput] = useState("");
 		const dropdownRef = useRef(null);
@@ -593,7 +620,7 @@ const FinancialOverview = () => {
 				animate="visible"
 				whileHover={{ y: -3 }}
 				className="bg-white p-3 rounded-lg shadow-sm border border-sky-100 relative"
-				onClick={() => navigate(componentPath)} >
+				onClick={() => navigate(componentPath)}>
 				<div className="flex justify-between items-start">
 					<div>
 						<div className="flex items-center justify-between">
@@ -601,22 +628,20 @@ const FinancialOverview = () => {
 								{title}
 							</p>
 							<button
-          onClick={(e) => {
-            e.stopPropagation(); // This stops the event from bubbling up
-            setShowAIDropdown(!showAIDropdown);
-          }}
-          className="p-1 rounded hover:bg-gray-100"
-          data-tooltip-id="ai-tooltip"
-          data-tooltip-content="Ask AI"
-        >
-          <BsStars />
-        </button>
+								onClick={(e) => {
+									e.stopPropagation(); // This stops the event from bubbling up
+									setShowAIDropdown(!showAIDropdown);
+								}}
+								className="p-1 rounded hover:bg-gray-100"
+								data-tooltip-id="ai-tooltip"
+								data-tooltip-content="Ask AI">
+								<BsStars />
+							</button>
 							{showAIDropdown && (
 								<div
 									ref={dropdownRef}
 									className="absolute right-0 top-5 mt-2 w-full sm:w-44 bg-white rounded-md shadow-lg z-10 border border-gray-200 p-2"
-									onClick={(e) => e.stopPropagation()} >
-
+									onClick={(e) => e.stopPropagation()}>
 									<div className="flex items-center space-x-2">
 										<input
 											type="text"
@@ -735,12 +760,12 @@ const FinancialOverview = () => {
 							<FiPlus className="mr-1" />
 							Add Widget
 						</button>
-						<button 
-									  className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white  bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-900 transition-colors duration-200"
-									  >
-									<FiDownload className='text-sky-50 hover:text-sky-900' />
-									<span className="text-sky-50 hover:text-sky-900">Export</span>
-								  </button>
+						<button
+							onClick={() => window.print()}
+							className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white  bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-900 transition-colors duration-200">
+							<FiDownload className="text-sky-50 hover:text-sky-900" />
+							<span className="text-sky-50 hover:text-sky-900">Export</span>
+						</button>
 					</div>
 				</div>
 			</div>
@@ -821,7 +846,6 @@ const FinancialOverview = () => {
 							)
 						}
 						componentPath={value.componentPath}
-						
 					/>
 				))}
 			</div>
@@ -850,7 +874,7 @@ const FinancialOverview = () => {
 									chartData={charts.expenseBreakdown}
 									widgetId="expenseBreakdown"
 									index={1}
-									componentPath={charts.expenseBreakdown.componentPath} 
+									componentPath={charts.expenseBreakdown.componentPath}
 								/>
 								<EnhancedChartCard
 									title={charts.profitAnalysis.title}
@@ -858,7 +882,7 @@ const FinancialOverview = () => {
 									chartData={charts.profitAnalysis}
 									widgetId="profitAnalysis"
 									index={2}
-									componentPath={charts.revenueTrend.componentPath} 
+									componentPath={charts.revenueTrend.componentPath}
 								/>
 							</div>
 
@@ -870,7 +894,7 @@ const FinancialOverview = () => {
 									chartData={charts.cashFlow}
 									widgetId="cashFlow"
 									index={3}
-									componentPath={charts.revenueTrend.componentPath} 
+									componentPath={charts.revenueTrend.componentPath}
 								/>
 								<EnhancedChartCard
 									title={charts.Expenses.title}
@@ -878,7 +902,7 @@ const FinancialOverview = () => {
 									chartData={charts.Expenses}
 									widgetId="Expenses"
 									index={4}
-									componentPath={charts.revenueTrend.componentPath} 
+									componentPath={charts.revenueTrend.componentPath}
 								/>
 							</div>
 
@@ -890,7 +914,7 @@ const FinancialOverview = () => {
 									chartData={charts.netProfit}
 									widgetId="netProfit"
 									index={5}
-									componentPath={charts.revenueTrend.componentPath} 
+									componentPath={charts.revenueTrend.componentPath}
 								/>
 								<EnhancedChartCard
 									title={charts.headcount.title}
@@ -898,7 +922,7 @@ const FinancialOverview = () => {
 									chartData={charts.headcount}
 									widgetId="headcount"
 									index={6}
-									componentPath={charts.revenueTrend.componentPath} 
+									componentPath={charts.revenueTrend.componentPath}
 								/>
 								<DataTable />
 							</div>

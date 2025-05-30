@@ -39,7 +39,7 @@ const SmartFinancialAlerts = () => {
       icon: <FiTrendingDown className="text-yellow-500" size={24} />,
       color: 'bg-yellow-50',
       textColor: 'text-yellow-600',
-      linkTo: '/BudgetOverrun'
+      linkTo: '/smart-financial-alerts'
     },
     {
       id: 'revenue_drop',
@@ -48,7 +48,7 @@ const SmartFinancialAlerts = () => {
       icon: <FiBarChart2 className="text-purple-500" size={24} />,
       color: 'bg-purple-50',
       textColor: 'text-purple-600',
-      linkTo: '/RevenueDrop'
+      linkTo: '/smart-financial-alerts'
     },
     {
       id: 'expense_spike',
@@ -57,7 +57,7 @@ const SmartFinancialAlerts = () => {
       icon: <FiCreditCard className="text-blue-500" size={24} />,
       color: 'bg-blue-50',
       textColor: 'text-blue-600',
-      linkTo: '/ExpenseSpike'
+      linkTo: '/smart-financial-alerts'
     },
     {
       id: 'ar_aging',
@@ -66,7 +66,7 @@ const SmartFinancialAlerts = () => {
       icon: <FiClock className="text-green-500" size={24} />,
       color: 'bg-green-50',
       textColor: 'text-green-600',
-      linkTo: '/AccountsReceivable'
+      linkTo: '/smart-financial-alerts'
     },
     {
       id: 'ap_due',
@@ -75,7 +75,7 @@ const SmartFinancialAlerts = () => {
       icon: <FiCalendar className="text-indigo-500" size={24} />,
       color: 'bg-indigo-50',
       textColor: 'text-indigo-600',
-      linkTo: '/AccountsPayable'
+      linkTo: '/smart-financial-alerts'
     }
   ];
 
@@ -115,7 +115,7 @@ const SmartFinancialAlerts = () => {
             severity: 'medium',
             date: new Date(Date.now() - 86400000),
             resolved: false,
-            linkTo: '/BudgetOverrun',
+            linkTo: '/smart-financial-alerts',
             details: {
               department: 'Marketing',
               overrunAmount: '$12,750',
@@ -136,7 +136,7 @@ const SmartFinancialAlerts = () => {
             severity: 'high',
             date: new Date(Date.now() - 172800000),
             resolved: true,
-            linkTo: '/RevenueDrop',
+            linkTo: '/smart-financial-alerts',
             details: {
               region: 'Southwest',
               dropPercentage: '22%',
@@ -157,7 +157,7 @@ const SmartFinancialAlerts = () => {
             severity: 'medium',
             date: new Date(Date.now() - 259200000),
             resolved: false,
-            linkTo: '/ExpenseSpike',
+            linkTo: '/smart-financial-alerts',
             details: {
               category: 'Office Supplies',
               increasePercentage: '300%',
@@ -178,7 +178,7 @@ const SmartFinancialAlerts = () => {
             severity: 'medium',
             date: new Date(Date.now() - 345600000),
             resolved: false,
-            linkTo: '/AccountsReceivable',
+            linkTo: '/smart-financial-alerts',
             details: {
               overdueInvoices: 5,
               totalAmount: '$12,450',
@@ -199,7 +199,7 @@ const SmartFinancialAlerts = () => {
             severity: 'low',
             date: new Date(Date.now() - 432000000),
             resolved: false,
-            linkTo: '/AccountsPayable',
+            linkTo: '/smart-financial-alerts',
             details: {
               vendor: 'Tech Supplies Inc.',
               amount: '$8,750',

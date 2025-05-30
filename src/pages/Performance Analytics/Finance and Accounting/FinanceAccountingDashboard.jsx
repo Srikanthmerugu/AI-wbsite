@@ -19,6 +19,7 @@ import { motion } from "framer-motion";
 import { 
   FiDollarSign, 
   FiFilter, 
+  FiDownload,
   FiPlus, 
   FiChevronDown, 
   FiSend, 
@@ -81,7 +82,7 @@ const kpiData = {
 //     value: 45, 
 //     change: "-5", 
 //     isPositive: true, 
-//     componentPath: "/finance-accounting-dashboard",
+//     componentPath: "/finance-accounting-table",
 //     forecast: "42 days next quarter",
 //     description: "Days inventory + receivables - payables"
 //   },
@@ -89,7 +90,7 @@ const kpiData = {
     value: 42, 
     change: "+1.5", 
     isPositive: true, 
-    componentPath: "/finance-accounting-tablee",
+    componentPath: "/finance-accounting-table",
     forecast: "43% next quarter",
     description: "Gross Profit / Revenue"
   },
@@ -97,7 +98,7 @@ const kpiData = {
     value: 18, 
     change: "-0.5", 
     isPositive: false, 
-    componentPath: "/finance-accounting-dashboard",
+    componentPath: "/finance-accounting-table",
     forecast: "17.5% next quarter",
     description: "Operating Income / Revenue"
   },
@@ -105,7 +106,7 @@ const kpiData = {
     value: 0.65, 
     change: "+0.05", 
     isPositive: false, 
-    componentPath: "/finance-accounting-dashboard",
+    componentPath: "/finance-accounting-table",
     forecast: "0.68 next quarter",
     description: "Total Liabilities / Shareholders' Equity"
   },
@@ -113,7 +114,7 @@ const kpiData = {
     value: -3.2, 
     change: "+1.8", 
     isPositive: true, 
-    componentPath: "/finance-accounting-dashboard",
+    componentPath: "/finance-accounting-table",
     forecast: "-2.5% next quarter",
     description: "Actual vs Budget Variance"
   },
@@ -123,7 +124,7 @@ const kpiData = {
 const charts = {
   liquidityMetrics: {
     title: "Liquidity Metrics Trend",
-    componentPath: "/finance-accounting-dashboard",
+    componentPath: "/finance-accounting-table",
     data: {
       labels: ["Q1", "Q2", "Q3", "Q4", "Q1 Forecast"],
       datasets: [
@@ -177,7 +178,7 @@ const charts = {
   },
   profitabilityTrend: {
     title: "Profitability Trend",
-    componentPath: "/finance-accounting-dashboard",
+    componentPath: "/finance-accounting-table",
     data: {
       labels: ["Q1", "Q2", "Q3", "Q4", "Q1 Forecast"],
       datasets: [
@@ -233,7 +234,7 @@ const charts = {
   },
   debtCoverage: {
     title: "Debt & Coverage Metrics",
-    componentPath: "/finance-accounting-dashboard",
+    componentPath: "/finance-accounting-table",
     data: {
       labels: ["Q1", "Q2", "Q3", "Q4", "Q1 Forecast"],
       datasets: [
@@ -272,7 +273,7 @@ const charts = {
   },
   budgetVariance: {
     title: "Department Budget Variance",
-    componentPath: "/finance-accounting-dashboard",
+    componentPath: "/finance-accounting-table",
     data: {
       labels: ["R&D", "Sales", "Marketing", "Operations", "Finance"],
       datasets: [
@@ -324,7 +325,7 @@ const charts = {
   },
   expenseBreakdown: {
     title: "Expense Breakdown",
-    componentPath: "/finance-accounting-dashboard",
+    componentPath: "/finance-accounting-table",
     data: {
       labels: ["Salaries", "Office", "Travel", "Software", "Marketing"],
       datasets: [
@@ -367,7 +368,7 @@ const charts = {
   },
   complianceStatus: {
     title: "Compliance Status",
-    componentPath: "/finance-accounting-dashboard",
+    componentPath: "/finance-accounting-table",
     data: {
       labels: ["Fully Compliant", "Partially Compliant", "Non-Compliant"],
       datasets: [
@@ -766,6 +767,12 @@ const FinanceAccountingDashboard = () => {
             >
               <FiFilter className="mr-1" /> Filters
             </button>
+            <button
+                                                                onClick={() => window.print()}
+                                                                className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-50 transition-colors duration-200">
+                                                                <FiDownload className="text-sky-50" />
+                                                                <span className="text-sky-50">Export</span>
+                                                            </button>
             {/* <button
               type="button"
               className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200"
@@ -816,6 +823,28 @@ const FinanceAccountingDashboard = () => {
         </div>
       )}
 
+
+      {/* Quick Links to Sub-Pages */}
+            <div className="bg-white p-5 rounded-xl shadow-sm border border-sky-100 mt-6">
+              <h3 className="text-md font-semibold text-sky-800 mb-4">Explore Detailed Analytics</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                {navItems.map((item, index) => (
+                  <Link 
+                    to={item.path} 
+                    key={index} 
+                    className="bg-sky-50 hover:bg-sky-100 p-3 rounded-lg text-center text-sm font-medium text-sky-800 transition-colors"
+                  >
+                    <div className="mx-auto w-8 h-8 bg-sky-100 rounded-full flex items-center justify-center mb-2 text-sky-600">
+                      {item.icon}
+                    </div>
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+
+
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {Object.entries(kpiData).map(([key, value], index) => (
@@ -840,25 +869,7 @@ const FinanceAccountingDashboard = () => {
       </div>
 
 
-        {/* Quick Links to Sub-Pages */}
-            <div className="bg-white p-5 rounded-xl shadow-sm border border-sky-100 mt-6">
-              <h3 className="text-md font-semibold text-sky-800 mb-4">Explore Detailed Analytics</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                {navItems.map((item, index) => (
-                  <Link 
-                    to={item.path} 
-                    key={index} 
-                    className="bg-sky-50 hover:bg-sky-100 p-3 rounded-lg text-center text-sm font-medium text-sky-800 transition-colors"
-                  >
-                    <div className="mx-auto w-8 h-8 bg-sky-100 rounded-full flex items-center justify-center mb-2 text-sky-600">
-                      {item.icon}
-                    </div>
-                    {item.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
+        
       {/* Charts Section */}
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="charts" isDropDisabled={false}>

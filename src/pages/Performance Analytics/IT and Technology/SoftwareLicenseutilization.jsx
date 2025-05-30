@@ -22,6 +22,7 @@ import {
   FiFilter, 
   FiDollarSign,
   FiUsers,
+  FiDownload,
   FiAlertCircle,
   FiPieChart,
   FiDatabase,
@@ -97,7 +98,7 @@ const SoftwareLicenseUtilization = () => {
         description: "Total software licenses owned",
         forecast: "2,900 predicted next quarter",
         financialImpact: null,
-        componentPath: "/software-license-utilization"
+        componentPath: "/it-spend-table"
       },
       {
         title: "Active Ratio",
@@ -108,7 +109,7 @@ const SoftwareLicenseUtilization = () => {
         description: "Active licenses / Total licenses",
         forecast: "70% predicted next quarter",
         financialImpact: null,
-        componentPath: "/software-license-utilization"
+        componentPath: "/it-spend-table"
       },
       {
         title: "Underutilized",
@@ -119,7 +120,7 @@ const SoftwareLicenseUtilization = () => {
         description: "Software products <50% utilized",
         forecast: "20 predicted next quarter",
         financialImpact: null,
-        componentPath: "/software-license-utilization"
+        componentPath: "/it-spend-table"
       },
       {
         title: "Wasted Spend",
@@ -130,7 +131,7 @@ const SoftwareLicenseUtilization = () => {
         description: "Monthly cost of inactive licenses",
         forecast: "$38K predicted next quarter",
         financialImpact: "$504K annualized",
-        componentPath: "/software-license-utilization"
+        componentPath: "/it-spend-table"
       },
       {
         title: "Utilization Rate",
@@ -141,7 +142,7 @@ const SoftwareLicenseUtilization = () => {
         description: "Overall license utilization",
         forecast: "74% predicted next quarter",
         financialImpact: "Benchmark: 80%",
-        componentPath: "/software-license-utilization"
+        componentPath: "/it-spend-table"
       },
       {
         title: "Top Waste",
@@ -152,7 +153,7 @@ const SoftwareLicenseUtilization = () => {
         description: "Highest cost underutilization",
         forecast: "Adobe CC next quarter",
         financialImpact: "$15K/month",
-        componentPath: "/software-license-utilization"
+        componentPath: "/it-spend-table"
       }
     ],
     utilizationBySoftware: {
@@ -577,6 +578,12 @@ const SoftwareLicenseUtilization = () => {
             >
               <FiFilter className="mr-1" /> Filters
             </button>
+            <button
+                                                                onClick={() => window.print()}
+                                                                className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-50 transition-colors duration-200">
+                                                                <FiDownload className="text-sky-50" />
+                                                                <span className="text-sky-50">Export</span>
+                                                            </button>
             <Link to="/it-spend-table">
               <button
                 type="button"
@@ -706,7 +713,7 @@ const SoftwareLicenseUtilization = () => {
             }
           }} 
           widgetId="utilizationBySoftware"
-          componentPath="/license-utilization-details"
+          componentPath="/it-spend-table"
         />
 
         {/* License Distribution */}
@@ -735,7 +742,7 @@ const SoftwareLicenseUtilization = () => {
             }
           }} 
           widgetId="licenseDistribution"
-          componentPath="/license-utilization-details"
+          componentPath="/it-spend-table"
         />
       </div>
 
@@ -764,7 +771,7 @@ const SoftwareLicenseUtilization = () => {
             }
           }} 
           widgetId="departmentUtilization"
-          componentPath="/license-utilization-details"
+          componentPath="/it-spend-table"
         />
 
         {/* Utilization Trend */}
@@ -793,7 +800,7 @@ const SoftwareLicenseUtilization = () => {
             }
           }} 
           widgetId="trendAnalysis"
-          componentPath="/license-utilization-details"
+          componentPath="/it-spend-table"
         />
       </div>
 

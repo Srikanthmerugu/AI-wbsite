@@ -5,7 +5,6 @@ import { RiMenuFold2Fill } from "react-icons/ri";
 import { CustomTreeMenu } from "./CustomTreeMenu/CustomTreeMenu";
 import { mainLogo, fevicon } from "../../assets/Assets";
 import { FaLayerGroup } from "react-icons/fa6";
-
 import {
   FiHome,
   FiUser,
@@ -34,6 +33,7 @@ const iconComponents = {
   FiMessageSquare,
   FiFile,
 };
+
 
 const MENUITEMS = [
   {
@@ -98,10 +98,10 @@ const MENUITEMS = [
           { path: "/revenueForecasting", title: "Revenue Forecasting", type: "link", icon: { name: "FiFile" } },
           { path: "/expenseForecasting", title: "Expense Forecasting", type: "link", icon: { name: "FiFile" } },
           { path: "/cashFlow-projections", title: "Cash Flow Projections", type: "link", icon: { name: "FiFile" } },
-          { path: "", title: "Headcount & Payroll Forecast", type: "link", icon: { name: "FiFile" } },
+          { path: "/headcount-payroll", title: "Headcount & Payroll Forecast", type: "link", icon: { name: "FiFile" } },
           { path: "/CAPEX-forecast-screen", title: "CAPEX Forecast", type: "link", icon: { name: "FiFile" } },
-          { path: "#", title: "Debt & Interest Forecasting", type: "link", icon: { name: "FiFile" } },
-          { path: "#", title: "Scenario Modeling", type: "link", icon: { name: "FiFile" } },
+          { path: "/debt-interest-forecasting", title: "Debt & Interest Forecasting", type: "link", icon: { name: "FiFile" } },
+          { path: "/scenario-modeling", title: "Scenario Modeling", type: "link", icon: { name: "FiFile" } },
         ],
       },
 
@@ -110,7 +110,7 @@ const MENUITEMS = [
       {
         title: "Budgeting",
         icon: { name: "FiGrid" },
-        path: "#",
+        path: "/operational-budgeting",
         type: "sub",
         badge: "badge badge-light-secondary",
         badgetxt: "New",
@@ -143,7 +143,7 @@ const MENUITEMS = [
             ],
           },
           {
-            path: "#",
+            path: "/budget-capital-investment",
             type: "link",
             title: "Capital Expenditure (CAPEX) Budgeting  ",
             icon: { name: "FiFile" },
@@ -229,7 +229,7 @@ const MENUITEMS = [
       {
         title: "Performance Analytics ",
         icon: { name: "FiBarChart2" },
-        path: "#",
+        path: "/sales-performance-dashboard",
         type: "sub",
         badge: "badge badge-light-secondary",
         badgetxt: "New",
@@ -258,9 +258,9 @@ const MENUITEMS = [
               { path: "/employee-productivity-report", type: "link", title: "Employee Productivity Report ", icon: { name: "FiFile" } },
               { path: "/utilization-rate-report", type: "link", title: "Utilization Rate Report ", icon: { name: "FiFile" } },
               { path: "/retention-attrition-rate", type: "link", title: "Retention & Attrition Rate Analysis ", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Hiring Funnel Metrics ", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Diversity & Inclusion Metrics", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Compensation & Benefits Analysis ", icon: { name: "FiFile" } },
+              { path: "/hiring-funnel-metrics", type: "link", title: "Hiring Funnel Metrics ", icon: { name: "FiFile" } },
+              { path: "/diversity-inclusion-metrics", type: "link", title: "Diversity & Inclusion Metrics", icon: { name: "FiFile" } },
+              { path: "/compensation-benefits", type: "link", title: "Compensation & Benefits Analysis ", icon: { name: "FiFile" } },
             ],
           },
           {
@@ -384,7 +384,7 @@ const MENUITEMS = [
       //   type: "link",
       // },
       {
-        path: "#",
+        path: "/settings-customization",
         icon: { name: "FiSettings" },
         title: "Settings & Customization",
         type: "link",
@@ -413,16 +413,30 @@ const MENUITEMS = [
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const location = useLocation();
-  const [activeItem, setActiveItem] = useState(() => {
-    // Initialize active item based on current path
-    const currentItem = MENUITEMS[0].Items.find(
-      (item) => item.path && location.pathname.startsWith(item.path)
-    );
-    return currentItem ? currentItem.path : null;
-  });
+  const [activeItem, setActiveItem] = useState(location.pathname); // Changed: Initialize with current pathname
 
-  // Handle click to set active item
-  const handleNavClick = (path) => { 
+  // Changed: Function to find if a path is in the hierarchy of an item
+  const findActivePath = (items, targetPath) => {
+    for (const item of items) {
+      if (item.path === targetPath) {
+        return true;
+      }
+      if (item.children) {
+        if (findActivePath(item.children, targetPath)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  // Changed: Update active item on location change
+  useEffect(() => {
+    setActiveItem(location.pathname);
+  }, [location.pathname]);
+
+  // Changed: Handle click to set active item
+  const handleNavClick = (path) => {
     if (path && path !== "#") {
       setActiveItem(path);
     }
@@ -435,20 +449,22 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       }`}
     >
       {/* Sidebar Header */}
-      <div className="flex items-center justify-between p-2 pt-2  border-b border-gray-100">
+      <div className="flex items-center justify-between p-2 pt-2 border-b border-gray-100">
         {isOpen ? (
           <div className="flex items-center">
-            <Link to="/"><img src={mainLogo} alt="FinSightAI" className="h-15" /></Link>
+            <Link to="/">
+              <img src={mainLogo} alt="FinSightAI" className="h-15" />
+            </Link>
           </div>
         ) : (
-          <img src={fevicon} alt="FinSightAI" className="h-8 mx-auto px-2 " />
+          <img src={fevicon} alt="FinSightAI" className="h-8 mx-auto px-2" />
         )}
         <button
           onClick={toggleSidebar}
-          className="p-1  rounded-full bg-blue-100 hover:bg-blue-200 transition-colors duration-200"
+          className="p-1 rounded-full bg-blue-100 hover:bg-blue-200 transition-colors duration-200"
         >
           {isOpen ? (
-            <RiMenuFold2Fill className="text-sky-800  " size={20} />
+            <RiMenuFold2Fill className="text-sky-800" size={20} />
           ) : (
             <FiChevronRight className="text-gray-600 wave-animation" size={16} />
           )}
@@ -475,6 +491,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   `p-2 rounded-lg transition-colors duration-200 flex items-center justify-center ${
                     activeItem === item.path
                       ? "bg-blue-100 text-blue-600"
+                      : findActivePath([item], activeItem)
+                      ? "bg-blue-50 text-blue-500"
                       : "text-gray-600 hover:bg-blue-50 hover:text-blue-600"
                   }`
                 }

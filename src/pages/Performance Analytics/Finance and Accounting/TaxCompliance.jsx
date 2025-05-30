@@ -142,7 +142,7 @@ const TaxCompliance = () => {
       icon: <FiShield />,
       description: "Overall compliance rating",
       forecast: "78% predicted next quarter",
-      componentPath: "/compliance-dashboard"
+      componentPath: "/finance-accounting-table"
     },
     {
       title: "Penalty Exposure",
@@ -152,7 +152,7 @@ const TaxCompliance = () => {
       icon: <FiAlertTriangle />,
       description: "Potential financial risk",
       forecast: "₹4,20,000 if unresolved",
-      componentPath: "/compliance-dashboard"
+      componentPath: "/finance-accounting-table"
     },
     {
       title: "Pending Returns",
@@ -162,7 +162,7 @@ const TaxCompliance = () => {
       icon: <FiFileText />,
       description: "Unfiled tax documents",
       forecast: "3 likely to miss deadline",
-      componentPath: "/compliance-dashboard"
+      componentPath: "/finance-accounting-table"
     },
     {
       title: "On-Time Filing Rate",
@@ -172,7 +172,7 @@ const TaxCompliance = () => {
       icon: <FiCheckCircle />,
       description: "Historical compliance",
       forecast: "91% next quarter",
-      componentPath: "/compliance-dashboard"
+      componentPath: "/finance-accounting-table"
     }
   ];
 
@@ -665,6 +665,13 @@ const TaxCompliance = () => {
             >
               <FiFilter className="mr-1" /> Filters
             </button>
+            <button
+  onClick={() => window.print()}
+   className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-50 	transition-colors duration-200">
+   <FiDownload className="text-sky-50" />
+   <span className="text-sky-50">Export</span>
+</button>
+
              <Link
                           to="/finance-accounting-table"
                           >
@@ -798,7 +805,7 @@ const TaxCompliance = () => {
           }} 
           widgetId="complianceTrend" 
           index={0} 
-          componentPath="/compliance-dashboard" 
+          componentPath="/finance-accounting-table" 
         />
 
         {/* Filing Status */}
@@ -827,7 +834,7 @@ const TaxCompliance = () => {
           }} 
           widgetId="filingStatus" 
           index={1} 
-          componentPath="/compliance-dashboard" 
+          componentPath="/finance-accounting-table" 
         />
       </div>
 

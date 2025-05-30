@@ -23,6 +23,7 @@ import {
   FiPieChart,
   FiChevronRight,
   FiFilter,
+  FiDownload,
   FiPlus,
   FiChevronDown,
   FiSend,
@@ -81,19 +82,19 @@ const cardVariants = {
 
 // Static Data
 const kpiData = {
-  totalSpend: { value: 285000, change: "+12%", componentPath: "/infra-details" },
-  onPremCost: { value: 185000, percentage: "65%", change: "+5%", componentPath: "/infra-details" },
-  cloudCost: { value: 100000, percentage: "35%", change: "+25%", componentPath: "/infra-details" },
-  costPerEmployee: { value: 1250, change: "-3%", componentPath: "/infra-details" },
-  utilizationRate: { value: "68%", target: "75%", change: "+2%", componentPath: "/infra-details" },
-  idleResourceCost: { value: 42000, change: "-8%", componentPath: "/infra-details" },
-  cloudROI: { value: "1.8x", change: "+0.2x", componentPath: "/infra-details" },
+  totalSpend: { value: 285000, change: "+12%", componentPath: "/it-spend-table" },
+  onPremCost: { value: 185000, percentage: "65%", change: "+5%", componentPath: "/it-spend-table" },
+  cloudCost: { value: 100000, percentage: "35%", change: "+25%", componentPath: "/it-spend-table" },
+  costPerEmployee: { value: 1250, change: "-3%", componentPath: "/it-spend-table" },
+  utilizationRate: { value: "68%", target: "75%", change: "+2%", componentPath: "/it-spend-table" },
+  idleResourceCost: { value: 42000, change: "-8%", componentPath: "/it-spend-table" },
+  cloudROI: { value: "1.8x", change: "+0.2x", componentPath: "/it-spend-table" },
 };
 
 const charts = {
   monthlySpendTrend: {
     title: "Monthly Infrastructure Spend Trend",
-    componentPath: "/infra-details",
+    componentPath: "/it-spend-table",
     data: {
       labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
       datasets: [
@@ -134,7 +135,7 @@ const charts = {
   },
   spendBreakdown: {
     title: "Current Infrastructure Spend Breakdown",
-    componentPath: "/infra-details",
+    componentPath: "/it-spend-table",
     data: {
       labels: ["On-Prem (65%)", "Cloud (35%)"],
       datasets: [
@@ -164,7 +165,7 @@ const charts = {
   },
   spendByDepartment: {
     title: "Infrastructure Spend by Department",
-    componentPath: "/infra-details",
+    componentPath: "/it-spend-table",
     data: {
       labels: ["IT", "Engineering", "Finance", "HR", "Marketing"],
       datasets: [
@@ -204,7 +205,7 @@ const charts = {
   },
   cloudForecast: {
     title: "Cloud Spend Forecast (Next 6 Months)",
-    componentPath: "/infra-details",
+    componentPath: "/it-spend-table",
     data: {
       labels: ["Aug", "Sep", "Oct", "Nov", "Dec", "Jan"],
       datasets: [
@@ -246,7 +247,7 @@ const charts = {
   },
   utilizationVsCost: {
     title: "Utilization vs Cost by Server",
-    componentPath: "/infra-details",
+    componentPath: "/it-spend-table",
     data: {
       labels: ["Server A", "Server B", "Server C", "Server D", "Server E"],
       datasets: [
@@ -837,6 +838,12 @@ const InfrastructureCostEfficiency = () => {
               <FiFilter className="mr-1" />
               Filters
             </button>
+            <button
+                                                                onClick={() => window.print()}
+                                                                className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-50 transition-colors duration-200">
+                                                                <FiDownload className="text-sky-50" />
+                                                                <span className="text-sky-50">Export</span>
+                                                            </button>
             {/* <button
               type="button"
               className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
@@ -910,7 +917,7 @@ const InfrastructureCostEfficiency = () => {
       )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
         <KPICard
           key="totalSpend"
           title="Total Spend"
@@ -958,7 +965,7 @@ const InfrastructureCostEfficiency = () => {
           icon={<FiTrendingUp size={16} />}
           componentPath={kpiData.utilizationRate.componentPath}
         />
-        <KPICard
+        {/* <KPICard
           key="idleResourceCost"
           title="Idle Resource Cost"
           value={kpiData.idleResourceCost.value}
@@ -966,7 +973,7 @@ const InfrastructureCostEfficiency = () => {
           isPositive={kpiData.idleResourceCost.change.startsWith("-")}
           icon={<FiDatabase size={16} />}
           componentPath={kpiData.idleResourceCost.componentPath}
-        />
+        /> */}
         <KPICard
           key="cloudROI"
           title="Cloud ROI"

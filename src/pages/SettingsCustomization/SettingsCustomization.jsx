@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   FiSettings, 
@@ -10,9 +11,28 @@ import {
   FiPlus,
   FiEdit2
 } from 'react-icons/fi';
+import { toast } from 'react-toastify';
 
 const SettingsCustomization = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [colorSettings, setColorSettings] = useState({
+    primaryColor: '#0C4A6E', // Tailwind sky-900
+    textColor: '#374151',
+    backgroundColor: '#F9FAFB',
+    fontSize: '14px',
+    fontFamily: 'Inter'
+  });
+  const [showColorPicker, setShowColorPicker] = useState({
+    primaryColor: false,
+    textColor: false,
+    backgroundColor: false
+  });
+  const [emailNotifications, setEmailNotifications] = useState({
+    transactionAlerts: true,
+    reportReady: true,
+    systemUpdates: false,
+    weeklySummary: true
+  });
 
   const menuItems = [
     {
@@ -46,6 +66,32 @@ const SettingsCustomization = () => {
       icon: <FiLock className="w-5 h-5 text-amber-500" />
     }
   ];
+
+  const handleColorChange = (e, field) => {
+    setColorSettings(prev => ({
+      ...prev,
+      [field]: e.target.value
+    }));
+  };
+
+  const handleSubmitSettings = () => {
+    console.log('Sending UI settings to backend:', colorSettings);
+    toast.success('UI settings saved successfully!');
+  };
+
+  const handleEmailNotificationChange = (field) => {
+    setEmailNotifications(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
+  };
+
+  const toggleColorPicker = (field) => {
+    setShowColorPicker(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
+  };
 
   return (
     <div className="flex h-full bg-gray-50 rounded-xl overflow-scroll shadow-lg">
@@ -82,32 +128,96 @@ const SettingsCustomization = () => {
             <div>
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Dashboard & UI Customization</h3>
               <p className="text-gray-600 mb-6">Customize your dashboard layout, color scheme, and display preferences.</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Color Settings */}
                 <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-medium text-gray-700 mb-2">Theme Settings</h4>
-                  <div className="flex space-x-2 mb-4">
-                    <div className="w-8 h-8 rounded-full bg-indigo-600 cursor-pointer"></div>
-                    <div className="w-8 h-8 rounded-full bg-blue-600 cursor-pointer"></div>
-                    <div className="w-8 h-8 rounded-full bg-green-600 cursor-pointer"></div>
-                    <div className="w-8 h-8 rounded-full bg-purple-600 cursor-pointer"></div>
+                  <h4 className="font-medium text-gray-700 mb-3">Color Settings</h4>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm text-gray-500 mb-1">Primary Color</label>
+                      <div className="flex items-center">
+                        <input
+                          type="color"
+                          value={colorSettings.primaryColor}
+                          onChange={(e) => handleColorChange(e, 'primaryColor')}
+                          className="w-8 h-8 rounded-md cursor-pointer border border-gray-300"
+                        />
+                        <span className="ml-2 text-sm">{colorSettings.primaryColor}</span>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm text-gray-500 mb-1">Text Color</label>
+                      <div className="flex items-center">
+                        <input
+                          type="color"
+                          value={colorSettings.textColor}
+                          onChange={(e) => handleColorChange(e, 'textColor')}
+                          className="w-8 h-8 rounded-md cursor-pointer border border-gray-300"
+                        />
+                        <span className="ml-2 text-sm">{colorSettings.textColor}</span>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm text-gray-500 mb-1">Background Color</label>
+                      <div className="flex items-center">
+                        <input
+                          type="color"
+                          value={colorSettings.backgroundColor}
+                          onChange={(e) => handleColorChange(e, 'backgroundColor')}
+                          className="w-8 h-8 rounded-md cursor-pointer border border-gray-300"
+                        />
+                        <span className="ml-2 text-sm">{colorSettings.backgroundColor}</span>
+                      </div>
+                    </div>
                   </div>
-                  <button className="flex items-center text-sm bg-indigo-600 text-white px-3 py-1 rounded-md">
-                    <FiCheck className="mr-1" /> Apply Theme
-                  </button>
                 </div>
+                
+                {/* Font Settings */}
                 <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-medium text-gray-700 mb-2">Layout Preferences</h4>
-                  <div className="space-y-2">
-                    <label className="flex items-center">
-                      <input type="checkbox" className="form-checkbox h-4 w-4 text-indigo-600" />
-                      <span className="ml-2 text-gray-700">Compact view</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="form-checkbox h-4 w-4 text-indigo-600" />
-                      <span className="ml-2 text-gray-700">Show recent activities</span>
-                    </label>
+                  <h4 className="font-medium text-gray-700 mb-3">Font Settings</h4>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm text-gray-500 mb-1">Font Size</label>
+                      <select 
+                        className="w-full border border-gray-300 rounded-md p-2 text-sm"
+                        value={colorSettings.fontSize}
+                        onChange={(e) => setColorSettings({...colorSettings, fontSize: e.target.value})}
+                      >
+                        <option value="12px">Small</option>
+                        <option value="14px">Medium</option>
+                        <option value="16px">Large</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm text-gray-500 mb-1">Font Family</label>
+                      <select 
+                        className="w-full border border-gray-300 rounded-md p-2 text-sm"
+                        value={colorSettings.fontFamily}
+                        onChange={(e) => setColorSettings({...colorSettings, fontFamily: e.target.value})}
+                      >
+                        <option value="Inter">Inter</option>
+                        <option value="Roboto">Roboto</option>
+                        <option value="Open Sans">Open Sans</option>
+                        <option value="Montserrat">Montserrat</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
+              </div>
+              
+              <div className="mt-6">
+                <button 
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
+                  onClick={handleSubmitSettings}
+                >
+                  Save UI Settings
+                </button>
               </div>
             </div>
           )}
@@ -137,33 +247,69 @@ const SettingsCustomization = () => {
 
           {activeTab === 'alerts' && (
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Alerts & Notification Preferences</h3>
-              <p className="text-gray-600 mb-6">Manage how and when you receive important financial alerts.</p>
-              <div className="space-y-4">
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-medium text-gray-700 mb-2">Notification Channels</h4>
-                  <div className="space-y-2">
-                    <label className="flex items-center">
-                      <input type="checkbox" className="form-checkbox h-4 w-4 text-indigo-600" checked />
-                      <span className="ml-2 text-gray-700">Email</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="form-checkbox h-4 w-4 text-indigo-600" checked />
-                      <span className="ml-2 text-gray-700">In-app notifications</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="form-checkbox h-4 w-4 text-indigo-600" />
-                      <span className="ml-2 text-gray-700">Mobile push notifications</span>
-                    </label>
-                  </div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Email Notification Preferences</h3>
+              <p className="text-gray-600 mb-6">Manage your email notification settings.</p>
+              
+              <div className="border border-gray-200 rounded-lg p-4 max-w-2xl">
+                <h4 className="font-medium text-gray-700 mb-3">Email Notifications</h4>
+                
+                <div className="space-y-3">
+                  <label className="flex items-center justify-between">
+                    <div>
+                      <span className="text-gray-700">Transaction alerts</span>
+                      <p className="text-xs text-gray-500">Receive emails for important transactions</p>
+                    </div>
+                    <input 
+                      type="checkbox" 
+                      className="form-checkbox h-5 w-5 text-indigo-600"
+                      checked={emailNotifications.transactionAlerts}
+                      onChange={() => handleEmailNotificationChange('transactionAlerts')}
+                    />
+                  </label>
+                  
+                  <label className="flex items-center justify-between">
+                    <div>
+                      <span className="text-gray-700">Report ready notifications</span>
+                      <p className="text-xs text-gray-500">Get notified when scheduled reports are ready</p>
+                    </div>
+                    <input 
+                      type="checkbox" 
+                      className="form-checkbox h-5 w-5 text-indigo-600"
+                      checked={emailNotifications.reportReady}
+                      onChange={() => handleEmailNotificationChange('reportReady')}
+                    />
+                  </label>
+                  
+                  <label className="flex items-center justify-between">
+                    <div>
+                      <span className="text-gray-700">System updates</span>
+                      <p className="text-xs text-gray-500">Receive important system updates</p>
+                    </div>
+                    <input 
+                      type="checkbox" 
+                      className="form-checkbox h-5 w-5 text-indigo-600"
+                      checked={emailNotifications.systemUpdates}
+                      onChange={() => handleEmailNotificationChange('systemUpdates')}
+                    />
+                  </label>
+                  
+                  <label className="flex items-center justify-between">
+                    <div>
+                      <span className="text-gray-700">Weekly summary</span>
+                      <p className="text-xs text-gray-500">Get a weekly summary of your financial activity</p>
+                    </div>
+                    <input 
+                      type="checkbox" 
+                      className="form-checkbox h-5 w-5 text-indigo-600"
+                      checked={emailNotifications.weeklySummary}
+                      onChange={() => handleEmailNotificationChange('weeklySummary')}
+                    />
+                  </label>
                 </div>
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-medium text-gray-700 mb-2">Alert Thresholds</h4>
-                  <p className="text-sm text-gray-500 mb-3">Set thresholds for financial alerts and warnings.</p>
-                  <button className="flex items-center text-sm bg-indigo-600 text-white px-3 py-1 rounded-md">
-                    <FiEdit2 className="mr-1" /> Configure Thresholds
-                  </button>
-                </div>
+                
+                <button className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors">
+                  Save Notification Settings
+                </button>
               </div>
             </div>
           )}

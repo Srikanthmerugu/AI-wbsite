@@ -12,7 +12,9 @@ import {
   FiEyeOff,
   FiSearch,
   FiChevronDown,
-  FiDownload
+  FiDownload,
+  FiToggleLeft,
+  FiToggleRight
 } from 'react-icons/fi';
 import { Tooltip } from 'react-tooltip';
 import * as XLSX from 'xlsx'; 
@@ -121,7 +123,6 @@ const AddEditUserModal = ({ user, onSave, onCancel, loading }) => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="admin">Admin</option>
-              {/* <option value="finance_manager">Finance Manager</option> */}
               <option value="analyst">Analyst</option>
               <option value="viewer">Viewer</option>
             </select>
@@ -226,6 +227,7 @@ const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [apiLoading, setApiLoading] = useState(false);
+  const [togglingStatus, setTogglingStatus] = useState(false);
 
   const roles = [
     { name: 'Admin', permissions: ['All'], users: 4 },
@@ -257,7 +259,7 @@ const UserManagement = () => {
       }
 
       const data = await response.json();
-      console.log('API Response:', data); // Log for debugging
+      console.log('API Response:', data);
       let userArray = [];
       if (Array.isArray(data)) {
         userArray = data;
@@ -290,100 +292,99 @@ const UserManagement = () => {
       )
     : [];
 
-const handleSaveUser = async (formData) => {
-  try {
-    setApiLoading(true);
+  const handleSaveUser = async (formData) => {
+    try {
+      setApiLoading(true);
 
-    if (editingUser) {
-      // Update user
-      const response = await fetch(`${API_BASE_URL}/api/v1/company/management/update-user/`, {
-        method: 'PATCH',  // Changed to PATCH as it's typically used for updates
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          user_id: editingUser.id,
-          user_email: formData.user_email,
-          user_department: formData.user_department,
-          user_role: formData.user_role,
-          reset_password: false  // Added this field as per API requirements
-        })
-      });
+      if (editingUser) {
+        // Update user
+        const response = await fetch(`${API_BASE_URL}/api/v1/company/management/update-user/`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            user_id: editingUser.id,
+            user_email: formData.user_email,
+            user_department: formData.user_department,
+            user_role: formData.user_role,
+            reset_password: false
+          })
+        });
 
-      const responseData = await response.json();
+        const responseData = await response.json();
 
-      if (!response.ok) {
-        // If response is not ok, check for error messages in response
-        const errorMessage = responseData.message || 
-                            responseData.detail || 
-                            'Failed to update user';
-        throw new Error(errorMessage);
+        if (!response.ok) {
+          const errorMessage = responseData.message || 
+                              responseData.detail || 
+                              'Failed to update user';
+          throw new Error(errorMessage);
+        }
+
+        toast.success('User updated successfully!', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      } else {
+        // Add new user
+        const response = await fetch(`${API_BASE_URL}/api/v1/company/management/add-user/`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            full_name: formData.full_name,
+            user_email: formData.user_email,
+            user_department: formData.user_department,
+            user_role: formData.user_role
+          })
+        });
+
+        const responseData = await response.json();
+
+        if (!response.ok) {
+          const errorMessage = responseData.message || 
+                              responseData.detail || 
+                              'Failed to add user';
+          throw new Error(errorMessage);
+        }
+
+        toast.success('User added successfully!', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
       }
 
-      toast.success('User updated successfully!', {
+      await fetchUsers();
+      setShowAddEditModal(false);
+      setEditingUser(null);
+    } catch (error) {
+      console.error('User operation error:', error);
+      toast.error(error.message || 'Operation failed', {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 5000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
       });
-    } else {
-      // Add new user
-      const response = await fetch(`${API_BASE_URL}/api/v1/company/management/add-user/`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          full_name: formData.full_name,
-          user_email: formData.user_email,
-          user_department: formData.user_department,
-          user_role: formData.user_role
-        })
-      });
-
-      const responseData = await response.json();
-
-      if (!response.ok) {
-        const errorMessage = responseData.message || 
-                            responseData.detail || 
-                            'Failed to add user';
-        throw new Error(errorMessage);
-      }
-
-      toast.success('User added successfully!', {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
+    } finally {
+      setApiLoading(false);
     }
-
-    await fetchUsers();
-    setShowAddEditModal(false);
-    setEditingUser(null);
-  } catch (error) {
-    console.error('User operation error:', error);
-    toast.error(error.message || 'Operation failed', {
-      position: "top-right",
-      autoClose: 5000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-    });
-  } finally {
-    setApiLoading(false);
-  }
-};
+  };
 
   const handleDeleteUser = async () => {  
     try {
@@ -412,6 +413,52 @@ const handleSaveUser = async (formData) => {
       toast.error(error.message || 'Failed to delete user');
     } finally {
       setApiLoading(false);
+    }
+  };
+
+  // New function to toggle user active status
+  const toggleUserStatus = async (userId, currentStatus) => {
+    try {
+      setTogglingStatus(true);
+      const response = await fetch(
+        `${API_BASE_URL}/api/v1/company/management/user/activate-deactivate?user_id=${userId}`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to toggle user status');
+      }
+
+      // Update the local state to reflect the change
+      setUsers(users.map(user => 
+        user.id === userId ? { ...user, is_active: !currentStatus } : user
+      ));
+
+      toast.success(
+        `User ${data.user_name} has been ${currentStatus ? 'deactivated' : 'activated'}`,
+        {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        }
+      );
+    } catch (error) {
+      console.error('Toggle user status error:', error);
+      toast.error(error.message || 'Failed to toggle user status');
+    } finally {
+      setTogglingStatus(false);
     }
   };
 
@@ -556,107 +603,124 @@ const handleSaveUser = async (formData) => {
           {/* User Account Management */}
           {activeTab === 'accounts' && (
             <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold flex items-center">
-                <FiUserPlus className="mr-2 text-blue-500" /> User Account Management
-              </h3>
-            </div>
-            <div className="mb-6 relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FiSearch className="text-gray-400" />
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-semibold flex items-center">
+                  <FiUserPlus className="mr-2 text-blue-500" /> User Account Management
+                </h3>
               </div>
-              <input
-                type="text"
-                placeholder="Search users..."
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+              <div className="mb-6 relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiSearch className="text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search users..."
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50 sticky top-0">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                      {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Active</th> */}
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredUsers.length === 0 ? (
+              {loading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50 sticky top-0">
                       <tr>
-                        <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
-                          No users found
-                        </td>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                       </tr>
-                    ) : (
-                      filteredUsers.map((user) => (
-                        <tr key={user.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap font-medium">
-                            {user.name || user.full_name || 'N/A'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                            {user.user_email || user.email || 'N/A'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 capitalize">
-                              {user.role || 'N/A'}
-                            </span>
-                          </td>
-                          {/* <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                            {formatDate(user.last_active)}
-                          </td> */}
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`px-2 py-1 text-xs rounded-full ${
-                                user.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                              }`}
-                            >
-                              {user.is_active ? 'Active' : 'Inactive'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button
-                              className="text-blue-600 hover:text-blue-900 mr-3"
-                              onClick={() => {
-                                setEditingUser(user);
-                                setShowAddEditModal(true);
-                              }}
-                              data-tooltip-id="edit-tooltip"
-                              data-tooltip-content="Edit User"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              className="text-red-600 hover:text-red-900"
-                              onClick={() => {
-                                setUserToDelete(user);
-                                setShowDeleteModal(true);
-                              }}
-                              data-tooltip-id="delete-tooltip"
-                              data-tooltip-content="Delete User"
-                            >
-                              Delete
-                            </button>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {filteredUsers.length === 0 ? (
+                        <tr>
+                          <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
+                            No users found
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            <Tooltip id="edit-tooltip" />
-            <Tooltip id="delete-tooltip" />
-          </div>
+                      ) : (
+                        filteredUsers.map((user) => (
+                          <tr key={user.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap font-medium">
+                              {user.name || user.full_name || 'N/A'}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+                              {user.user_email || user.email || 'N/A'}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 capitalize">
+                                {user.role || 'N/A'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="px-2 py-1 text-xs   text-blue-800 capitalize">
+                                {user.department || 'N/A'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span
+                                className={`px-2 py-1 text-xs rounded-full ${
+                                  user.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                                }`}
+                              >
+                                {user.is_active ? 'Active' : 'Inactive'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            
+                              <button
+                                className="text-gray-600 hover:text-gray-900 mr-3"
+                                onClick={() => toggleUserStatus(user.id, user.is_active)}
+                                disabled={togglingStatus}
+                                data-tooltip-id="status-tooltip"
+                                data-tooltip-content={user.is_active ? 'Deactivate User' : 'Activate User'}
+                              >
+                                {user.is_active ? (
+                                  <FiToggleRight className="inline text-green-500" size={25} />
+                                ) : (
+                                  <FiToggleLeft className="inline text-gray-400" size={25} />
+                                )}
+                              </button>
+                                <button
+                                className="text-blue-600 hover:text-blue-900 mr-3"
+                                onClick={() => {
+                                  setEditingUser(user);
+                                  setShowAddEditModal(true);
+                                }}
+                                data-tooltip-id="edit-tooltip"
+                                data-tooltip-content="Edit User"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                className="text-red-600 hover:text-red-900"
+                                onClick={() => {
+                                  setUserToDelete(user);
+                                  setShowDeleteModal(true);
+                                }}
+                                data-tooltip-id="delete-tooltip"
+                                data-tooltip-content="Delete User"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <Tooltip id="edit-tooltip" />
+              <Tooltip id="status-tooltip" />
+              <Tooltip id="delete-tooltip" />
+            </div>
           )}
 
           {/* Security & Authentication */}
@@ -727,39 +791,6 @@ const handleSaveUser = async (formData) => {
                     </div>
                   </div>
                 </div>
-                <div className="border border-gray-200 rounded-lg p-5">
-                  <h4 className="font-bold text-lg mb-3">Change Master Admin Password</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
-                      <div className="relative">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
-                        >
-                          {showPassword ? <FiEyeOff /> : <FiEye />}
-                        </button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-                      <input
-                        type="password"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
-                    Update Password
-                  </button>
-                </div>
               </div>
             </div>
           )}
@@ -803,6 +834,7 @@ const handleSaveUser = async (formData) => {
             </div>
           )}
 
+         
           {/* Notification Settings */}
           {activeTab === 'notifications' && (
             <div className="bg-white rounded-xl shadow-sm p-6">
