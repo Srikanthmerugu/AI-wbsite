@@ -114,3 +114,34 @@ button {
     opacity: 0.6;
   }
 }
+
+
+ /* Print Full Page*/
+@media print {
+  /* Optional: Hide the button during printing */
+  button {
+    display: none;
+  }
+
+  /* Ensure everything is visible */
+  * {
+    visibility: visible !important;
+  }
+
+  html, body {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Avoid any scroll clipping */
+  body {
+    overflow: visible !important;
+  }
+}
+
+@media print {
+  .your-scrollable-wrapper {
+    height: auto !important;
+    overflow: visible !important;
+  }
+}

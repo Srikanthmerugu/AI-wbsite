@@ -19,6 +19,7 @@ import {
   FiTrendingDown, 
   FiChevronRight,
   FiFilter, 
+  FiDownload,
   FiDollarSign,
   FiClock,
   FiAlertCircle,
@@ -177,7 +178,7 @@ const LiquidityWorkingCapital = () => {
       icon: <FiPieChart />,
       description: "Ideal range: 1.5–2.0",
       forecast: "Projected: 1.9 next quarter",
-      componentPath: "/liquidity-working-capital"
+      componentPath: "/finance-accounting-table"
     },
     {
       title: "Quick Ratio",
@@ -187,7 +188,7 @@ const LiquidityWorkingCapital = () => {
       icon: <FiAlertCircle />,
       description: "Acid-test liquidity measure",
       forecast: "Projected: 1.4 next quarter",
-      componentPath: "/liquidity-working-capital"
+      componentPath: "/finance-accounting-table"
     },
     {
       title: "Cash Conv. Cycle",
@@ -197,7 +198,7 @@ const LiquidityWorkingCapital = () => {
       icon: <FiClock />,
       description: "Time to convert inventory to cash",
       forecast: "Projected: 44 Days next quarter",
-      componentPath: "/liquidity-working-capital"
+      componentPath: "/finance-accounting-table"
     },
     {
       title: "Working Capital",
@@ -207,7 +208,7 @@ const LiquidityWorkingCapital = () => {
       icon: <FiDollarSign />,
       description: "Current assets minus liabilities",
       forecast: "Projected: $4.5M next quarter",
-      componentPath: "/liquidity-working-capital"
+      componentPath: "/finance-accounting-table"
     }
   ];
 
@@ -220,7 +221,7 @@ const LiquidityWorkingCapital = () => {
       icon: <FiTrendingUp />,
       description: "Time to collect from customers",
       forecast: "Projected: 38 Days next quarter",
-      componentPath: "/liquidity-working-capital"
+      componentPath: "/finance-accounting-table"
     },
     {
       title: "Payables Days",
@@ -230,7 +231,7 @@ const LiquidityWorkingCapital = () => {
       icon: <FiTrendingDown />,
       description: "Time to pay suppliers",
       forecast: "Projected: 18 Days next quarter",
-      componentPath: "/liquidity-working-capital"
+      componentPath: "/finance-accounting-table"
     },
     {
       title: "Inventory Days",
@@ -240,7 +241,7 @@ const LiquidityWorkingCapital = () => {
       icon: <FiTrendingDown />,
       description: "Time to sell inventory",
       forecast: "Projected: 24 Days next quarter",
-      componentPath: "/liquidity-working-capital"
+      componentPath: "/finance-accounting-table"
     }
   ];
 
@@ -562,6 +563,13 @@ const LiquidityWorkingCapital = () => {
             >
               <FiFilter className="mr-1" /> Filters
             </button>
+            <button
+  onClick={() => window.print()}
+   className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-50 	transition-colors duration-200">
+   <FiDownload className="text-sky-50" />
+   <span className="text-sky-50">Export</span>
+</button>
+
             <Link
                                                                 to="/financial-accounting-table"
                                                                 >
@@ -698,7 +706,7 @@ const LiquidityWorkingCapital = () => {
           }} 
           widgetId="cashConversionCycle" 
           index={0} 
-          componentPath="/liquidity-working-capital" 
+          componentPath="/finance-accounting-table" 
         />
 
         {/* Working Capital Components */}
@@ -726,7 +734,7 @@ const LiquidityWorkingCapital = () => {
           }} 
           widgetId="workingCapitalComponents" 
           index={1} 
-          componentPath="/liquidity-working-capital" 
+          componentPath="/finance-accounting-table" 
         />
       </div>
 
@@ -770,7 +778,7 @@ const LiquidityWorkingCapital = () => {
           }} 
           widgetId="ratiosTrend" 
           index={2} 
-          componentPath="/liquidity-working-capital" 
+          componentPath="/finance-accounting-table" 
         />
       </div>
 

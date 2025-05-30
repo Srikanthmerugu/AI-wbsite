@@ -23,6 +23,7 @@
     FiClock,
     FiDollarSign,
     FiFilter,
+    FiDownload,
     FiChevronRight,
     FiPlus,
     FiChevronDown,
@@ -84,47 +85,47 @@
         value: 36, 
         change: "+12%", 
         isPositive: false,
-        componentPath: "/security-compliance",
+        componentPath: "/it-spend-table",
     },
     resolvedIncidents: { 
         value: 31, 
         percentage: "86%", 
         change: "+5%", 
         isPositive: true,
-        componentPath: "/security-compliance",
+        componentPath: "/it-spend-table",
     },
     mttr: { 
         value: 4.2, 
         unit: "days", 
         change: "-0.8", 
         isPositive: true,
-        componentPath: "/security-compliance",
+        componentPath: "/it-spend-table",
     },
     complianceStatus: { 
         value: 92, 
         unit: "%", 
         change: "+3%", 
         isPositive: true,
-        componentPath: "/security-compliance",
+        componentPath: "/it-spend-table",
     },
     riskExposure: { 
         value: 820000, 
         change: "+18%", 
         isPositive: false,
-        componentPath: "/security-compliance",
+        componentPath: "/it-spend-table",
     },
     nonComplianceCost: { 
         value: 120000, 
         change: "-5%", 
         isPositive: true,
-        componentPath: "/security-compliance",
+        componentPath: "/it-spend-table",
     },
     };
 
     const charts = {
     incidentsByCategory: {
         title: "Incidents by Category",
-        componentPath: "/security-compliance",
+        componentPath: "/it-spend-table",
         data: {
         labels: ["Phishing", "Malware", "Insider Threat", "DDoS", "Data Leak"],
         datasets: [
@@ -166,7 +167,7 @@
     },
     incidentTrend: {
         title: "Incident Trend",
-        componentPath: "/security-compliance",
+        componentPath: "/it-spend-table",
         data: {
         labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
         datasets: [
@@ -205,7 +206,7 @@
     },
     complianceCoverage: {
         title: "Compliance Coverage",
-        componentPath: "/security-compliance",
+        componentPath: "/it-spend-table",
         data: {
         labels: ["Fully Compliant", "Partially Compliant", "Non-Compliant"],
         datasets: [
@@ -234,7 +235,7 @@
     },
     riskAssessment: {
         title: "Risk Assessment by Department",
-        componentPath: "/security-compliance",
+        componentPath: "/it-spend-table",
         data: {
         labels: ["Finance", "HR", "Marketing", "IT", "Operations"],
         datasets: [
@@ -874,6 +875,12 @@
                 <FiFilter className="mr-1" />
                 Filters
                 </button>
+                <button
+                                                                    onClick={() => window.print()}
+                                                                    className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-50 transition-colors duration-200">
+                                                                    <FiDownload className="text-sky-50" />
+                                                                    <span className="text-sky-50">Export</span>
+                                                                </button>
                 {/* <button
                 type="button"
                 className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">

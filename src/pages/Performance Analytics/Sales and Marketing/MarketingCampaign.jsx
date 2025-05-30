@@ -19,6 +19,7 @@ import {
   FiTrendingUp, 
   FiTrendingDown, 
   FiChevronRight,
+  FiDownload,
   FiFilter, 
   FiDollarSign,
   FiUsers,
@@ -177,7 +178,7 @@ const MarketingCampaign = () => {
       icon: <FiDollarSign />,
       description: "Total marketing spend this year",
       forecast: "$450K predicted next quarter",
-      componentPath: "/marketing-campaign"
+      componentPath: "/sales-performance-table"
     },
     {
       title: "Leads Generated",
@@ -187,7 +188,7 @@ const MarketingCampaign = () => {
       icon: <FiUsers />,
       description: "Total leads from campaigns",
       forecast: "6,800 predicted next quarter",
-      componentPath: "/marketing-campaign"
+      componentPath: "/sales-performance-table"
     },
     {
       title: "Avg CPL",
@@ -197,7 +198,7 @@ const MarketingCampaign = () => {
       icon: <FiTrendingDown />,
       description: "Cost per lead",
       forecast: "$62 predicted next quarter",
-      componentPath: "/marketing-campaign"
+      componentPath: "/sales-performance-table"
     },
     {
       title: "Avg ROI",
@@ -207,7 +208,7 @@ const MarketingCampaign = () => {
       icon: <FiPieChart />,
       description: "Return on ad spend",
       forecast: "155% predicted next quarter",
-      componentPath: "/marketing-campaign"
+      componentPath: "/sales-performance-table"
     }
   ];
 
@@ -551,6 +552,12 @@ const MarketingCampaign = () => {
             >
               <FiFilter className="mr-1" /> Filters
             </button>
+            <button
+                                                                onClick={() => window.print()}
+                                                                className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-50 transition-colors duration-200">
+                                                                <FiDownload className="text-sky-50" />
+                                                                <span className="text-sky-50">Export</span>
+                                                            </button>
             <Link
                                                     to="/sales-performance-table"
                                                     >
@@ -674,7 +681,7 @@ const MarketingCampaign = () => {
           }} 
           widgetId="spendVsLeads" 
           index={0} 
-          componentPath="/marketing-campaign" 
+          componentPath="/sales-performance-table" 
         />
 
         {/* ROI Trend */}
@@ -702,7 +709,7 @@ const MarketingCampaign = () => {
           }} 
           widgetId="roiTrend" 
           index={1} 
-          componentPath="/marketing-campaign" 
+          componentPath="/sales-performance-table" 
         />
       </div>
 
@@ -733,7 +740,7 @@ const MarketingCampaign = () => {
           }} 
           widgetId="channelPerformance" 
           index={2} 
-          componentPath="/marketing-campaign" 
+          componentPath="/sales-performance-table" 
         />
 
         {/* ROI by Campaign Type */}
@@ -759,7 +766,7 @@ const MarketingCampaign = () => {
           }} 
           widgetId="roiByCampaignType" 
           index={3} 
-          componentPath="/marketing-campaign" 
+          componentPath="/sales-performance-table" 
         />
       </div>
 
@@ -821,7 +828,7 @@ const MarketingCampaign = () => {
           <h3 className="text-md font-semibold text-sky-800">Engagement Metrics</h3>
           {/* <button 
             className="flex items-center text-xs text-sky-600 hover:text-sky-800"
-            onClick={() => navigate("/marketing-campaign")}
+            onClick={() => navigate("/sales-performance-table")}
           >
             View Details <FiChevronDown className="ml-1" />
           </button> */}

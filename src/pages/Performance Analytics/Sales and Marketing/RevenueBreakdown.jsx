@@ -203,7 +203,7 @@ const RevenueBreakdown = () => {
       isPositive: true,
       icon: <FiDollarSign />,
       description: "FY 2024 YTD",
-      componentPath: "/revenue-breakdown"
+      componentPath: "/sales-performance-table"
     },
     {
       title: "YoY Growth",
@@ -212,7 +212,7 @@ const RevenueBreakdown = () => {
       isPositive: true,
       icon: <FiTrendingUp />,
       description: "vs. FY 2023",
-      componentPath: "/revenue-breakdown"
+      componentPath: "/sales-performance-table"
     },
     {
       title: "Top Region",
@@ -221,7 +221,7 @@ const RevenueBreakdown = () => {
       isPositive: true,
       icon: <FiGlobe />,
       description: "$18M revenue",
-      componentPath: "/revenue-breakdown"
+      componentPath: "/sales-performance-table"
     },
     {
       title: "Top Product",
@@ -230,7 +230,7 @@ const RevenueBreakdown = () => {
       isPositive: true,
       icon: <FiPieChart />,
       description: "$25.6M revenue",
-      componentPath: "/revenue-breakdown"
+      componentPath: "/sales-performance-table"
     },
     {
       title: "Recurring %",
@@ -239,7 +239,7 @@ const RevenueBreakdown = () => {
       isPositive: true,
       icon: <FiUsers />,
       description: "of total revenue",
-      componentPath: "/revenue-breakdown"
+      componentPath: "/sales-performance-table"
     }
   ];
 
@@ -549,6 +549,13 @@ const RevenueBreakdown = () => {
             <p className="text-sky-100 text-xs">Detailed analysis across multiple business dimensions</p>
             <p className="text-sky-100 text-xs mt-1">Data showing from Q1 2024 - Q4 2024</p>
           </div>
+          <div className="flex space-x-2">
+          <button
+                                                              onClick={() => window.print()}
+                                                              className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-50 transition-colors duration-200">
+                                                              <FiDownload className="text-sky-50" />
+                                                              <span className="text-sky-50">Export</span>
+                                                          </button>
           <Link
                                                   to="/sales-performance-table"
                                                   >
@@ -559,6 +566,7 @@ const RevenueBreakdown = () => {
                                                             <GrLinkNext className="ml-1 w-4 h-4 hover:w-5 hover:h-5 transition-all" />
                                                        </button>
                                                </Link>
+                                               </div>
           {/* <div className="flex space-x-2">
             <button 
               type="button" 
@@ -666,7 +674,7 @@ const RevenueBreakdown = () => {
         chartData={getChartDataForDimension(selectedDimension)} 
         widgetId="revenueBreakdown" 
         index={0} 
-        componentPath={`/revenue-breakdown`} 
+        componentPath={`/sales-performance-table`} 
       />
 
       {/* Detailed Table View */}

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
 import { BsStars, BsThreeDotsVertical, BsFilter, BsCheckCircle, BsClock, BsXCircle } from 'react-icons/bs';
-import { FiSend, FiEdit2, FiSave, FiClock } from 'react-icons/fi';
+import { FiSend, FiEdit2, FiSave, FiClock, FiDownload} from 'react-icons/fi';
 import { Tooltip } from 'react-tooltip';
 
 const CAPEXForecastScreen = () => {
@@ -192,13 +192,19 @@ const CAPEXForecastScreen = () => {
             <p className="text-sky-100 text-xs">Manage and adjust your capital expenditure forecasts</p>
           </div>
           <div className="flex space-x-2">
-          <button 
+          {/* <button 
               className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
               <FiClock className="mr-1" /> View History
             </button>
             <button 
               className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">              <FiSave className="mr-1" /> Save Changes
-            </button>
+            </button> */}
+             <button
+                                        onClick={() => window.print()}
+                                        className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-50 transition-colors duration-200">
+                                        <FiDownload className="text-sky-50" />
+                                        <span className="text-sky-50">Export</span>
+                                    </button>
           </div>
         </div>
       </div>

@@ -21,6 +21,7 @@ import {
   FiChevronRight,
   FiFilter, 
   FiDollarSign,
+  FiDownload,
   FiPercent,
   FiClock,
   FiAlertCircle,
@@ -182,7 +183,7 @@ const DebtCoverage = () => {
       icon: <FiPercent />,
       description: "Total debt divided by total equity",
       forecast: "1.6 predicted next quarter",
-      componentPath: "/financial-health"
+      componentPath: "/finance-accounting-table"
     },
     {
       title: "Interest Coverage",
@@ -192,7 +193,7 @@ const DebtCoverage = () => {
       icon: <FiPieChart />,
       description: "EBIT divided by interest expense",
       forecast: "2.5x predicted next quarter",
-      componentPath: "/financial-health"
+      componentPath: "/finance-accounting-table"
     },
     {
       title: "Total Debt",
@@ -202,7 +203,7 @@ const DebtCoverage = () => {
       icon: <FiDollarSign />,
       description: "Outstanding principal balance",
       forecast: "$40.2M predicted next quarter",
-      componentPath: "/financial-health"
+      componentPath: "/finance-accounting-table"
     },
     {
       title: "Interest Expense",
@@ -212,7 +213,7 @@ const DebtCoverage = () => {
       icon: <FiAlertCircle />,
       description: "Annual interest payments",
       forecast: "$3.5M predicted next year",
-      componentPath: "/financial-health"
+      componentPath: "/finance-accounting-table"
     },
     {
       title: "Coverage Period",
@@ -222,7 +223,7 @@ const DebtCoverage = () => {
       icon: <FiClock />,
       description: "Cash runway for debt obligations",
       forecast: "20 months with current EBITDA",
-      componentPath: "/financial-health"
+      componentPath: "/finance-accounting-table"
     }
   ];
 
@@ -582,6 +583,13 @@ const DebtCoverage = () => {
             >
               <FiFilter className="mr-1" /> Filters
             </button>
+            <button
+  onClick={() => window.print()}
+   className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-50 	transition-colors duration-200">
+   <FiDownload className="text-sky-50" />
+   <span className="text-sky-50">Export</span>
+</button>
+
              <Link
                           to="/finance-accounting-table"
                           >
@@ -705,7 +713,7 @@ const DebtCoverage = () => {
           }} 
           widgetId="debtEquityTrend" 
           index={0} 
-          componentPath="/financial-health" 
+          componentPath="/finance-accounting-table" 
         />
 
         {/* Loan Repayment Timeline */}
@@ -738,7 +746,7 @@ const DebtCoverage = () => {
           }} 
           widgetId="loanRepaymentTimeline" 
           index={1} 
-          componentPath="/financial-health" 
+          componentPath="/finance-accounting-table" 
         />
       </div>
 
@@ -776,7 +784,7 @@ const DebtCoverage = () => {
           }} 
           widgetId="interestCoverageByUnit" 
           index={2} 
-          componentPath="/financial-health" 
+          componentPath="/finance-accounting-table" 
         />
 
         {/* Debt Servicing Risk */}
@@ -834,7 +842,7 @@ const DebtCoverage = () => {
           }} 
           widgetId="debtServicingRisk" 
           index={3} 
-          componentPath="/financial-health" 
+          componentPath="/finance-accounting-table" 
         />
       </div>
 

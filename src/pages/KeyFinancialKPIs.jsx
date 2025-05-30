@@ -15,7 +15,7 @@ import {
   Filler,
 } from "chart.js";
 import { Bar, Line, Pie, Doughnut, Radar, PolarArea, Bubble } from "react-chartjs-2";
-import { FiFilter, FiPlus, FiSend, FiEye, FiEyeOff } from "react-icons/fi"; // Changed: Added FiEye and FiEyeOff for toggling visibility
+import { FiFilter, FiPlus, FiSend, FiEye, FiEyeOff, FiDownload } from "react-icons/fi"; // Changed: Added FiEye and FiEyeOff for toggling visibility
 import { BsStars, BsThreeDotsVertical } from "react-icons/bs";
 import { Tooltip as ReactTooltip } from "react-tooltip";
 import { RiDragMove2Fill } from "react-icons/ri";
@@ -599,6 +599,19 @@ const KeyFinancialKPIs = () => {
             <p className="text-sky-100 text-sm">Performance metrics and financial indicators</p>
           </div>
           <div className="flex space-x-2">
+            <button
+              onClick={() => setViewMode(viewMode === "charts" ? "table" : "charts")}
+              className="bg-sky-900 hover:bg-sky-700 text-white px-4 py-1 rounded-md text-sm border border-white/30 transition-colors"
+            >
+              {viewMode === "charts" ? "Table View" : "Chart View"}
+            </button>
+            {/* <button
+              className="flex items-center py-2 px-3 text-sm font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <FiFilter className="mr-1" />
+              Filters
+            </button> */}
             <select
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value)}
@@ -610,24 +623,18 @@ const KeyFinancialKPIs = () => {
               <option value="YTD">Year to Date</option>
             </select>
             <button
-              onClick={() => setViewMode(viewMode === "charts" ? "table" : "charts")}
-              className="bg-sky-900 hover:bg-sky-700 text-white px-4 py-1 rounded-md text-sm border border-white/30 transition-colors"
-            >
-              {viewMode === "charts" ? "Table View" : "Chart View"}
-            </button>
-            <button
-              className="flex items-center py-2 px-3 text-sm font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <FiFilter className="mr-1" />
-              Filters
-            </button>
-            <button
               className="flex items-center py-2 px-3 text-sm font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900"
             >
               <FiPlus className="mr-1" />
               Add Metric
             </button>
+            <button 
+              onClick={() => window.print()}
+                                className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white  bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-900 transition-colors duration-200"
+                                >
+                              <FiDownload className='text-sky-50 hover:text-sky-900' />
+                              <span className="text-sky-50 hover:text-sky-900">Export</span>
+                              </button>
           </div>
         </div>
       </div>

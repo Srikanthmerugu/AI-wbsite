@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -16,15 +17,19 @@ import {
 import { Bar, Line, Doughnut } from "react-chartjs-2";
 import { motion } from "framer-motion";
 import { 
-  FiTrendingUp, 
-  FiTrendingDown, 
-  FiChevronRight,
+  FiClock, 
+  FiDollarSign, 
+  FiCheckSquare,
   FiFilter, 
   FiUsers,
   FiChevronDown,
   FiSend,
-  FiPieChart,
-  FiDollarSign
+  FiZap, // For Sourcing Effectiveness
+  FiSmile, // For Candidate Experience
+  FiChevronRight,
+  FiTarget, // Alternative for Sourcing/Goals
+  FiBriefcase, // For Job Family/Roles
+  FiUserCheck // For Recruiter
 } from "react-icons/fi";
 import { BsStars, BsThreeDotsVertical } from "react-icons/bs";
 import { Tooltip as ReactTooltip } from "react-tooltip";
@@ -63,18 +68,18 @@ const cardVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
-const RetentionAttritionRate = () => {
+const HiringFunnelMetrics = () => {
   const navigate = useNavigate();
   const [filters, setFilters] = useState({
     timePeriod: "Last Quarter",
     department: "All Departments",
-    roleLevel: "All Levels",
-    turnoverType: "All Types"
+    jobFamily: "All Job Families",
+    recruiter: "All Recruiters"
   });
   const [showFilters, setShowFilters] = useState(false);
   const [selectedChartType, setSelectedChartType] = useState({
-    attritionTrend: "line",
-    attritionByDept: "bar"
+    timeToHireTrend: "line",
+    costPerHireByDept: "bar"
   });
   const [aiInput, setAiInput] = useState({});
   const [showAIDropdown, setShowAIDropdown] = useState(null);
@@ -82,24 +87,24 @@ const RetentionAttritionRate = () => {
   const [hoveredChartType, setHoveredChartType] = useState(null);
   const filtersRef = useRef(null);
 
-  // Sample data for attrition metrics
-  const attritionData = {
-    attritionTrend: {
+  // Sample data for hiring metrics
+  const hiringData = {
+    timeToHireTrend: {
       labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"],
       datasets: [
         {
-          label: "Attrition Rate (%)",
-          data: [12.5, 13.2, 14.8, 15.1, 14.3, 13.7, 14.2, 14.6],
-          backgroundColor: "rgba(239, 68, 68, 0.2)",
-          borderColor: "rgba(239, 68, 68, 1)",
+          label: "Avg. Time-to-Hire (Days)",
+          data: [48, 46, 45, 47, 44, 45, 42, 40],
+          backgroundColor: "rgba(59, 130, 246, 0.2)",
+          borderColor: "rgba(59, 130, 246, 1)",
           borderWidth: 2,
           tension: 0.4
         },
         {
           label: "AI Forecast",
-          data: [null, null, null, null, null, null, 14.2, 14.6],
-          backgroundColor: "rgba(239, 68, 68, 0.1)",
-          borderColor: "rgba(239, 68, 68, 0.5)",
+          data: [null, null, null, null, null, null, 42, 40],
+          backgroundColor: "rgba(59, 130, 246, 0.1)",
+          borderColor: "rgba(59, 130, 246, 0.5)",
           borderWidth: 2,
           borderDash: [5, 5],
           tension: 0.4,
@@ -107,84 +112,63 @@ const RetentionAttritionRate = () => {
         }
       ]
     },
-    attritionByDept: {
-      labels: ["Tech", "Sales", "HR", "Support", "Marketing", "Finance"],
+    costPerHireByDept: {
+      labels: ["Tech", "Sales", "HR", "Marketing", "Product", "Finance"],
       datasets: [
         {
-          label: "Attrition Rate (%)",
-          data: [18.2, 15.7, 12.3, 11.8, 10.5, 9.2],
+          label: "Cost per Hire (₹)",
+          data: [32000, 25000, 18000, 28000, 30000, 22000],
           backgroundColor: [
+            "rgba(59, 130, 246, 0.7)",
+            "rgba(16, 185, 129, 0.7)",
+            "rgba(234, 179, 8, 0.7)",
             "rgba(239, 68, 68, 0.7)",
-            "rgba(234, 179, 8, 0.7)",
-            "rgba(234, 179, 8, 0.7)",
-            "rgba(16, 185, 129, 0.7)",
-            "rgba(16, 185, 129, 0.7)",
-            "rgba(16, 185, 129, 0.7)"
+            "rgba(139, 92, 246, 0.7)",
+            "rgba(245, 158, 11, 0.7)"
           ],
           borderColor: [
+            "rgba(59, 130, 246, 1)",
+            "rgba(16, 185, 129, 1)",
+            "rgba(234, 179, 8, 1)",
             "rgba(239, 68, 68, 1)",
-            "rgba(234, 179, 8, 1)",
-            "rgba(234, 179, 8, 1)",
-            "rgba(16, 185, 129, 1)",
-            "rgba(16, 185, 129, 1)",
-            "rgba(16, 185, 129, 1)"
+            "rgba(139, 92, 246, 1)",
+            "rgba(245, 158, 11, 1)"
           ],
           borderWidth: 1
         }
       ]
     },
-    turnoverByRoleLevel: {
-      labels: ["Junior", "Mid-Level", "Senior", "Leadership"],
+    offerAcceptanceRateBySource: {
+      labels: ["LinkedIn", "Referrals", "Job Boards", "Careers Page", "Campus"],
       datasets: [{
-        label: "Turnover Distribution",
-        data: [45, 30, 20, 5],
+        label: "Offer Acceptance Rate",
+        data: [92, 95, 85, 88, 82],
         backgroundColor: [
-          "rgba(239, 68, 68, 0.7)",
-          "rgba(234, 179, 8, 0.7)",
           "rgba(59, 130, 246, 0.7)",
-          "rgba(139, 92, 246, 0.7)"
+          "rgba(16, 185, 129, 0.7)",
+          "rgba(234, 179, 8, 0.7)",
+          "rgba(139, 92, 246, 0.7)",
+          "rgba(239, 68, 68, 0.7)"
         ],
         borderColor: [
-          "rgba(239, 68, 68, 1)",
-          "rgba(234, 179, 8, 1)",
           "rgba(59, 130, 246, 1)",
-          "rgba(139, 92, 246, 1)"
+          "rgba(16, 185, 129, 1)",
+          "rgba(234, 179, 8, 1)",
+          "rgba(139, 92, 246, 1)",
+          "rgba(239, 68, 68, 1)"
         ],
         borderWidth: 1
       }]
     },
-    retentionHeatmap: {
-      labels: ["Tech", "Sales", "HR", "Support", "Marketing"],
+    hiringFunnelConversion: { // Candidates per stage
+      labels: ["Applied", "Screened", "Interviewed", "Offered", "Hired"],
       datasets: [
         {
-          label: "Jan",
-          data: [15, 12, 8, 7, 6],
-          backgroundColor: "rgba(239, 68, 68, 0.7)"
-        },
-        {
-          label: "Feb",
-          data: [14, 11, 7, 6, 5],
-          backgroundColor: "rgba(239, 68, 68, 0.6)"
-        },
-        {
-          label: "Mar",
-          data: [18, 14, 9, 8, 7],
-          backgroundColor: "rgba(239, 68, 68, 0.8)"
-        },
-        {
-          label: "Apr",
-          data: [16, 13, 8, 7, 6],
-          backgroundColor: "rgba(239, 68, 68, 0.7)"
-        },
-        {
-          label: "May",
-          data: [12, 10, 6, 5, 4],
-          backgroundColor: "rgba(234, 179, 8, 0.7)"
-        },
-        {
-          label: "Jun",
-          data: [10, 8, 5, 4, 3],
-          backgroundColor: "rgba(16, 185, 129, 0.7)"
+          label: "Candidate Count",
+          data: [500, 250, 100, 25, 20],
+          backgroundColor: "rgba(16, 185, 129, 0.7)",
+          borderColor: "rgba(16, 185, 129, 1)",
+          borderWidth: 1
         }
       ]
     }
@@ -192,139 +176,128 @@ const RetentionAttritionRate = () => {
 
   const kpiData = [
     {
-      title: "Overall Attrition Rate",
-      value: "14.2%",
-      change: "+1.8%",
-      isPositive: false,
-      icon: <FiTrendingUp />,
-      description: "Percentage of employees who left",
-      forecast: "15.7% by next quarter",
-      componentPath: "/hr-workforce-table"
-    },
-    {
-      title: "Voluntary Turnover",
-      value: "9.6%",
-      change: "-0.5%",
+      title: "Time-to-Hire",
+      value: "42 days",
+      change: "-3 days",
       isPositive: true,
-      icon: <FiTrendingDown />,
-      description: "Employees who resigned voluntarily",
-      forecast: "9.1% if current trend holds",
+      icon: <FiClock />,
+      description: "Avg. time from job opening to acceptance",
+      forecast: "Targeting 38 days next quarter",
       componentPath: "/hr-workforce-table"
     },
     {
-      title: "Avg. Tenure",
-      value: "22.3 mo",
-      change: "+1.2",
-      isPositive: true,
-      icon: <FiUsers />,
-      description: "Average time before exit",
-      forecast: "24 months forecasted",
-      componentPath: "/hr-workforce-table"
-    },
-    {
-      title: "High-risk Roles",
-      value: "6 roles",
-      change: "—",
-      isPositive: null,
-      icon: <FiPieChart />,
-      description: "Roles with highest attrition risk",
-      forecast: "3 new roles flagged this Q",
-      componentPath: "/hr-workforce-table"
-    },
-    {
-      title: "Rehire Cost",
-      value: "₹85,000",
-      change: "↑ ₹4,000",
+      title: "Cost per Hire",
+      value: "₹26,500",
+      change: "+₹1,200",
       isPositive: false,
       icon: <FiDollarSign />,
-      description: "Average cost to replace employee",
-      forecast: "₹92,000 next quarter",
+      description: "Avg. cost to acquire a new employee",
+      forecast: "Projected ₹27,000 if trend continues",
+      componentPath: "/hr-workforce-table"
+    },
+    {
+      title: "Offer Acceptance Rate",
+      value: "89%",
+      change: "+2%",
+      isPositive: true,
+      icon: <FiCheckSquare />,
+      description: "Percentage of offers accepted by candidates",
+      forecast: "Aiming for 92% acceptance",
+      componentPath: "/hr-workforce-table"
+    },
+    {
+      title: "Sourcing Effectiveness",
+      value: "Top Source: Referrals (35%)",
+      change: "LinkedIn ↑5%",
+      isPositive: true,
+      icon: <FiZap />,
+      description: "Effectiveness of various hiring channels",
+      forecast: "Explore partnerships for niche roles",
+      componentPath: "/hr-workforce-table"
+    },
+    {
+      title: "Candidate Experience",
+      value: "4.3 / 5.0",
+      change: "+0.1",
+      isPositive: true,
+      icon: <FiSmile />,
+      description: "Avg. rating from post-interview surveys",
+      forecast: "Target 4.5 with new feedback process",
       componentPath: "/hr-workforce-table"
     }
   ];
 
-  const turnoverTableData = [
+  const funnelBreakdownTableData = [
     {
-      name: "S. Patel",
-      department: "Tech",
-      role: "Backend Dev",
-      exitDate: "01-May-25",
-      tenure: 14,
-      reason: "Better offer",
-      voluntary: true,
-      replacementStatus: "Pending",
-      aiSuggestion: "Reassign current juniors"
+      item: "Tech Department",
+      applied: 200,
+      screened: 80,
+      interviewed: 30,
+      offered: 10,
+      hired: 8,
+      conversion: "4%",
+      timeToFill: 55,
+      aiSuggestion: "High drop-off post-screen. Review JD & screening criteria."
     },
     {
-      name: "A. Sharma",
-      department: "HR",
-      role: "Recruiter",
-      exitDate: "15-Apr-25",
-      tenure: 9,
-      reason: "Burnout",
-      voluntary: true,
-      replacementStatus: "Hired",
-      aiSuggestion: "Add mental health sessions"
+      item: "Sales Department",
+      applied: 150,
+      screened: 70,
+      interviewed: 40,
+      offered: 15,
+      hired: 12,
+      conversion: "8%",
+      timeToFill: 40,
+      aiSuggestion: "Good conversion. Leverage top performing recruiters for Sales."
     },
     {
-      name: "R. Rao",
-      department: "Sales",
-      role: "Manager",
-      exitDate: "28-Mar-25",
-      tenure: 26,
-      reason: "Retirement",
-      voluntary: false,
-      replacementStatus: "Filled",
-      aiSuggestion: "Transfer key clients to new lead"
+      item: "Marketing Department",
+      applied: 100,
+      screened: 45,
+      interviewed: 20,
+      offered: 8,
+      hired: 7,
+      conversion: "7%",
+      timeToFill: 48,
+      aiSuggestion: "Consider targeted campaigns for hard-to-fill marketing roles."
     },
-    {
-      name: "P. Mehta",
-      department: "Tech",
-      role: "UI Designer",
-      exitDate: "10-Apr-25",
-      tenure: 18,
-      reason: "Career change",
-      voluntary: true,
-      replacementStatus: "Interviewing",
-      aiSuggestion: "Offer internal role transition"
-    },
-    {
-      name: "K. Singh",
-      department: "Support",
-      role: "Team Lead",
-      exitDate: "22-Feb-25",
-      tenure: 32,
-      reason: "Relocation",
-      voluntary: true,
-      replacementStatus: "Promoted internally",
-      aiSuggestion: "Create remote work option"
+     {
+      item: "Product Management",
+      applied: 80,
+      screened: 30,
+      interviewed: 12,
+      offered: 5,
+      hired: 4,
+      conversion: "5%",
+      timeToFill: 60,
+      aiSuggestion: "Lenghty TTH. Expedite interview scheduling for Product roles."
     }
   ];
 
-  const engagementMetrics = [
+  const keyPerformanceIndicators = [
     {
-      metric: "Engagement Score",
-      value: "72%",
+      metric: "Qualified Applicants/Source",
+      value: "Referrals: 60%",
+      trend: "LinkedIn: +8%",
+      benchmark: "Industry Avg: 45%"
+    },
+    {
+      metric: "Interviews per Hire",
+      value: "4.2",
+      trend: "-0.3",
+      benchmark: "Target: 4.0"
+    },
+    {
+      metric: "Diversity Hire Rate",
+      value: "38%",
       trend: "+3%",
-      benchmark: "Industry: 68%"
+      benchmark: "Company Goal: 40%"
     },
     {
-      metric: "Exit Interviews",
-      value: "85%",
-      trend: "+5%",
-      benchmark: "Target: 90%"
-    },
-    {
-      metric: "Promotion Rate",
-      value: "12%",
+      metric: "New Hire Performance (90 days)",
+      value: "85% Met/Exceeded",
       trend: "+2%",
-      benchmark: "Industry: 10%"
-    },
-    {
-      metric: "Regretted Losses",
-      value: "28%",
-      trend: "-4%",
-      benchmark: "Last year: 32%"
+      benchmark: "Target: 88%"
     }
   ];
 
@@ -335,6 +308,7 @@ const RetentionAttritionRate = () => {
   const handleSendAIQuery = (widgetId) => {
     if (aiInput[widgetId]?.trim()) {
       console.log(`AI Query for ${widgetId}:`, aiInput[widgetId]);
+      // Add actual AI query logic here
       setAiInput(prev => ({ ...prev, [widgetId]: "" }));
       setShowAIDropdown(null);
     }
@@ -532,7 +506,6 @@ const RetentionAttritionRate = () => {
     );
   };
 
-  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (filtersRef.current && !filtersRef.current.contains(event.target)) {
@@ -567,7 +540,7 @@ const RetentionAttritionRate = () => {
           <li aria-current="page">
             <div className="flex items-center">
               <FiChevronRight className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" />
-              <span className="ms-1 text-sm font-medium text-gray-500 md:ms-2">Retention & Attrition</span>
+              <span className="ms-1 text-sm font-medium text-gray-500 md:ms-2">Hiring Funnel Metrics</span>
             </div>
           </li>
         </ol>
@@ -577,8 +550,8 @@ const RetentionAttritionRate = () => {
       <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-lg font-bold text-white">Retention & Attrition Rate Analysis</h1>
-            <p className="text-sky-100 text-xs">Employee Turnover Trends & Risk Identification</p>
+            <h1 className="text-lg font-bold text-white">Hiring Funnel Metrics Analysis</h1>
+            <p className="text-sky-100 text-xs">Track key hiring stages, efficiency, and costs.</p>
             <p className="text-sky-100 text-xs mt-1">Data showing from 01/01/24 - 08/31/24</p>
           </div>
           <div className="flex space-x-2">
@@ -589,7 +562,7 @@ const RetentionAttritionRate = () => {
             >
               <FiFilter className="mr-1" /> Filters
             </button>
-            <Link to="/hr-workforce-table">
+            <Link to="/hr-hiring-table">
               <button
                 type="button"
                 className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
@@ -630,35 +603,39 @@ const RetentionAttritionRate = () => {
                 <option>Tech</option>
                 <option>Sales</option>
                 <option>HR</option>
-                <option>Support</option>
                 <option>Marketing</option>
+                <option>Product</option>
                 <option>Finance</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Role Level</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Job Family</label>
               <select 
                 className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                value={filters.roleLevel}
-                onChange={(e) => setFilters({...filters, roleLevel: e.target.value})}
+                value={filters.jobFamily}
+                onChange={(e) => setFilters({...filters, jobFamily: e.target.value})}
               >
-                <option>All Levels</option>
-                <option>Junior</option>
-                <option>Mid-Level</option>
-                <option>Senior</option>
-                <option>Leadership</option>
+                <option>All Job Families</option>
+                <option>Engineering</option>
+                <option>Product Management</option>
+                <option>Sales & Business Development</option>
+                <option>Marketing & Communications</option>
+                <option>Human Resources & Admin</option>
+                <option>Finance & Accounting</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Turnover Type</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Recruiter</label>
               <select 
                 className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                value={filters.turnoverType}
-                onChange={(e) => setFilters({...filters, turnoverType: e.target.value})}
+                value={filters.recruiter}
+                onChange={(e) => setFilters({...filters, recruiter: e.target.value})}
               >
-                <option>All Types</option>
-                <option>Voluntary</option>
-                <option>Involuntary</option>
+                <option>All Recruiters</option>
+                <option>Priya Sharma</option>
+                <option>Amit Singh</option>
+                <option>Neha Reddy</option>
+                <option>Rajesh Kumar</option>
               </select>
             </div>
           </div>
@@ -684,59 +661,37 @@ const RetentionAttritionRate = () => {
 
       {/* Main Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Attrition Trend */}
         <EnhancedChartCard 
-          title="Monthly Attrition Trend with AI Forecast" 
-          chartType={selectedChartType.attritionTrend} 
+          title="Time-to-Hire Trend with AI Forecast" 
+          chartType={selectedChartType.timeToHireTrend} 
           chartData={{
-            data: attritionData.attritionTrend,
+            data: hiringData.timeToHireTrend,
             options: {
               responsive: true,
               maintainAspectRatio: false,
-              plugins: {
-                legend: { position: 'bottom' }
-              },
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  title: {
-                    display: true,
-                    text: 'Attrition Rate (%)'
-                  }
-                }
-              }
+              plugins: { legend: { position: 'bottom' } },
+              scales: { y: { beginAtZero: false, title: { display: true, text: 'Days' } } }
             }
           }} 
-          widgetId="attritionTrend" 
+          widgetId="timeToHireTrend" 
           index={0} 
           componentPath="/hr-workforce-table" 
         />
 
-        {/* Attrition by Department */}
         <EnhancedChartCard 
-          title="Attrition by Department" 
-          chartType={selectedChartType.attritionByDept} 
+          title="Cost per Hire by Department" 
+          chartType={selectedChartType.costPerHireByDept} 
           chartData={{
-            data: attritionData.attritionByDept,
+            data: hiringData.costPerHireByDept,
             options: {
               responsive: true,
               maintainAspectRatio: false,
               indexAxis: 'y',
-              plugins: {
-                legend: { display: false }
-              },
-              scales: {
-                x: {
-                  beginAtZero: true,
-                  title: {
-                    display: true,
-                    text: 'Attrition Rate (%)'
-                  }
-                }
-              }
+              plugins: { legend: { display: false } },
+              scales: { x: { beginAtZero: true, title: { display: true, text: 'Cost (₹)' } } }
             }
           }} 
-          widgetId="attritionByDept" 
+          widgetId="costPerHireByDept" 
           index={1} 
           componentPath="/hr-workforce-table" 
         />
@@ -744,12 +699,11 @@ const RetentionAttritionRate = () => {
 
       {/* Secondary Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Turnover by Role Level */}
         <EnhancedChartCard 
-          title="Turnover Distribution by Role Level" 
+          title="Offer Acceptance Rate by Source" 
           chartType="doughnut" 
           chartData={{
-            data: attritionData.turnoverByRoleLevel,
+            data: hiringData.offerAcceptanceRateBySource,
             options: {
               responsive: true,
               maintainAspectRatio: false,
@@ -758,86 +712,67 @@ const RetentionAttritionRate = () => {
                 tooltip: {
                   callbacks: {
                     label: function(context) {
-                      return `${context.label}: ${context.raw}% of turnover`;
+                      return `${context.label}: ${context.raw}%`;
                     }
                   }
                 }
               }
             }
           }} 
-          widgetId="turnoverByRoleLevel" 
+          widgetId="offerAcceptanceRateBySource" 
           index={2} 
           componentPath="/hr-workforce-table" 
         />
 
-        {/* Retention Heatmap */}
         <EnhancedChartCard 
-          title="Retention Heat Map by Department" 
+          title="Hiring Funnel Conversion (Candidates per Stage)" 
           chartType="bar" 
           chartData={{
-            data: attritionData.retentionHeatmap,
+            data: hiringData.hiringFunnelConversion,
             options: {
               responsive: true,
               maintainAspectRatio: false,
-              plugins: {
-                legend: { position: 'bottom' }
-              },
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  title: {
-                    display: true,
-                    text: 'Attrition Rate (%)'
-                  }
-                }
-              }
+              plugins: { legend: { display: false } },
+              scales: { y: { beginAtZero: true, title: { display: true, text: 'Number of Candidates' } } }
             }
           }} 
-          widgetId="retentionHeatmap" 
+          widgetId="hiringFunnelConversion" 
           index={3} 
           componentPath="/hr-workforce-table" 
         />
       </div>
 
-      {/* Turnover Events Table */}
+      {/* Hiring Funnel Breakdown Table */}
       <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-md font-semibold text-sky-800">Turnover Events</h3>
+          <h3 className="text-md font-semibold text-sky-800">Hiring Funnel Breakdown</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left text-gray-700">
             <thead className="text-xs text-sky-700 uppercase bg-sky-50">
               <tr>
-                <th className="px-4 py-2">Employee</th>
-                <th className="px-4 py-2">Department</th>
-                <th className="px-4 py-2">Role</th>
-                <th className="px-4 py-2">Exit Date</th>
-                <th className="px-4 py-2">Tenure (Months)</th>
-                <th className="px-4 py-2">Reason</th>
-                <th className="px-4 py-2">Voluntary?</th>
-                <th className="px-4 py-2">Replacement Status</th>
+                <th className="px-4 py-2">Department / Job Family</th>
+                <th className="px-4 py-2 text-center">Applied</th>
+                <th className="px-4 py-2 text-center">Screened</th>
+                <th className="px-4 py-2 text-center">Interviewed</th>
+                <th className="px-4 py-2 text-center">Offered</th>
+                <th className="px-4 py-2 text-center">Hired</th>
+                <th className="px-4 py-2 text-center">Conversion %</th>
+                <th className="px-4 py-2 text-center">Time-to-Fill (Days)</th>
                 <th className="px-4 py-2">AI Suggestion</th>
               </tr>
             </thead>
             <tbody>
-              {turnoverTableData.map((row, i) => (
+              {funnelBreakdownTableData.map((row, i) => (
                 <tr key={i} className="border-b hover:bg-sky-50">
-                  <td className="px-4 py-2 font-medium">{row.name}</td>
-                  <td className="px-4 py-2">{row.department}</td>
-                  <td className="px-4 py-2">{row.role}</td>
-                  <td className="px-4 py-2">{row.exitDate}</td>
-                  <td className={`px-4 py-2 ${
-                    row.tenure < 12 ? "text-red-500" : 
-                    row.tenure < 24 ? "text-amber-500" : "text-green-500"
-                  }`}>{row.tenure}</td>
-                  <td className="px-4 py-2">{row.reason}</td>
-                  <td className={`px-4 py-2 ${row.voluntary ? "text-green-500" : "text-red-500"}`}>
-                    {row.voluntary ? "✅ Yes" : "❌ No"}
-                  </td>
-                  <td className={`px-4 py-2 ${
-                    row.replacementStatus === "Pending" ? "text-red-500" : 
-                    row.replacementStatus === "Interviewing" ? "text-amber-500" : "text-green-500"
-                  }`}>{row.replacementStatus}</td>
+                  <td className="px-4 py-2 font-medium">{row.item}</td>
+                  <td className="px-4 py-2 text-center">{row.applied}</td>
+                  <td className="px-4 py-2 text-center">{row.screened}</td>
+                  <td className="px-4 py-2 text-center">{row.interviewed}</td>
+                  <td className="px-4 py-2 text-center">{row.offered}</td>
+                  <td className="px-4 py-2 text-center">{row.hired}</td>
+                  <td className={`px-4 py-2 text-center font-semibold ${parseFloat(row.conversion) >= 7 ? "text-green-500" : parseFloat(row.conversion) >= 4 ? "text-amber-500" : "text-red-500"}`}>{row.conversion}</td>
+                  <td className={`px-4 py-2 text-center ${row.timeToFill <= 45 ? "text-green-500" : row.timeToFill <= 60 ? "text-amber-500" : "text-red-500"}`}>{row.timeToFill}</td>
                   <td className="px-4 py-2 text-xs">{row.aiSuggestion}</td>
                 </tr>
               ))}
@@ -846,21 +781,21 @@ const RetentionAttritionRate = () => {
         </div>
       </div>
 
-      {/* Engagement Metrics */}
+      {/* Key Performance Indicators */}
       <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-md font-semibold text-sky-800">Engagement Metrics</h3>
+          <h3 className="text-md font-semibold text-sky-800">Key Performance Indicators</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {engagementMetrics.map((metric, i) => (
+          {keyPerformanceIndicators.map((metric, i) => (
             <div key={i} className="bg-sky-50 p-3 rounded-lg">
               <p className="text-xs font-semibold text-sky-700">{metric.metric}</p>
               <div className="flex items-end mt-1">
                 <p className="text-lg font-bold text-sky-900">{metric.value}</p>
-                <p className={`text-xs ml-2 ${metric.trend.startsWith('+') ? "text-green-500" : "text-red-500"}`}>
-                  {metric.trend} vs last period
-                </p>
               </div>
+               <p className={`text-xs mt-1 ${metric.trend.includes('+') ? "text-green-500" : metric.trend.includes('-') ? "text-red-500" : "text-gray-500"}`}>
+                  {metric.trend}
+                </p>
               <p className="text-xs text-gray-500 mt-1">Benchmark: {metric.benchmark}</p>
             </div>
           ))}
@@ -870,7 +805,7 @@ const RetentionAttritionRate = () => {
       {/* AI Recommendations Section */}
       <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-md font-semibold text-sky-800">AI-Powered Retention Recommendations</h3>
+          <h3 className="text-md font-semibold text-sky-800">AI-Powered Hiring Recommendations</h3>
           <div className="flex items-center space-x-2">
             <BsStars className="text-sky-600" />
             <span className="text-xs text-sky-600">AI Generated</span>
@@ -880,38 +815,36 @@ const RetentionAttritionRate = () => {
           <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-lg border-l-4 border-red-400">
             <div className="flex items-center mb-2">
               <div className="p-2 bg-red-200 rounded-full mr-3">
-                <FiTrendingUp className="text-red-600" />
+                <FiClock className="text-red-600" />
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-red-800">High Risk Alert</h4>
-                <p className="text-xs text-red-600">Tech Department</p>
+                <h4 className="text-sm font-semibold text-red-800">High Time-to-Fill Alert</h4>
+                <p className="text-xs text-red-600">Product Management Roles</p>
               </div>
             </div>
             <p className="text-xs text-red-700 mb-2">
-              18.2% attrition rate detected. Recommend immediate intervention with competitive compensation review and flexible work arrangements.
+              Avg. 60 days to fill Product roles. Recommend streamlining technical assessments and dedicating recruiter focus for these critical positions.
             </p>
             <div className="flex justify-between items-center">
               <span className="text-xs bg-red-200 text-red-800 px-2 py-1 rounded-full">Priority: High</span>
-              {/* <button className="text-xs text-red-600 hover:text-red-800 font-medium">View Details →</button> */}
             </div>
           </div>
 
           <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-4 rounded-lg border-l-4 border-amber-400">
             <div className="flex items-center mb-2">
               <div className="p-2 bg-amber-200 rounded-full mr-3">
-                <FiUsers className="text-amber-600" />
+                <FiCheckSquare className="text-amber-600" />
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-amber-800">Career Development</h4>
-                <p className="text-xs text-amber-600">Junior Level Focus</p>
+                <h4 className="text-sm font-semibold text-amber-800">Offer Acceptance Dip</h4>
+                <p className="text-xs text-amber-600">Sales Department</p>
               </div>
             </div>
             <p className="text-xs text-amber-700 mb-2">
-              45% of turnover from junior roles. Implement mentorship programs and clear advancement pathways to improve retention.
+              Sales offer acceptance rate dropped to 82% (target 90%). Review compensation benchmarks and enhance offer negotiation training for recruiters.
             </p>
             <div className="flex justify-between items-center">
               <span className="text-xs bg-amber-200 text-amber-800 px-2 py-1 rounded-full">Priority: Medium</span>
-              {/* <button className="text-xs text-amber-600 hover:text-amber-800 font-medium">View Details →</button> */}
             </div>
           </div>
 
@@ -921,16 +854,15 @@ const RetentionAttritionRate = () => {
                 <FiDollarSign className="text-green-600" />
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-green-800">Cost Optimization</h4>
-                <p className="text-xs text-green-600">Rehire Costs</p>
+                <h4 className="text-sm font-semibold text-green-800">Cost Optimization Opportunity</h4>
+                <p className="text-xs text-green-600">Reduce Agency Spend</p>
               </div>
             </div>
             <p className="text-xs text-green-700 mb-2">
-              Focus on internal promotions and knowledge transfer. Potential savings of ₹2.5L per quarter through reduced rehire costs.
+              Current Cost per Hire for Tech is ₹32,000. Boosting employee referral program and optimizing job board spend could save up to ₹4,000 per hire.
             </p>
             <div className="flex justify-between items-center">
               <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded-full">Impact: High</span>
-              {/* <button className="text-xs text-green-600 hover:text-green-800 font-medium">View Details →</button> */}
             </div>
           </div>
         </div>
@@ -941,54 +873,54 @@ const RetentionAttritionRate = () => {
           <div className="space-y-2">
             <div className="flex items-center space-x-3">
               <input type="checkbox" className="w-4 h-4 text-sky-600 bg-gray-100 border-gray-300 rounded focus:ring-sky-500" />
-              <span className="text-xs text-gray-700">Schedule one-on-one meetings with high-risk employees in Tech department</span>
+              <span className="text-xs text-gray-700">Review and revise technical assessment process for Product Management roles.</span>
               <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full ml-auto">Due: This Week</span>
             </div>
             <div className="flex items-center space-x-3">
               <input type="checkbox" className="w-4 h-4 text-sky-600 bg-gray-100 border-gray-300 rounded focus:ring-sky-500" />
-              <span className="text-xs text-gray-700">Review and update compensation packages for junior developers</span>
+              <span className="text-xs text-gray-700">Conduct market analysis of Sales compensation packages.</span>
               <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full ml-auto">Due: Next Week</span>
             </div>
             <div className="flex items-center space-x-3">
               <input type="checkbox" className="w-4 h-4 text-sky-600 bg-gray-100 border-gray-300 rounded focus:ring-sky-500" />
-              <span className="text-xs text-gray-700">Launch mentorship program pilot for junior employees</span>
+              <span className="text-xs text-gray-700">Launch enhanced employee referral campaign with updated incentives.</span>
               <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full ml-auto">Due: This Month</span>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Quick Actions Panel */}
+      
+      {/* Quick Actions Panel (kept commented as per original) */}
       {/* <div className="bg-white p-4 rounded-lg shadow-sm border border-sky-100">
         <h3 className="text-md font-semibold text-sky-800 mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           <button 
-            onClick={() => navigate('/exit-interviews')}
+            onClick={() => navigate('/post-new-job')} // Example path
+            className="flex items-center justify-center p-3 bg-sky-50 hover:bg-sky-100 rounded-lg border border-sky-200 transition-colors duration-200"
+          >
+            <FiBriefcase className="mr-2 text-sky-600" />
+            <span className="text-sm text-sky-700">Post New Job</span>
+          </button>
+          <button 
+            onClick={() => navigate('/candidate-database')} // Example path
             className="flex items-center justify-center p-3 bg-sky-50 hover:bg-sky-100 rounded-lg border border-sky-200 transition-colors duration-200"
           >
             <FiUsers className="mr-2 text-sky-600" />
-            <span className="text-sm text-sky-700">Exit Interviews</span>
+            <span className="text-sm text-sky-700">Candidate Database</span>
           </button>
           <button 
-            onClick={() => navigate('/employee-surveys')}
+            onClick={() => navigate('/recruiter-performance')} // Example path
             className="flex items-center justify-center p-3 bg-sky-50 hover:bg-sky-100 rounded-lg border border-sky-200 transition-colors duration-200"
           >
-            <FiPieChart className="mr-2 text-sky-600" />
-            <span className="text-sm text-sky-700">Employee Surveys</span>
+            <FiUserCheck className="mr-2 text-sky-600" />
+            <span className="text-sm text-sky-700">Recruiter Performance</span>
           </button>
           <button 
-            onClick={() => navigate('/retention-programs')}
+            onClick={() => navigate('/job-board-integrations')} // Example path
             className="flex items-center justify-center p-3 bg-sky-50 hover:bg-sky-100 rounded-lg border border-sky-200 transition-colors duration-200"
           >
-            <FiTrendingUp className="mr-2 text-sky-600" />
-            <span className="text-sm text-sky-700">Retention Programs</span>
-          </button>
-          <button 
-            onClick={() => navigate('/predictive-analytics')}
-            className="flex items-center justify-center p-3 bg-sky-50 hover:bg-sky-100 rounded-lg border border-sky-200 transition-colors duration-200"
-          >
-            <BsStars className="mr-2 text-sky-600" />
-            <span className="text-sm text-sky-700">AI Predictions</span>
+            <FiTarget className="mr-2 text-sky-600" />
+            <span className="text-sm text-sky-700">Manage Job Boards</span>
           </button>
         </div>
       </div> */}
@@ -1000,4 +932,4 @@ const RetentionAttritionRate = () => {
   );
 };
 
-export default RetentionAttritionRate;
+export default HiringFunnelMetrics;

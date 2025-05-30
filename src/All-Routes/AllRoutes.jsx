@@ -9,6 +9,8 @@ import RevenueForecasting from '../pages/ForecastingOverview/RevenueForecasting'
 import AIChatBot from '../pages/AIChatBot';
 import LoginPage from '../pages/Login';
 import ExpenseForecastingDashboard from '../pages/ForecastingOverview/ExpenseForecastingDashboard';
+import DebtInterestForecasting from '../pages/ForecastingOverview/DebtInterestForecasting';
+import ScenarioModeling from '../pages/ForecastingOverview/ScenarioModeling';
 import HelpSupport from '../pages/Suport/HelpSupport';
 import CashFlowProjections from '../pages/CashFlowProjections';
 import SmartFinancialAlerts from '../pages/SmartFinancialAlerts/SmartFinancialAlerts';
@@ -16,6 +18,7 @@ import AIFinancialRecommendations from '../pages/AI-driven Insights & Alerts/AI-
 import CompanyManagementTable from '../pages/All Company management/CompanyManagementTable';
 import ForecastingOverview from '../pages/ForecastingOverview/ForecastingOverview';
 import CAPEXForecastScreen from '../pages/ForecastingOverview/CAPEXForecastScreen';
+
 import { AuthProvider } from '../context/AuthContext';
 import OperationalBudgeting from '../pages/Budgeting/OperationalBudgeting';
 import FixedVariableExpense from '../pages/Budgeting/FixedVariableExpense';
@@ -75,6 +78,7 @@ import ForecastAccuracyMonitoring from '../pages/AI-driven Insights & Alerts/For
 import BenchmarkingPeerComparisons from '../pages/AI-driven Insights & Alerts/BenchmarkingDashboard/BenchmarkingDashboard';
 import PredictiveRiskManagement from '../pages/AI-driven Insights & Alerts/PredictiveRiskManagement/PredictiveRiskManagement';
 import SupplyChainAnalytics from '../pages/Performance Analytics/Supply Chain & Procurement Analytics/SupplyChainAnalytics';
+import SupplyChainTable from '../pages/Performance Analytics/Supply Chain & Procurement Analytics/SupplyChainTable';
 import SupplierPerformanceScorecard from '../pages/Performance Analytics/Supply Chain & Procurement Analytics/SupplierPerformanceScorecard';
 import InventoryTurnoverAnalysis from '../pages/Performance Analytics/Supply Chain & Procurement Analytics/InventoryTurnoverAnalysis';
 import ProcurementSpendBreakdown from '../pages/Performance Analytics/Supply Chain & Procurement Analytics/ProcurementSpendBreakdown';
@@ -85,6 +89,10 @@ import CashShortfallWarning from '../pages/SmartFinancialAlerts/CashShortfallWar
 import UserManagement from '../pages/Suport/User Management/UserManagement';
 import SettingsCustomization from '../pages/SettingsCustomization/SettingsCustomization'; 
 import ExpenseTrendAnalysis from '../pages/Performance Analytics/Finance and Accounting/ExpendTrendAnalysis';
+import HeadcountPayroll from '../pages/ForecastingOverview/HeadcountPayroll';
+import HiringFunnelMetrics from '../pages/Performance Analytics/HR and Workforce/HiringFunnelMetrics';
+import DiversityInclusionMetrics from '../pages/Performance Analytics/HR and Workforce/DiversityInclusionMetrics';
+import CompensationBenefits from '../pages/Performance Analytics/HR and Workforce/CompensationBenefits';
 
 
 
@@ -107,6 +115,7 @@ function AllRoutes() {
               <Route path="/key-financial" element={<KeyFinancialKPIs />} />
               <Route path="/financial-core-reports" element={<FinancialReports />} />
               <Route path="/revenueForecasting" element={<RevenueForecasting />} />
+              <Route path="debt-interest-Forecasting" element={<DebtInterestForecasting />} />
               <Route path="/ask-ai" element={<AIChatBot />} />
               <Route path="/help-Support" element={<HelpSupport />} />
               <Route path="/user-management" element={<UserManagement />} />
@@ -129,7 +138,9 @@ function AllRoutes() {
               <Route path="/PredictiveRiskManagement" element={<PredictiveRiskManagement />} />
 
  
+              
               <Route path="/SupplyChainAnalytics" element={<SupplyChainAnalytics />} />
+              <Route path="/SupplyChainTable" element={<SupplyChainTable />} />
               <Route path="/SupplierPerformanceScorecard" element={<SupplierPerformanceScorecard />} />
               <Route path="/InventoryTurnoverAnalysis" element={<InventoryTurnoverAnalysis />} />
               <Route path="/ProcurementSpendBreakdown" element={<ProcurementSpendBreakdown />} />
@@ -142,6 +153,8 @@ function AllRoutes() {
               <Route path="/company-management-table" element={<CompanyManagementTable />} />
               <Route path="/forecasting-overview" element={<ForecastingOverview />} />
               <Route path="/CAPEX-forecast-screen" element={<CAPEXForecastScreen />} />
+              <Route path="/scenario-modeling" element={<ScenarioModeling/>} />
+              <Route path="/headcount-payroll" element={<HeadcountPayroll />} />
               <Route path="/operational-budgeting" element={<OperationalBudgeting />} />
               <Route path="/fixed-variable-expense" element={<FixedVariableExpense />} />
               <Route path="/revenue-budgeting" element={<RevenueBudgeting />} />
@@ -172,6 +185,9 @@ function AllRoutes() {
               <Route path="/employee-productivity-report" element={<EmployeeProductivityReport  />} />
               <Route path="/utilization-rate-report" element={<UtilizationRateReport  />} />  
               <Route path="/retention-attrition-rate" element={<RetentionAttritionRate  />} />  
+              <Route path="/hiring-funnel-metrics" element={<HiringFunnelMetrics  />} /> 
+              <Route path="/diversity-inclusion-metrics" element={<DiversityInclusionMetrics  />} /> 
+              <Route path="/compensation-benefits" element={<CompensationBenefits  />} /> 
               <Route path="/it-technology-spend" element={<ITandTechnology  />} />
               <Route path="/it-spend-table" element={<ITSpendTable  />} />
               <Route path="/it-spend-breakdown" element={<ITSpendBreakdown />} />

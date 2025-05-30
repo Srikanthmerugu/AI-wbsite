@@ -20,6 +20,7 @@ import {
   FiTrendingDown, 
   FiChevronRight,
   FiFilter, 
+  FiDownload,
   FiDollarSign,
   FiPieChart,
   FiChevronDown,
@@ -226,7 +227,7 @@ const ProfitabilityRatios = () => {
       icon: <FiPieChart />,
       description: "Revenue after COGS",
       forecast: "63.2% predicted next quarter",
-      componentPath: "/profitability-ratios"
+      componentPath: "/finance-accounting-table"
     },
     {
       title: "Operating Margin",
@@ -236,7 +237,7 @@ const ProfitabilityRatios = () => {
       icon: <FiActivity />,
       description: "After operating expenses",
       forecast: "20.8% predicted next quarter",
-      componentPath: "/profitability-ratios"
+      componentPath: "/finance-accounting-table"
     },
     {
       title: "Net Profit Margin",
@@ -246,7 +247,7 @@ const ProfitabilityRatios = () => {
       icon: <FiDollarSign />,
       description: "Bottom line profitability",
       forecast: "13.1% predicted Q4",
-      componentPath: "/profitability-ratios"
+      componentPath: "/finance-accounting-table"
     },
     {
       title: "EBITDA Margin",
@@ -256,7 +257,7 @@ const ProfitabilityRatios = () => {
       icon: <FiTrendingUp />,
       description: "Earnings before interest/taxes",
       forecast: "18.2% predicted Q4",
-      componentPath: "/profitability-ratios"
+      componentPath: "/finance-accounting-table"
     }
   ];
 
@@ -588,6 +589,14 @@ const ProfitabilityRatios = () => {
               <FiFilter className="mr-1" /> Filters
             </button>
 
+            <button
+  onClick={() => window.print()}
+   className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-50 	transition-colors duration-200">
+   <FiDownload className="text-sky-50" />
+   <span className="text-sky-50">Export</span>
+</button>
+
+
             <Link
               to="/finance-accounting-table"
               >
@@ -707,7 +716,7 @@ const ProfitabilityRatios = () => {
           }} 
           widgetId="marginTrend" 
           index={0} 
-          componentPath="/profitability-ratios" 
+          componentPath="/finance-accounting-table" 
         />
 
         {/* Margin by Segment */}
@@ -735,7 +744,7 @@ const ProfitabilityRatios = () => {
           }} 
           widgetId="marginBySegment" 
           index={1} 
-          componentPath="/profitability-ratios" 
+          componentPath="/finance-accounting-table" 
         />
       </div>
 
@@ -767,7 +776,7 @@ const ProfitabilityRatios = () => {
           }} 
           widgetId="forecastTrend" 
           index={2} 
-          componentPath="/profitability-ratios" 
+          componentPath="/finance-accounting-table" 
         />
 
         {/* Margin Heatmap */}
@@ -795,7 +804,7 @@ const ProfitabilityRatios = () => {
           }} 
           widgetId="marginHeatmap" 
           index={3} 
-          componentPath="/profitability-ratios" 
+          componentPath="/finance-accounting-table" 
         />
       </div>
 

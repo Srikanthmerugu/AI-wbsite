@@ -21,6 +21,7 @@ import {
   FiFilter, 
   FiDollarSign,
   FiUser,
+  FiDownload,
   FiSend,
   FiChevronDown,
   FiChevronRight,
@@ -214,7 +215,7 @@ const ChurnRetention = () => {
       isPositive: false,
       icon: <FiTrendingDown />,
       description: "Percentage of customers lost",
-      componentPath: "/churn-retention"
+      componentPath: "/sales-performance-table"
     },
     {
       title: "Retention Rate",
@@ -223,7 +224,7 @@ const ChurnRetention = () => {
       isPositive: false,
       icon: <FiTrendingDown />,
       description: "Percentage of customers retained",
-      componentPath: "/churn-retention"
+      componentPath: "/sales-performance-table"
     },
     {
       title: "Revenue Lost",
@@ -232,7 +233,7 @@ const ChurnRetention = () => {
       isPositive: false,
       icon: <FiDollarSign />,
       description: "MRR lost from churn",
-      componentPath: "/churn-retention"
+      componentPath: "/sales-performance-table"
     },
     {
       title: "Avg Tenure",
@@ -241,7 +242,7 @@ const ChurnRetention = () => {
       isPositive: false,
       icon: <FiUser />,
       description: "Average months before churn",
-      componentPath: "/churn-retention"
+      componentPath: "/sales-performance-table"
     }
   ];
 
@@ -478,6 +479,12 @@ const ChurnRetention = () => {
             >
               <FiFilter className="mr-1" /> Filters
             </button>
+            <button
+                                                                onClick={() => window.print()}
+                                                                className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-50 transition-colors duration-200">
+                                                                <FiDownload className="text-sky-50" />
+                                                                <span className="text-sky-50">Export</span>
+                                                            </button>
             <Link
                                         to="/sales-performance-table"
                                         >
@@ -552,7 +559,7 @@ const ChurnRetention = () => {
             change={kpi.change}
             isPositive={kpi.isPositive}
             icon={kpi.icon}
-            // componentPath={kpi.componentPath}
+            componentPath={kpi.componentPath}
             description={kpi.description}
           />
         ))}
@@ -586,7 +593,7 @@ const ChurnRetention = () => {
           }} 
           widgetId="churnTrend" 
           index={0} 
-          componentPath="/churn-retention" 
+          componentPath="/sales-performance-table" 
         />
 
         {/* Retention by Segment */}
@@ -614,7 +621,7 @@ const ChurnRetention = () => {
           }} 
           widgetId="retentionBySegment" 
           index={1} 
-          componentPath="/churn-retention" 
+          componentPath="/sales-performance-table" 
         />
       </div>
 
@@ -645,7 +652,7 @@ const ChurnRetention = () => {
           }} 
           widgetId="revenueImpact" 
           index={2} 
-          componentPath="/churn-retention" 
+          componentPath="/sales-performance-table" 
         />
 
         {/* Churn Reasons */}
@@ -664,7 +671,7 @@ const ChurnRetention = () => {
           }} 
           widgetId="churnReasons" 
           index={3} 
-          componentPath="/churn-retention" 
+          componentPath="/sales-performance-table" 
         />
       </div>
 

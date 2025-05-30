@@ -17,7 +17,6 @@ const Navbar = ({ toggleSidebar }) => {
   const [isMessagesOpen, setIsMessagesOpen] = useState(false);
   const {currentUser} = useContext(AuthContext);
   
-  console.log(currentUser, "Line No 19")
   // Create refs for each dropdown
   const profileRef = useRef(null);
   const notificationsRef = useRef(null);

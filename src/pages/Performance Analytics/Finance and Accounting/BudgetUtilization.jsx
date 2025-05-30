@@ -157,7 +157,7 @@ const BudgetUtilization= () => {
       icon: <FiDollarSign />,
       description: "Total budget allocated this year",
       forecast: "₹55M next fiscal year",
-      componentPath: "/budget-utilization"
+      componentPath: "/finance-accounting-table"
     },
     {
       title: "Actual Spend",
@@ -167,7 +167,7 @@ const BudgetUtilization= () => {
       icon: <FiTrendingUp />,
       description: "Total actual spend YTD",
       forecast: "₹53.5M projected",
-      componentPath: "/budget-utilization"
+      componentPath: "/finance-accounting-table"
     },
     {
       title: "Avg Variance",
@@ -177,7 +177,7 @@ const BudgetUtilization= () => {
       icon: <FiTrendingDown />,
       description: "Average variance across departments",
       forecast: "-3.5% projected",
-      componentPath: "/budget-utilization"
+      componentPath: "/finance-accounting-table"
     },
     {
       title: "Utilization Rate",
@@ -187,7 +187,7 @@ const BudgetUtilization= () => {
       icon: <FiPieChart />,
       description: "Average budget utilization",
       forecast: "102% projected",
-      componentPath: "/budget-utilization"
+      componentPath: "/finance-accounting-table"
     }
   ];
 
@@ -687,7 +687,7 @@ const BudgetUtilization= () => {
           }} 
           widgetId="budgetVsActual" 
           index={0} 
-          componentPath="/budget-utilization" 
+          componentPath="/finance-accounting-table" 
         />
 
         {/* Variance Trend */}
@@ -714,7 +714,7 @@ const BudgetUtilization= () => {
           }} 
           widgetId="varianceTrend" 
           index={1} 
-          componentPath="/budget-utilization" 
+          componentPath="/finance-accounting-table" 
         />
       </div>
 
@@ -725,7 +725,7 @@ const BudgetUtilization= () => {
           <div className="flex space-x-2">
             <button 
               className="flex items-center text-xs text-sky-600 hover:text-sky-800"
-              onClick={() => navigate("/budget-utilization-detail")}
+              onClick={() => navigate("/finance-accounting-table-detail")}
             >
               View Details <FiChevronDown className="ml-1" />
             </button>

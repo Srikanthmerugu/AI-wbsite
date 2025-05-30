@@ -22,6 +22,7 @@ import {
   FiFilter, 
   FiDollarSign,
   FiServer,
+  FiDownload,
   FiCloud,
   FiShield,
   FiPackage,
@@ -192,7 +193,7 @@ const ITSpendBreakdown = () => {
       icon: <FiDollarSign />,
       description: "Total IT expenditure this quarter",
       forecast: "$490K predicted next quarter",
-      componentPath: "/it-spend-breakdown"
+      componentPath: "/it-spend-table"
     },
     {
       title: "% of OpEx",
@@ -202,7 +203,7 @@ const ITSpendBreakdown = () => {
       icon: <FiPieChart />,
       description: "IT spend as % of operating expenses",
       forecast: "23% predicted next quarter",
-      componentPath: "/it-spend-breakdown"
+      componentPath: "/it-spend-table"
     },
     {
       title: "Cloud Spend",
@@ -212,7 +213,7 @@ const ITSpendBreakdown = () => {
       icon: <FiCloud />,
       description: "Quarterly cloud services spend",
       forecast: "$175K predicted next quarter",
-      componentPath: "/it-spend-breakdown"
+      componentPath: "/it-spend-table"
     },
     {
       title: "SaaS Spend",
@@ -222,7 +223,7 @@ const ITSpendBreakdown = () => {
       icon: <FiPackage />,
       description: "Quarterly SaaS subscriptions",
       forecast: "$120K predicted next quarter",
-      componentPath: "/it-spend-breakdown"
+      componentPath: "/it-spend-table"
     },
     {
       title: "Security Spend",
@@ -232,7 +233,7 @@ const ITSpendBreakdown = () => {
       icon: <FiShield />,
       description: "Quarterly security investments",
       forecast: "$65K predicted next quarter",
-      componentPath: "/it-spend-breakdown"
+      componentPath: "/it-spend-table"
     },
     {
       title: "IT ROI",
@@ -242,7 +243,7 @@ const ITSpendBreakdown = () => {
       icon: <FiTrendingUp />,
       description: "Return on IT investments",
       forecast: "3.0x predicted next quarter",
-      componentPath: "/it-spend-breakdown"
+      componentPath: "/it-spend-table"
     }
   ];
 
@@ -587,6 +588,12 @@ const ITSpendBreakdown = () => {
             >
               <FiFilter className="mr-1" /> Filters
             </button>
+            <button
+                                                                onClick={() => window.print()}
+                                                                className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-50 transition-colors duration-200">
+                                                                <FiDownload className="text-sky-50" />
+                                                                <span className="text-sky-50">Export</span>
+                                                            </button>
              <Link
      to="/it-spend-table">
    <button
@@ -710,7 +717,7 @@ const ITSpendBreakdown = () => {
           }} 
           widgetId="spendByCategory" 
           index={0} 
-          componentPath="/it-spend-breakdown" 
+          componentPath="/it-spend-table" 
         />
 
         {/* Cloud Spend Trend */}
@@ -738,7 +745,7 @@ const ITSpendBreakdown = () => {
           }} 
           widgetId="cloudTrend" 
           index={1} 
-          componentPath="/it-spend-breakdown" 
+          componentPath="/it-spend-table" 
         />
       </div>
 
@@ -767,7 +774,7 @@ const ITSpendBreakdown = () => {
           }} 
           widgetId="spendDistribution" 
           index={2} 
-          componentPath="/it-spend-breakdown" 
+          componentPath="/it-spend-table" 
         />
 
         {/* Spend vs ROI */}
@@ -801,7 +808,7 @@ const ITSpendBreakdown = () => {
           }} 
           widgetId="spendVsRoi" 
           index={3} 
-          componentPath="/it-spend-breakdown" 
+          componentPath="/it-spend-table" 
         />
       </div>
 
