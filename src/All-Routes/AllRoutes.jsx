@@ -93,6 +93,8 @@ import HeadcountPayroll from '../pages/ForecastingOverview/HeadcountPayroll';
 import HiringFunnelMetrics from '../pages/Performance Analytics/HR and Workforce/HiringFunnelMetrics';
 import DiversityInclusionMetrics from '../pages/Performance Analytics/HR and Workforce/DiversityInclusionMetrics';
 import CompensationBenefits from '../pages/Performance Analytics/HR and Workforce/CompensationBenefits';
+import GLUploadScreen from '../pages/Gl-Data-upload-screen/GLDataUploadScreen';
+import ScrollToTop from '../ScrollToTop';
 
 
 
@@ -100,6 +102,8 @@ import CompensationBenefits from '../pages/Performance Analytics/HR and Workforc
 function AllRoutes() {
   return (
     <Router>
+            <ScrollToTop />
+      
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
@@ -205,6 +209,11 @@ function AllRoutes() {
               <Route path="/profitability-ratios" element={<ProfitabilityRatios />} />
               <Route path="/debt-coverage" element={<DebtCoverage />} />
               <Route path="/settings-customization" element={<SettingsCustomization />} />
+
+
+              {/* GLUploadScreen */}
+            <Route path="/gl-upload-screen" element={<GLUploadScreen />} />
+
 
             </Route>
           </Route>

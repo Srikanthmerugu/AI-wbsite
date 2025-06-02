@@ -17,6 +17,8 @@ import {
   FiFolder,
   FiFile,
 } from "react-icons/fi";
+import { TbWorldUpload } from "react-icons/tb";
+
 
 const iconComponents = {
   FiHome,
@@ -29,6 +31,7 @@ const iconComponents = {
   FiSettings,
   FiHelpCircle,
   FiMessageSquare,
+  TbWorldUpload,
 };
 
 const TreeItem = ({ item, level = 0, isLast = false, activeItem, onItemClick }) => {
