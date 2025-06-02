@@ -5,7 +5,7 @@ const MessageNotification = ({ sender, message, time, onClose }) => {
   return (
     <div className="w-full max-w-xs p-4 text-gray-900 bg-white rounded-lg shadow-sm">
       <div className="flex items-center mb-2">
-        <span className="text-sm font-semibold">New message</span>
+        <span className="text-sm font-semibold">New  message</span>
         <button 
           onClick={onClose}
           className="ms-auto text-gray-400 hover:text-gray-900 rounded-lg p-1 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8"

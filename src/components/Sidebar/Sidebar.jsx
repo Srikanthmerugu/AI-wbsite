@@ -18,6 +18,8 @@ import {
   FiMessageSquare,
   FiFile,
 } from "react-icons/fi";
+import { TbWorldUpload } from "react-icons/tb";
+
 
 const iconComponents = {
   FiHome,
@@ -32,6 +34,7 @@ const iconComponents = {
   FiHelpCircle,
   FiMessageSquare,
   FiFile,
+  TbWorldUpload,
 };
 
 
@@ -393,6 +396,12 @@ const MENUITEMS = [
         path: "/help-Support",
         icon: { name: "FiHelpCircle" },
         title: "Help & Support",
+        type: "link",
+      },
+      {
+        path: "/gl-upload-screen",
+        icon: { name: "TbWorldUpload" },
+        title: "Upload GL File ",
         type: "link",
       },
       {
