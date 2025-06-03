@@ -308,7 +308,7 @@ const RevenueForecasting = () => {
   };
 
   return (
-    <div className="space-y-6 p-4 min-h-screen relative bg-sky-50">
+    <div className="space-y-6 p-4 min-h-screen relative">
       {/* Header */}
       <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
         <div className="flex justify-between items-center">
@@ -394,7 +394,7 @@ const RevenueForecasting = () => {
       <div>
         {activeTab === 'create' && (
           <>
-            <div className="mb-6 p-4 bg-sky-100 rounded-lg shadow">
+            <div className="mb-6 p-4 bg-sky-50 rounded-lg shadow">
                 <div className="flex items-center justify-between">
                     <div>
                         <label htmlFor="scenarioSelect" className="text-md font-semibold text-sky-800 mr-3">
