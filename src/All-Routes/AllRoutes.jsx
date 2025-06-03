@@ -12,7 +12,7 @@ import ExpenseForecastingDashboard from '../pages/ForecastingOverview/ExpenseFor
 import DebtInterestForecasting from '../pages/ForecastingOverview/DebtInterestForecasting';
 import ScenarioModeling from '../pages/ForecastingOverview/ScenarioModeling';
 import HelpSupport from '../pages/Suport/HelpSupport';
-import CashFlowProjections from '../pages/CashFlowProjections';
+import CashFlowProjections from '../pages/ForecastingOverview/CashFlowProjections';
 import SmartFinancialAlerts from '../pages/SmartFinancialAlerts/SmartFinancialAlerts';
 import AIFinancialRecommendations from '../pages/AI-driven Insights & Alerts/AI-Financial Recommendations/AIFinancialRecommendations';
 import CompanyManagementTable from '../pages/All Company management/CompanyManagementTable';
