@@ -340,7 +340,7 @@ const ScenarioModeling = () => {
       </div>
 
       {/* Scenario Presets & Global Settings */}
-      <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-6">
+      <div className="bg-white p-3 rounded-xl shadow-lg border border-gray-200 mb-4">
         <div className="flex flex-wrap justify-between items-center gap-4">
             <h2 className="text-xl font-semibold text-sky-800">Scenario Configuration</h2>
             <div className="flex items-center gap-2">

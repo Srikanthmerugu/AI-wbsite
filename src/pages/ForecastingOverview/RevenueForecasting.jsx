@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import * as XLSX from 'xlsx';
 import {
@@ -13,7 +14,6 @@ import {
 import { Line } from "react-chartjs-2";
 import { FiFilter, FiDollarSign, FiClock, FiCheckCircle, FiSave, FiUpload, FiDownload, FiInfo, FiPrinter } from "react-icons/fi";
 import { BsStars, BsThreeDotsVertical, BsFilter, BsCheckCircle, BsClock, BsXCircle } from 'react-icons/bs';
-// import { NavLink } from "react-router-dom"; // Not used
 
 // Register ChartJS components
 ChartJS.register(
@@ -87,15 +87,12 @@ const RevenueForecasting = () => {
   });
 
   const [revenueVersions, setRevenueVersions] = useState([]);
-  // const [revenueForecasts, setRevenueForecasts] = useState({}); // Potentially redundant if versions store everything
-
   const [revenueTotals, setRevenueTotals] = useState({
     aiTotal: 0, userTotal: 0, previousTotal: 0,
     month1Ai: 0, month1User: 0, month2Ai: 0, month2User: 0, month3Ai: 0, month3User: 0
   });
   
   const [showFilters, setShowFilters] = useState(false);
-  // const [activeInsight, setActiveInsight] = useState(0); // Not used, can be removed
 
   const calculateTotalsForScenario = (clients, scenarioKey) => {
     if (!scenarioKey || !clients || clients.length === 0) {
@@ -130,18 +127,18 @@ const RevenueForecasting = () => {
 
 
   const revenueTrendData = {
-    labels: ["Oct", "Nov", "Dec", "Jan", "Feb", "Mar"], // Assuming Q1 starts in Jan
+    labels: ["Oct", "Nov", "Dec", "Jan", "Feb", "Mar"], 
     datasets: [
       {
         label: "Actual Revenue (Past)",
-        data: [85000, 87000, 90000, null, null, null], // Example past data
+        data: [85000, 87000, 90000, null, null, null], 
         borderColor: "rgba(14, 165, 233, 1)",
         backgroundColor: "rgba(14, 165, 233, 0.1)",
         borderWidth: 2,
         tension: 0.4,
       },
       {
-        label: `AI Forecast (${activeScenario})`,
+        label: `AI Forecast (${activeScenario.substring(0,10)}...)`,
         data: [
           null, null, null,
           revenueTotals.month1Ai,
@@ -154,7 +151,7 @@ const RevenueForecasting = () => {
         tension: 0.4,
       },
       {
-        label: `User Forecast (${activeScenario})`,
+        label: `User Forecast (${activeScenario.substring(0,10)}...)`,
         data: [
           null, null, null,
           revenueTotals.month1User,
@@ -171,8 +168,8 @@ const RevenueForecasting = () => {
 
   const handleInputChange = (index, month, value) => {
     setRevenueClients(prev => {
-      const newClients = JSON.parse(JSON.stringify(prev)); // Deep copy
-      if (!newClients[index][activeScenario]) { // Initialize scenario data if not present
+      const newClients = JSON.parse(JSON.stringify(prev)); 
+      if (!newClients[index][activeScenario]) { 
         newClients[index][activeScenario] = {
             month1: { ai: 0, user: 0 },
             month2: { ai: 0, user: 0 },
@@ -200,39 +197,60 @@ const RevenueForecasting = () => {
       { 
         period, 
         timestamp, 
-        data: JSON.parse(JSON.stringify(revenueClients)), // Deep copy of all scenarios
+        data: JSON.parse(JSON.stringify(revenueClients)), 
         totalsByScenario: currentTotalsByScenario,
         assumptions: JSON.parse(JSON.stringify(scenarioAssumptions))
       },
     ]);
-    setRevenueTotals(calculateTotalsForScenario(revenueClients, activeScenario)); // Recalculate for current view
+    setRevenueTotals(calculateTotalsForScenario(revenueClients, activeScenario)); 
     setHasChanges(false);
     alert("Forecast version saved successfully!");
   };
   
   const handleExport = () => {
-    // Exporting data for the active scenario
-    const exportData = revenueClients.map(client => {
-      const scenarioData = client[activeScenario] || { month1:{ai:0,user:0}, month2:{ai:0,user:0}, month3:{ai:0,user:0} };
-      return {
-        'Client Name': client.name,
-        'Industry': client.industry,
-        'Previous Month': client.previous,
-        'Scenario': activeScenario,
-        'Month 1 AI Suggested': scenarioData.month1.ai,
-        'Month 1 Adjustments': scenarioData.month1.user,
-        'Month 2 AI Suggested': scenarioData.month2.ai,
-        'Month 2 Adjustments': scenarioData.month2.user,
-        'Month 3 AI Suggested': scenarioData.month3.ai,
-        'Month 3 Adjustments': scenarioData.month3.user,
-      };
-    });
-  
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, `Revenue Forecast ${activeScenario}`);
+    const exportDataRows = [];
+    exportDataRows.push([`Revenue Forecast for Scenario: ${activeScenario}`]);
+    exportDataRows.push([`Assumptions: ${scenarioAssumptions[activeScenario] || 'N/A'}`]);
+    exportDataRows.push([]); // Empty row for spacing
+
+    const clientDataForExport = revenueClients.map(client => {
+        const scenarioData = client[activeScenario] || { month1:{ai:0,user:0}, month2:{ai:0,user:0}, month3:{ai:0,user:0} };
+        return {
+          'Client Name': client.name,
+          'Industry': client.industry,
+          'Previous Month': client.previous,
+          // 'Scenario': activeScenario, // This is now in the title row
+          'Month 1 AI Suggested': scenarioData.month1.ai,
+          'Month 1 Adjustments': scenarioData.month1.user,
+          'Month 2 AI Suggested': scenarioData.month2.ai,
+          'Month 2 Adjustments': scenarioData.month2.user,
+          'Month 3 AI Suggested': scenarioData.month3.ai,
+          'Month 3 Adjustments': scenarioData.month3.user,
+        };
+      });
+
+    const totalsRow = {
+        'Client Name': 'TOTALS',
+        'Industry': '',
+        'Previous Month': revenueTotals.previousTotal,
+        'Month 1 AI Suggested': revenueTotals.month1Ai,
+        'Month 1 Adjustments': revenueTotals.month1User,
+        'Month 2 AI Suggested': revenueTotals.month2Ai,
+        'Month 2 Adjustments': revenueTotals.month2User,
+        'Month 3 AI Suggested': revenueTotals.month3Ai,
+        'Month 3 Adjustments': revenueTotals.month3User,
+    };
     
-    const fileName = `Revenue_Forecast_${activeScenario}_${period.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+    const worksheet = XLSX.utils.json_to_sheet([]); // Start empty
+    XLSX.utils.sheet_add_aoa(worksheet, [exportDataRows[0]], { origin: "A1" }); // Add Title
+    XLSX.utils.sheet_add_aoa(worksheet, [exportDataRows[1]], { origin: "A2" }); // Add Assumptions
+    XLSX.utils.sheet_add_json(worksheet, clientDataForExport, { origin: "A4", skipHeader: false }); // Add client data with headers
+    XLSX.utils.sheet_add_json(worksheet, [totalsRow], { origin: -1, skipHeader: true }); // Append totals row without header
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, `Revenue Forecast`);
+    
+    const fileName = `Revenue_Forecast_${activeScenario.replace(/\s+/g, '_')}_${period.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
     XLSX.writeFile(workbook, fileName);
   };
   
@@ -244,10 +262,8 @@ const RevenueForecasting = () => {
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data);
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      // Assuming the first sheet corresponds to the active scenario
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
   
-      // Create a map of existing clients for easier update
       const clientMap = new Map(revenueClients.map(c => [c.name, JSON.parse(JSON.stringify(c))]));
 
       jsonData.forEach(row => {
@@ -255,36 +271,33 @@ const RevenueForecasting = () => {
         if (clientMap.has(clientName)) {
           const clientToUpdate = clientMap.get(clientName);
           if (!clientToUpdate[activeScenario]) {
-            clientToUpdate[activeScenario] = {}; // Initialize if scenario data doesn't exist
+            clientToUpdate[activeScenario] = {};
           }
           clientToUpdate[activeScenario].month1 = {
-            ai: row['Month 1 AI Suggested'] || clientToUpdate[activeScenario]?.month1?.ai || 0,
-            user: row['Month 1 Adjustments'] || 0
+            ai: row['Month 1 AI Suggested'] ?? clientToUpdate[activeScenario]?.month1?.ai ?? 0,
+            user: row['Month 1 Adjustments'] ?? clientToUpdate[activeScenario]?.month1?.user ?? 0
           };
           clientToUpdate[activeScenario].month2 = {
-            ai: row['Month 2 AI Suggested'] || clientToUpdate[activeScenario]?.month2?.ai || 0,
-            user: row['Month 2 Adjustments'] || 0
+            ai: row['Month 2 AI Suggested'] ?? clientToUpdate[activeScenario]?.month2?.ai ?? 0,
+            user: row['Month 2 Adjustments'] ?? clientToUpdate[activeScenario]?.month2?.user ?? 0
           };
           clientToUpdate[activeScenario].month3 = {
-            ai: row['Month 3 AI Suggested'] || clientToUpdate[activeScenario]?.month3?.ai || 0,
-            user: row['Month 3 Adjustments'] || 0
+            ai: row['Month 3 AI Suggested'] ?? clientToUpdate[activeScenario]?.month3?.ai ?? 0,
+            user: row['Month 3 Adjustments'] ?? clientToUpdate[activeScenario]?.month3?.user ?? 0
           };
-          // Update previous if provided, otherwise keep existing
           clientToUpdate.previous = row['Previous Month'] ?? clientToUpdate.previous;
           clientToUpdate.industry = row['Industry'] ?? clientToUpdate.industry;
           
           clientMap.set(clientName, clientToUpdate);
         } else {
-          // Optionally, add new client if not found, or ignore.
-          // For simplicity, this example updates existing clients based on name.
-          console.warn(`Client "${clientName}" not found in existing data. Skipping.`);
+          console.warn(`Client "${clientName}" not found in existing data. Skipping for import.`);
         }
       });
   
       setRevenueClients(Array.from(clientMap.values()));
       setHasChanges(true);
       alert(`Data for ${activeScenario} scenario imported successfully. Review and save changes.`);
-      e.target.value = ''; // Reset file input
+      e.target.value = '';
     } catch (error) {
       console.error("Error importing file:", error);
       alert("Error importing file. Please check the file format and try again.");
@@ -292,10 +305,9 @@ const RevenueForecasting = () => {
   };
 
   const handleRestoreVersion = (version) => {
-    setRevenueClients(JSON.parse(JSON.stringify(version.data))); // Restore all scenario data
+    setRevenueClients(JSON.parse(JSON.stringify(version.data))); 
     setScenarioAssumptions(JSON.parse(JSON.stringify(version.assumptions)));
-    // Active scenario totals will be updated by useEffect triggering calculateTotalsForScenario
-    setHasChanges(false); // Data is restored to a saved state
+    setHasChanges(false); 
     alert(`Version from ${new Date(version.timestamp).toLocaleString()} restored.`);
   };
 
@@ -307,8 +319,10 @@ const RevenueForecasting = () => {
     };
   };
 
+  const firstHeaderRowHeight = "2.5rem"; 
+
   return (
-    <div className="space-y-6 p-4 min-h-screen relative">
+    <div className="space-y-6 p-4 min-h-screen relative bg-sky-50"> {/* Changed base bg to sky-50 */}
       {/* Header */}
       <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
         <div className="flex justify-between items-center">
@@ -320,14 +334,14 @@ const RevenueForecasting = () => {
           </div>
           <div className="flex items-center space-x-4">
             <div className="">
-              <label htmlFor="forecastPeriodSelect" className="text-sm text-sky-800 font-bold mr-2">
+              <label htmlFor="forecastPeriodSelect" className="text-sm text-white font-medium mr-2"> {/* Changed label text color */}
                 Forecast Period:
               </label>
               <select
                 id="forecastPeriodSelect"
                 value={period}
                 onChange={(e) => setPeriod(e.target.value)}
-                className="p-2 border-2 bg-sky-100 text-sky-900 border-sky-800 outline-0 rounded-lg text-sm">
+                className="p-1.5 border bg-sky-50 text-sky-900 border-sky-200 rounded-md text-xs focus:ring-sky-500 focus:border-sky-500"> {/* Adjusted style */}
                 <option>Q1 2025</option>
                 <option>Q2 2025</option>
                 <option>Q3 2025</option>
@@ -337,15 +351,15 @@ const RevenueForecasting = () => {
             <button
                 onClick={() => window.print()}
                 className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-50 transition-colors duration-200">
-                <FiDownload className="text-sky-50" />
+                <FiPrinter className="text-sky-50" /> {/* Changed icon */}
                 <span className="text-sky-50">Export</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-5 border-b mt-5 py-3 border-gray-200 mb-6">
+      {/* Tabs & Scenario Selector */}
+      <div className="flex items-center gap-3 border-b mt-5 py-3 border-gray-200 mb-6">
         {['create', 'import', 'compare'].map(tabId => (
           <button
             key={tabId}
@@ -357,7 +371,29 @@ const RevenueForecasting = () => {
             {tabId === 'compare' && 'Compare Scenarios'}
           </button>
         ))}
-        <div className="relative ml-auto" ref={filtersRef}>
+        <div className="ml-4"> {/* Scenario Dropdown container */}
+            <label htmlFor="scenarioSelectTab" className="text-sm font-medium text-sky-800 mr-2">Active Scenario:</label>
+            <select
+                id="scenarioSelectTab"
+                value={activeScenario}
+                onChange={(e) => {
+                    if (hasChanges) {
+                        if(window.confirm("You have unsaved changes. Are you sure you want to switch scenarios without saving?")) {
+                            setActiveScenario(e.target.value);
+                            setHasChanges(false); // Reset changes flag as we are switching
+                        } else {
+                            e.target.value = activeScenario; // Revert dropdown if user cancels
+                        }
+                    } else {
+                        setActiveScenario(e.target.value);
+                    }
+                }}
+                className="p-1.5 border border-sky-300 bg-white text-sky-900 rounded-md text-xs focus:ring-1 focus:ring-sky-500"
+            >
+                {Object.values(SCENARIOS).map(name => <option key={name} value={name}>{name}</option>)}
+            </select>
+        </div>
+        <div className="relative ml-auto" ref={filtersRef}> {/* Filters button aligned to the far right */}
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="py-2 px-3 text-gray-500 hover:text-blue-500 flex items-center text-sm"
@@ -366,25 +402,7 @@ const RevenueForecasting = () => {
           </button>
           {showFilters && (
             <div className="absolute right-0 mt-1 w-60 bg-white rounded-md shadow-lg z-20 border border-gray-200 p-3 space-y-2">
-              <p className="text-xs text-gray-600">Filters for scenario comparison or advanced views (currently illustrative).</p>
-              <div>
-                <label className="block text-xs text-gray-700 mb-1">Time Period</label>
-                <select className="w-full p-1 border border-gray-300 rounded text-xs">
-                  <option>Next 3 Months</option>
-                  <option>Next 6 Months</option>
-                  <option>Next 12 Months</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-700 mb-1">Focus Scenario</label>
-                <select className="w-full p-1 border border-gray-300 rounded text-xs">
-                  <option>All</option>
-                  {Object.values(SCENARIOS).map(scen => <option key={scen} value={scen}>{scen}</option>)}
-                </select>
-              </div>
-              <button className="mt-2 w-full py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">
-                Apply Filters
-              </button>
+              {/* Filter content here */}
             </div>
           )}
         </div>
@@ -394,49 +412,8 @@ const RevenueForecasting = () => {
       <div>
         {activeTab === 'create' && (
           <>
-            <div className="mb-6 p-4 bg-sky-50 rounded-lg shadow">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <label htmlFor="scenarioSelect" className="text-md font-semibold text-sky-800 mr-3">
-                            Active Scenario:
-                        </label>
-                        <select
-                            id="scenarioSelect"
-                            value={activeScenario}
-                            onChange={(e) => setActiveScenario(e.target.value)}
-                            className="p-2 border-2 border-sky-700 bg-white text-sky-900 rounded-lg text-sm focus:ring-2 focus:ring-sky-500"
-                        >
-                            {Object.entries(SCENARIOS).map(([key, name]) => (
-                            <option key={key} value={name}>{name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="text-sm text-sky-700">
-                        <FiInfo className="inline mr-1 mb-0.5"/>
-                        AI suggestions are tailored for each scenario, considering factors like market trends and historical data.
-                    </div>
-                </div>
-                <div className="mt-4">
-                    <label htmlFor="scenarioAssumptionsText" className="block text-sm font-medium text-sky-700 mb-1">
-                        Assumptions for {activeScenario} Scenario (Custom Revenue Drivers):
-                    </label>
-                    <textarea
-                        id="scenarioAssumptionsText"
-                        value={scenarioAssumptions[activeScenario] || ''}
-                        onChange={(e) => {
-                            setScenarioAssumptions(prev => ({...prev, [activeScenario]: e.target.value}));
-                            setHasChanges(true);
-                        }}
-                        rows="3"
-                        className="w-full p-2 border border-sky-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-                        placeholder={`e.g., Pricing increase by 5%, Sales growth at 10% MoM, Churn rate at 2%...`}
-                    />
-                </div>
-            </div>
-
-            <div className="flex flex-col mt-5 md:flex-row gap-4">
-              {/* Revenue Forecast Summary */}
-              <div className="bg-white p-4 rounded-lg shadow-sm flex-1">
+            <div className="flex flex-col mt-5 md:flex-row gap-4 mb-6"> {/* Added mb-6 */}
+              <div className="bg-white p-4 rounded-lg shadow-sm flex-1 border border-gray-200"> {/* Added border */}
                 <h2 className="text-lg font-semibold text-sky-900 mb-3">
                   {activeScenario} Forecast Summary
                 </h2>
@@ -473,8 +450,7 @@ const RevenueForecasting = () => {
                 </div>
               </div>
 
-              {/* Revenue Trend Chart */}
-              <div className="bg-white p-4 rounded-lg shadow-sm flex-2">
+              <div className="bg-white p-4 rounded-lg shadow-sm flex-2 border border-gray-200"> {/* Added border */}
                 <h2 className="text-lg font-semibold text-sky-900 mb-3">
                   Revenue Trend (incl. {activeScenario} Forecast)
                 </h2>
@@ -483,7 +459,14 @@ const RevenueForecasting = () => {
                     data={revenueTrendData}
                     options={{
                       responsive: true, maintainAspectRatio: false,
-                      plugins: { legend: { position: "top" }, tooltip: { mode: "index", intersect: false } },
+                      plugins: { 
+                          legend: { position: "top" }, 
+                          tooltip: { 
+                              mode: "index", 
+                              intersect: false,
+                              callbacks: { label: ctx => `${ctx.dataset.label.replace(/\.\.\.\)/,')')}: $${ctx.raw.toLocaleString()}` } // Show full name in tooltip
+                          } 
+                      },
                       scales: {
                         y: { beginAtZero: false, grid: { color: "rgba(0, 0, 0, 0.05)" }, title: { display: true, text: "Revenue ($)" } },
                         x: { grid: { display: false }, title: { display: true, text: "Month" } },
@@ -493,9 +476,11 @@ const RevenueForecasting = () => {
                 </div>
               </div>
             </div>
+            
+            
 
-            {/* Revenue Client Forecast Table */}
-            <div className="bg-white rounded-lg mt-5 shadow-sm overflow-hidden">
+
+            <div className="bg-white rounded-lg mt-5 shadow-sm overflow-hidden border border-gray-200"> {/* Added border */}
               <div className="p-6">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-xl font-semibold text-sky-900">Revenue Forecast Editor ({activeScenario})</h2>
@@ -506,14 +491,13 @@ const RevenueForecasting = () => {
                     >
                       <FiDownload className="mr-2" /> Export Scenario
                     </button>
-                    {/* Import button moved to its own tab */}
                     <button 
                       onClick={handleSaveAll}
                       disabled={!hasChanges}
                       className={`px-4 py-2 text-sm rounded-lg transition-colors flex items-center ${
                         hasChanges
                           ? "bg-sky-600 text-white hover:bg-sky-700"
-                          : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
                       }`}
                     >
                       <FiSave className="mr-2" /> Save All Changes & Scenarios
@@ -521,7 +505,7 @@ const RevenueForecasting = () => {
                   </div>
                 </div>
                 
-                <div className="overflow-x-auto max-h-[calc(100vh-300px)] relative"> {/* Adjusted max-h */}
+                <div className="overflow-x-auto max-h-[calc(100vh-200px)] relative"> {/* Adjusted max-h for new layout */}
                   <table className="min-w-full divide-y divide-sky-100">
                     <thead className="bg-sky-50 sticky top-0 z-10">
                       <tr>
@@ -531,102 +515,103 @@ const RevenueForecasting = () => {
                         <th className="px-4 py-3 text-left text-xs font-semibold text-sky-700 uppercase min-w-[120px]">
                           Previous Month
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-sky-700 uppercase" colSpan="2">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-sky-700 uppercase min-w-[240px]" colSpan="2"> {/* Added min-w */}
                           Month 1
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-sky-700 uppercase" colSpan="2">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-sky-700 uppercase min-w-[240px]" colSpan="2"> {/* Added min-w */}
                           Month 2
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-sky-700 uppercase" colSpan="2">
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-sky-700 uppercase min-w-[240px]" colSpan="2"> {/* Added min-w */}
                           Month 3
                         </th>
                       </tr>
-                      <tr className="bg-sky-50 sticky top-[48px] z-10">
-                        <th className="sticky left-0 bg-sky-50 z-20"></th>
-                        <th></th>
-                        <th className="px-4 py-2 text-xs font-medium text-sky-700 bg-sky-100 relative group">
+                      <tr className={`bg-sky-50 sticky z-10`} style={{top: firstHeaderRowHeight}}> {/* Corrected style application */}
+                        <th className="sticky left-0 bg-sky-50 z-20 min-w-[180px]"></th>
+                        <th className="bg-sky-50 min-w-[120px]"></th>
+                        <th className="px-4 py-2 text-xs font-medium text-sky-700 bg-sky-100 min-w-[120px] relative group"> {/* Added min-w */}
                           AI Suggested
                           <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 w-max p-1.5 text-xs text-white bg-slate-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity z-30 pointer-events-none">
                             AI considers historical data, seasonality, market trends for the {activeScenario} scenario.
                           </span>
                         </th>
-                        <th className="px-4 py-2 text-xs font-medium text-sky-700 bg-sky-100">
+                        <th className="px-4 py-2 text-xs font-medium text-sky-700 bg-sky-100 min-w-[120px]"> {/* Added min-w */}
                           Your Adjustment
                         </th>
-                        <th className="px-4 py-2 text-xs font-medium text-sky-700 bg-sky-100">AI Suggested</th>
-                        <th className="px-4 py-2 text-xs font-medium text-sky-700 bg-sky-100">Your Adjustment</th>
-                        <th className="px-4 py-2 text-xs font-medium text-sky-700 bg-sky-100">AI Suggested</th>
-                        <th className="px-4 py-2 text-xs font-medium text-sky-700 bg-sky-100">Your Adjustment</th>
+                        <th className="px-4 py-2 text-xs font-medium text-sky-700 bg-sky-100 min-w-[120px]">AI Suggested</th> {/* Added min-w */}
+                        <th className="px-4 py-2 text-xs font-medium text-sky-700 bg-sky-100 min-w-[120px]">Your Adjustment</th> {/* Added min-w */}
+                        <th className="px-4 py-2 text-xs font-medium text-sky-700 bg-sky-100 min-w-[120px]">AI Suggested</th> {/* Added min-w */}
+                        <th className="px-4 py-2 text-xs font-medium text-sky-700 bg-sky-100 min-w-[120px]">Your Adjustment</th> {/* Added min-w */}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-sky-100">
                       {revenueClients.map((client, index) => {
                         const clientScenarioData = currentClientDataForScenario(client);
+                        const rowBgClass = index % 2 === 0 ? "bg-white" : "bg-sky-50/70";
                         return (
-                        <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-sky-50/70"}>
-                          <td className={`px-4 py-3 text-sm font-medium text-sky-900 sticky left-0 z-[5] ${index % 2 === 0 ? "bg-white" : "bg-sky-50/70"}`}>
+                        <tr key={index} className={`${rowBgClass} hover:bg-sky-100/50`}>
+                          <td className={`px-4 py-3 text-sm font-medium text-sky-900 sticky left-0 z-[5] ${rowBgClass} min-w-[180px]`}> {/* Added min-w */}
                             <div className="font-semibold">{client.name}</div>
                             <div className="text-xs text-sky-600">{client.industry}</div>
                           </td>
-                          <td className="px-4 py-3 text-sm text-sky-800">
+                          <td className="px-4 py-3 text-sm text-sky-800 min-w-[120px]"> {/* Added min-w */}
                             ${client.previous.toLocaleString()}
                           </td>
-                          <td className="px-4 py-3 text-sm text-sky-800 bg-sky-50">
+                          <td className="px-4 py-3 text-sm text-sky-800 bg-sky-50 min-w-[120px]"> {/* Added min-w */}
                             ${(clientScenarioData.month1?.ai || 0).toLocaleString()}
                           </td>
-                          <td className="px-4 py-3 bg-sky-50">
+                          <td className="px-4 py-3 bg-sky-50 min-w-[120px]"> {/* Added min-w */}
                             <input
                               type="number"
                               value={clientScenarioData.month1?.user || ''}
                               onChange={(e) => handleInputChange(index, 'month1', e.target.value)}
-                              className="w-full p-2 border border-sky-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                              className="w-full p-1.5 border border-sky-300 rounded-md text-sm focus:ring-1 focus:ring-sky-500 focus:border-sky-500 bg-white" /* Added bg-white & adjusted padding/border */
                             />
                           </td>
-                          <td className="px-4 py-3 text-sm text-sky-800 bg-sky-50">
+                          <td className="px-4 py-3 text-sm text-sky-800 bg-sky-50 min-w-[120px]"> {/* Added min-w */}
                             ${(clientScenarioData.month2?.ai || 0).toLocaleString()}
                           </td>
-                          <td className="px-4 py-3 bg-sky-50">
+                          <td className="px-4 py-3 bg-sky-50 min-w-[120px]"> {/* Added min-w */}
                             <input
                               type="number"
                               value={clientScenarioData.month2?.user || ''}
                               onChange={(e) => handleInputChange(index, 'month2', e.target.value)}
-                              className="w-full p-2 border border-sky-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                              className="w-full p-1.5 border border-sky-300 rounded-md text-sm focus:ring-1 focus:ring-sky-500 focus:border-sky-500 bg-white" /* Added bg-white & adjusted padding/border */
                             />
                           </td>
-                          <td className="px-4 py-3 text-sm text-sky-800 bg-sky-50">
+                          <td className="px-4 py-3 text-sm text-sky-800 bg-sky-50 min-w-[120px]"> {/* Added min-w */}
                             ${(clientScenarioData.month3?.ai || 0).toLocaleString()}
                           </td>
-                          <td className="px-4 py-3 bg-sky-50">
+                          <td className="px-4 py-3 bg-sky-50 min-w-[120px]"> {/* Added min-w */}
                             <input
                               type="number"
                               value={clientScenarioData.month3?.user || ''}
                               onChange={(e) => handleInputChange(index, 'month3', e.target.value)}
-                              className="w-full p-2 border border-sky-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                              className="w-full p-1.5 border border-sky-300 rounded-md text-sm focus:ring-1 focus:ring-sky-500 focus:border-sky-500 bg-white" /* Added bg-white & adjusted padding/border */
                             />
                           </td>
                         </tr>
                       )})}
                       <tr className="bg-sky-100 font-semibold sticky bottom-0 z-[5]">
-                        <td className="px-4 py-3 text-sm text-sky-900 sticky left-0 bg-sky-100 z-[6]">Total</td>
-                        <td className="px-4 py-3 text-sm text-sky-900">
+                        <td className="px-4 py-3 text-sm text-sky-900 sticky left-0 bg-sky-100 z-[6] min-w-[180px]">Total</td> {/* Added min-w */}
+                        <td className="px-4 py-3 text-sm text-sky-900 min-w-[120px]"> {/* Added min-w */}
                           ${revenueTotals.previousTotal.toLocaleString()}
                         </td>
-                        <td className="px-4 py-3 text-sm text-sky-900 bg-sky-200">
+                        <td className="px-4 py-3 text-sm text-sky-900 bg-sky-200 min-w-[120px]"> {/* Added min-w */}
                           ${revenueTotals.month1Ai.toLocaleString()}
                         </td>
-                        <td className="px-4 py-3 text-sm text-sky-900 bg-sky-200">
+                        <td className="px-4 py-3 text-sm text-sky-900 bg-sky-200 min-w-[120px]"> {/* Added min-w */}
                           ${revenueTotals.month1User.toLocaleString()}
                         </td>
-                        <td className="px-4 py-3 text-sm text-sky-900 bg-sky-200">
+                        <td className="px-4 py-3 text-sm text-sky-900 bg-sky-200 min-w-[120px]"> {/* Added min-w */}
                           ${revenueTotals.month2Ai.toLocaleString()}
                         </td>
-                        <td className="px-4 py-3 text-sm text-sky-900 bg-sky-200">
+                        <td className="px-4 py-3 text-sm text-sky-900 bg-sky-200 min-w-[120px]"> {/* Added min-w */}
                           ${revenueTotals.month2User.toLocaleString()}
                         </td>
-                        <td className="px-4 py-3 text-sm text-sky-900 bg-sky-200">
+                        <td className="px-4 py-3 text-sm text-sky-900 bg-sky-200 min-w-[120px]"> {/* Added min-w */}
                           ${revenueTotals.month3Ai.toLocaleString()}
                         </td>
-                        <td className="px-4 py-3 text-sm text-sky-900 bg-sky-200">
+                        <td className="px-4 py-3 text-sm text-sky-900 bg-sky-200 min-w-[120px]"> {/* Added min-w */}
                           ${revenueTotals.month3User.toLocaleString()}
                         </td>
                       </tr>
@@ -635,11 +620,30 @@ const RevenueForecasting = () => {
                 </div>
               </div>
             </div>
+            <div className="mb-6 mt-6 p-4 bg-sky-100/70 rounded-lg shadow-sm border border-sky-200"> {/* Adjusted bg color and border */}
+                <label htmlFor="scenarioAssumptionsText" className="block text-md font-semibold text-sky-800 mb-2">
+                    Assumptions for {activeScenario} Scenario (Custom Revenue Drivers):
+                </label>
+                 <p className="text-xs text-sky-700 mb-2">
+                    Detail key assumptions, market conditions, and specific drivers for the <strong>{activeScenario}</strong>.
+                </p>
+                <textarea
+                    id="scenarioAssumptionsText"
+                    value={scenarioAssumptions[activeScenario] || ''}
+                    onChange={(e) => {
+                        setScenarioAssumptions(prev => ({...prev, [activeScenario]: e.target.value}));
+                        setHasChanges(true);
+                    }}
+                    rows="3" // Reduced rows
+                    className="w-full p-2 border border-sky-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white" // Added bg-white
+                    placeholder={`e.g., Pricing increase by 5%, Sales growth at 10% MoM, Churn rate at 2%...`}
+                />
+            </div>
           </>
         )}
 
         {activeTab === 'import' && (
-          <div className="bg-white p-6 mt-5 rounded-lg shadow-sm">
+          <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200"> {/* Added border */}
             <h2 className="text-xl font-semibold text-sky-900 mb-4">Import Forecast Data for {activeScenario} Scenario</h2>
             <p className="text-sm text-gray-600 mb-4">
               Upload an Excel (.xlsx, .xls) or CSV (.csv) file to import revenue forecast data.
@@ -677,7 +681,7 @@ const RevenueForecasting = () => {
         )}
 
         {activeTab === 'compare' && (
-          <div className="bg-white p-6 mt-5 rounded-lg shadow-sm">
+          <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200"> {/* Added border */}
             <h2 className="text-xl font-semibold text-sky-900 mb-6">Compare Revenue Forecast Scenarios</h2>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-sky-200">
@@ -709,7 +713,7 @@ const RevenueForecasting = () => {
                           className = `text-sm font-semibold ${varianceVal >= 0 ? 'text-green-600' : 'text-red-600'}`;
                         } else if (metric === 'Assumptions') {
                             value = scenarioAssumptions[scenarioName] || 'N/A';
-                            className = "text-xs text-gray-600 whitespace-pre-wrap break-words max-w-xs"; // Allow wrapping
+                            className = "text-xs text-gray-600 whitespace-pre-wrap break-words max-w-xs"; 
                         }
                         return (
                           <td key={`${metric}-${scenarioName}`} className={`px-5 py-4 ${className}`}>
@@ -722,12 +726,10 @@ const RevenueForecasting = () => {
                 </tbody>
               </table>
             </div>
-            {/* Optional: Add a comparative chart here */}
           </div>
         )}
 
-        {/* Revenue Version History (Common to all tabs) */}
-        <div className="bg-white p-6 mt-5 rounded-lg shadow-sm">
+        <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200"> {/* Added border */}
           <h2 className="text-xl font-semibold text-sky-900 mb-4">
             Revenue Version History
           </h2>
