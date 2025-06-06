@@ -20,14 +20,13 @@ import ForecastingOverview from '../pages/ForecastingOverview/ForecastingOvervie
 import CAPEXForecastScreen from '../pages/ForecastingOverview/CAPEXForecastScreen';
 
 import { AuthProvider } from '../context/AuthContext';
-import OperationalBudgeting from '../pages/Budgeting/OperationalBudgeting';
-import FixedVariableExpense from '../pages/Budgeting/FixedVariableExpense';
-import { RevenueBudgeting } from '../pages/Budgeting/RevenuebasedBudgeting';
-import { DepartmentBudgeting } from '../pages/Budgeting/DepartmentBudgeting ';
-import AICostOptimization from '../pages/Budgeting/AICostOptimization';
-import BudgetVsActuals from '../pages/Budgeting/BudgetVsActuals';
+import FixedVariableExpense from '../pages/Budgeting/Operational-Budgeting/FixedVariableExpense';
+import { RevenueBudgeting } from '../pages/Budgeting/RevenueBased-Budgeting/RevenuebasedBudgeting';
+import  DepartmentBudgeting  from '../pages/Budgeting/Operational-Budgeting/DepartmentBudgeting';
+import AICostOptimization from '../pages/Budgeting/Operational-Budgeting/AICostOptimization';
+import BudgetVsActuals from '../pages/Budgeting/Operational-Budgeting/BudgetVsActuals';
 import PLDashboard from '../pages/Financial Reports/PLDashboard';
-import CapitalInvestmentPlan from '../pages/Budgeting/CAPEX-Budgeting/CapitalInvestPlan';
+import CapitalInvestmentPlanning from '../pages/Budgeting/CAPEX-Budgeting/CapitalInvestmentPlanning';
 import ROIAllocation from '../pages/Budgeting/CAPEX-Budgeting/ROIAllocation';
 import DepreciationForecast from '../pages/Budgeting/CAPEX-Budgeting/DepreciationForecast';
 import UploadGL from '../pages/Financial Reports/UploadGL';
@@ -95,6 +94,13 @@ import DiversityInclusionMetrics from '../pages/Performance Analytics/HR and Wor
 import CompensationBenefits from '../pages/Performance Analytics/HR and Workforce/CompensationBenefits';
 import GLUploadScreen from '../pages/Gl-Data-upload-screen/GLDataUploadScreen';
 import ScrollToTop from '../ScrollToTop';
+import OperationalBudgeting from '../pages/Budgeting/Operational-Budgeting/OperationalBudgeting';
+import RevenueDrivenExpenseAllocation from '../pages/Budgeting/RevenueBased-Budgeting/RevenueDrivenExpense';
+import SalesGrowthBudgetAdjustments from '../pages/Budgeting/RevenueBased-Budgeting/SaleGrowthBudget';
+import CustomerAcquisitionRetentionBudgeting from '../pages/Budgeting/RevenueBased-Budgeting/CustomerAcquisitionRetention';
+import SubscriptionRevenueBudgeting from '../pages/Budgeting/RevenueBased-Budgeting/SubscriptionRevenue';
+import ScenarioBasedCapexModeling from '../pages/Budgeting/CAPEX-Budgeting/ScenarioBasedCapex';
+import HeadcountPlanning from '../pages/Budgeting/WorkforcePayroll-Budgeting/HeadcountPlanning';
 
 
 
@@ -166,10 +172,16 @@ function AllRoutes() {
               {/* <Route path="/department-budgeting" element={<AICostOptimization />} /> */}
               <Route path="/aI-cost-optimization" element={<AICostOptimization />} />
               <Route path="/budget-vs-actuals" element={<BudgetVsActuals />} />
+              <Route path="/revenue-driven-expense" element={<RevenueDrivenExpenseAllocation />} />
+              <Route path="/sale-growth-budget" element={<SalesGrowthBudgetAdjustments />} />
+              <Route path="/customer-acquisition-retention" element={<CustomerAcquisitionRetentionBudgeting />} />
+              <Route path="/subscription-recurring-revenue" element={<SubscriptionRevenueBudgeting />} />
               <Route path="/p&l-Dashboard" element={<PLDashboard />} />
-              <Route path="/budget-capital-investment" element={<CapitalInvestmentPlan />} />
+              <Route path="/capital-investment-planning" element={<CapitalInvestmentPlanning />} />
               <Route path="/budget-roi-allocation" element={<ROIAllocation />} />
               <Route path="/budget-depreciation-forecast" element={<DepreciationForecast  />} />
+              <Route path="/scenario-based-capex" element={<ScenarioBasedCapexModeling  />} />
+              <Route path="/headcount-planning" element={<HeadcountPlanning  />} />
               <Route path="/financial-gl-upload" element={<UploadGL  />} />
               {/* <Route path="/profile-details" element={<OrganizationsListScreen  />} /> */}
               <Route path='/revenue-component' element={<RevenueComponent />} />
