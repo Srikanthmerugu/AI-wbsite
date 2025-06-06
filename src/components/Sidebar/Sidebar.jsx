@@ -18,7 +18,7 @@ import {
   FiMessageSquare,
   FiFile,
 } from "react-icons/fi";
-import { TbWorldUpload } from "react-icons/tb";
+// import { TbWorldUpload } from "react-icons/tb";
 
 
 const iconComponents = {
@@ -34,7 +34,7 @@ const iconComponents = {
   FiHelpCircle,
   FiMessageSquare,
   FiFile,
-  TbWorldUpload,
+  // TbWorldUpload,
 };
 
 
@@ -139,22 +139,22 @@ const MENUITEMS = [
             title: "Revenue-Based Budgeting ",
             icon: { name: "FiFile" },
             children: [
-              { path: "#", type: "link", title: "Revenue-Driven Expense Allocation ", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Sales Growth-Linked Budget Adjustments ", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Customer Acquisition & Retention Budgeting ", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Subscription & Recurring Revenue Considerations", icon: { name: "FiFile" } },
+              { path: "/revenue-driven-expense", type: "link", title: "Revenue-Driven Expense Allocation ", icon: { name: "FiFile" } },
+              { path: "/sale-growth-budget", type: "link", title: "Sales Growth-Linked Budget Adjustments ", icon: { name: "FiFile" } },
+              { path: "/customer-acquisition-retention", type: "link", title: "Customer Acquisition & Retention Budgeting ", icon: { name: "FiFile" } },
+              { path: "/subscription-recurring-revenue", type: "link", title: "Subscription & Recurring Revenue Considerations", icon: { name: "FiFile" } },
             ],
           },
           {
-            path: "/budget-capital-investment",
+            path: "#",
             type: "link",
             title: "Capital Expenditure (CAPEX) Budgeting  ",
             icon: { name: "FiFile" },
             children: [
-              { path: "/budget-capital-investment", type: "link", title: "Capital Investment Planning", icon: { name: "FiFile" } },
+              { path: "/capital-investment-planning", type: "link", title: "Capital Investment Planning", icon: { name: "FiFile" } },
               { path: "/budget-roi-allocation", type: "link", title: "ROI-Based CAPEX Allocation", icon: { name: "FiFile" } },
               { path: "/budget-depreciation-forecast", type: "link", title: "Depreciation & Amortization Forecasting ", icon: { name: "FiFile" } },
-              { path: "#", type: "link", title: "Scenario-Based CAPEX Modeling", icon: { name: "FiFile" } },
+              { path: "/scenario-based-capex", type: "link", title: "Scenario-Based CAPEX Modeling", icon: { name: "FiFile" } },
             ],
           },
           {
@@ -163,7 +163,7 @@ const MENUITEMS = [
             title: "Workforce & Payroll Budgeting",
             icon: { name: "FiFile" },
             children: [
-              { path: "#", type: "link", title: "Headcount Planning & Cost Forecasting ", icon: { name: "FiFile" } },
+              { path: "headcount-planning", type: "link", title: "Headcount Planning & Cost Forecasting ", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Salary & Compensation Budgeting ", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "Attrition & Replacement Cost Projections ", icon: { name: "FiFile" } },
               { path: "#", type: "link", title: "AI-Driven Workforce Efficiency Analysis ", icon: { name: "FiFile" } },
@@ -398,12 +398,12 @@ const MENUITEMS = [
         title: "Help & Support",
         type: "link",
       },
-      {
-        path: "/gl-upload-screen",
-        icon: { name: "TbWorldUpload" },
-        title: "Upload GL Filefin ",
-        type: "link",
-      },
+      // {
+      //   path: "/gl-upload-screen",
+      //   icon: { name: "TbWorldUpload" },
+      //   title: "Upload GL File ",
+      //   type: "link",
+      // },
       {
         path: "/ask-ai",
         icon: { name: "FiMessageSquare" },

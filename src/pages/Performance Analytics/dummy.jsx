@@ -1,674 +1,791 @@
-import React, { useState, useRef, useEffect } from "react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  LineElement,
-  PointElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-} from "chart.js";
-import { Bar, Line, Pie, Doughnut } from "react-chartjs-2";
-import { motion } from "framer-motion";
-import { 
-  FiTrendingUp, FiTrendingDown, FiDollarSign, FiPieChart, 
-  FiFilter, FiPlus, FiChevronDown, FiSend, FiUser, 
-  FiMap, FiLayers, FiRefreshCw, FiUsers, FiShoppingCart 
-} from "react-icons/fi";
-import { 
-  BsStars, BsThreeDotsVertical, BsGraphUpArrow, 
-  BsCashCoin, BsBoxArrowUpRight 
-} from "react-icons/bs";
-import { Tooltip as ReactTooltip } from "react-tooltip";
-import { RiDragMove2Fill } from "react-icons/ri";
+  FiSettings,
+  FiLayout,
+  FiActivity,
+  FiBell,
+  FiDatabase,
+  FiLock,
+  FiCheck,
+  FiPlus,
+  FiEdit2,
+  FiUpload,
+  FiFile,
+  FiX,
+  FiCalendar,
+  FiList,
+  FiTrash2,
+  FiAlertTriangle,
+  FiInfo,
+  FiChevronLeft,
+  FiChevronRight
+} from 'react-icons/fi';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import * as XLSX from 'xlsx';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend, Filler);
+// Imports
+import { AuthContext } from '../../context/AuthContext'; // Adjust path if necessary
+import { API_BASE_URL } from '../../config/config';   // Adjust path if necessary
+import { TailSpin } from 'react-loader-spinner';
+import { upload as glUploadIllustration } from '../../assets/Assets'; // Adjust path.
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
-const useOutsideClick = (callback) => {
-  const ref = useRef();
+// Custom Header for React DatePicker - WITH SCROLLABLE YEAR DROPDOWN
+const CustomCalendarHeader = ({
+  date,
+  changeYear,
+  decreaseMonth,
+  increaseMonth,
+  prevMonthButtonDisabled,
+  nextMonthButtonDisabled,
+  yearItemNumber = 15,
+  yearsToDisplayAroundCurrent = 7,
+}) => {
+  const currentYear = date.getFullYear();
+  const currentMonthName = date.toLocaleString('default', { month: 'long' });
+
+  const [showYearPicker, setShowYearPicker] = useState(false);
+  const yearPickerRef = useRef(null);
+  const yearDropdownRef = useRef(null);
+
+  const startYear = currentYear - yearsToDisplayAroundCurrent;
+  const yearDropdownValues = Array.from(
+    { length: yearItemNumber },
+    (_, i) => startYear + i
+  );
+
   useEffect(() => {
-    const handleClick = (event) => {
-      if (ref.current && !ref.current.contains(event.target)) {
-        callback();
+    function handleClickOutside(event) {
+      if (
+        showYearPicker &&
+        yearPickerRef.current && !yearPickerRef.current.contains(event.target) &&
+        yearDropdownRef.current && !yearDropdownRef.current.contains(event.target)
+      ) {
+        setShowYearPicker(false);
       }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
     };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [callback]);
-  return ref;
-};
+  }, [showYearPicker]);
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
 
-const PerformanceAnalytics = () => {
-  const navigate = useNavigate();
-  const [filters, setFilters] = useState({
-    timePeriod: "Last Quarter",
-    region: "All Regions",
-    product: "All Products",
-    segment: "All Segments"
-  });
-  const [showFilters, setShowFilters] = useState(false);
-  const [activeWidgets, setActiveWidgets] = useState(["revenueTrend", "conversionFunnel", "retentionRate"]);
-  const [chartTypes, setChartTypes] = useState({
-    revenueTrend: "line",
-    conversionFunnel: "bar",
-    retentionRate: "line",
-    regionalBreakdown: "bar"
-  });
-  const [dropdownWidget, setDropdownWidget] = useState(null);
-  const [hoveredChartType, setHoveredChartType] = useState(null);
-  const [aiInput, setAiInput] = useState({});
-  const [showAIDropdown, setShowAIDropdown] = useState(null);
-  const filtersRef = useRef(null);
-
-  // KPI Data
-  const kpiData = [
-    {
-      id: 1,
-      name: 'Total Revenue',
-      value: '$2.85M',
-      change: '+12%',
-      trend: 'up',
-      forecast: '$3.1M next quarter',
-      icon: <FiDollarSign size={18} />,
-      color: 'text-green-600',
-      componentPath: '/revenue-breakdown'
-    },
-    {
-      id: 2,
-      name: 'CAC',
-      value: '$450',
-      change: '-8%',
-      trend: 'down',
-      forecast: '$420 next quarter',
-      icon: <FiShoppingCart size={18} />,
-      color: 'text-amber-600',
-      componentPath: '/cac-clv'
-    },
-    {
-      id: 3,
-      name: 'CLV',
-      value: '$2,150',
-      change: '+5%',
-      trend: 'up',
-      forecast: '$2,250 next quarter',
-      icon: <BsCashCoin size={18} />,
-      color: 'text-blue-600',
-      componentPath: '/cac-clv'
-    },
-    {
-      id: 4,
-      name: 'Churn Rate',
-      value: '3.2%',
-      change: '-0.4%',
-      trend: 'down',
-      forecast: '3.0% next quarter',
-      icon: <FiRefreshCw size={18} />,
-      color: 'text-red-600',
-      componentPath: '/churn-retention'
-    },
-    {
-      id: 5,
-      name: 'Conversion Rate',
-      value: '22%',
-      change: '+2%',
-      trend: 'up',
-      forecast: '23% next quarter',
-      icon: <BsGraphUpArrow size={18} />,
-      color: 'text-purple-600',
-      componentPath: '/pipeline-conversion'
-    },
-    {
-      id: 6,
-      name: 'Marketing ROI',
-      value: '4.8x',
-      change: '+0.3',
-      trend: 'up',
-      forecast: '5.0x next quarter',
-      icon: <FiTrendingUp size={18} />,
-      color: 'text-teal-600',
-      componentPath: '/marketing-campaign'
-    }
-  ];
-
-  // Chart Data
-  const charts = {
-    revenueTrend: {
-      title: "Revenue Trend",
-      componentPath: "/revenue-breakdown",
-      data: {
-        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-        datasets: [
-          {
-            label: "Revenue",
-            data: [450, 520, 600, 580, 700, 750],
-            borderColor: "#4BC0C0",
-            backgroundColor: "rgba(75, 192, 192, 0.1)",
-            fill: true,
-            tension: 0.4,
-          }
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { ticks: { callback: (value) => `$${value}K` } }
-        }
-      }
-    },
-    conversionFunnel: {
-      title: "Conversion Funnel",
-      componentPath: "/pipeline-conversion",
-      data: {
-        labels: ["Leads", "MQL", "SQL", "Opportunity", "Customer"],
-        datasets: [
-          {
-            label: "Count",
-            data: [10000, 6500, 3200, 1500, 750],
-            backgroundColor: [
-              "rgba(59, 130, 246, 0.7)",
-              "rgba(16, 185, 129, 0.7)",
-              "rgba(234, 179, 8, 0.7)",
-              "rgba(139, 92, 246, 0.7)",
-              "rgba(239, 68, 68, 0.7)"
-            ],
-            borderColor: [
-              "rgba(59, 130, 246, 1)",
-              "rgba(16, 185, 129, 1)",
-              "rgba(234, 179, 8, 1)",
-              "rgba(139, 92, 246, 1)",
-              "rgba(239, 68, 68, 1)"
-            ],
-            borderWidth: 1,
-          }
-        ],
-      },
-      options: {
-        maintainAspectRatio: false,
-        plugins: { legend: { position: "bottom" } }
-      }
-    },
-    retentionRate: {
-      title: "Customer Retention",
-      componentPath: "/churn-retention",
-      data: {
-        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-        datasets: [
-          {
-            label: "Retention Rate",
-            data: [92, 91, 90, 89, 88, 87],
-            borderColor: "#4BC0C0",
-            backgroundColor: "rgba(75, 192, 192, 0.1)",
-            fill: true,
-            tension: 0.4,
-          }
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { 
-            min: 80,
-            max: 100,
-            ticks: { callback: (value) => `${value}%` } 
-          }
-        }
-      }
-    },
-    regionalBreakdown: {
-      title: "Regional Breakdown",
-      componentPath: "/revenue-breakdown",
-      data: {
-        labels: ["North America", "Europe", "Asia", "South America", "Africa"],
-        datasets: [
-          {
-            label: "Revenue (K)",
-            data: [1500, 800, 450, 200, 100],
-            backgroundColor: "rgba(59, 130, 246, 0.7)",
-            borderColor: "rgba(59, 130, 246, 1)",
-            borderWidth: 1,
-          }
-        ],
-      },
-      options: {
-        maintainAspectRatio: false,
-        plugins: { legend: { position: "bottom" } },
-        scales: {
-          y: { ticks: { callback: (value) => `$${value}K` } }
-        }
-      }
-    }
-  };
-
-  // Navigation items
-  const navItems = [
-    { name: "Sales Dashboard", icon: <FiDollarSign />, path: "/sales-dashboard" },
-    { name: "Pipeline & Conversion", icon: <FiTrendingUp />, path: "/pipeline-conversion" },
-    { name: "CAC & CLV", icon: <BsCashCoin />, path: "/cac-clv" },
-    { name: "Churn & Retention", icon: <FiRefreshCw />, path: "/churn-retention" },
-    { name: "Marketing Campaigns", icon: <FiUsers />, path: "/marketing-campaign" },
-    { name: "Revenue Breakdown", icon: <FiPieChart />, path: "/revenue-breakdown" }
-  ];
-
-  const toggleChartType = (widgetId, type) => {
-    setChartTypes(prev => ({ ...prev, [widgetId]: type }));
-  };
-
-  const handleSendAIQuery = (widgetId) => {
-    if (aiInput[widgetId]?.trim()) {
-      console.log(`AI Query for ${widgetId}:`, aiInput[widgetId]);
-      setAiInput(prev => ({ ...prev, [widgetId]: "" }));
-      setShowAIDropdown(null);
-    }
-  };
-
-  const renderChart = (type, data, options = {}) => {
-    switch (type) {
-      case "line": return <Line data={data} options={options} />;
-      case "bar": return <Bar data={data} options={options} />;
-      case "pie": return <Pie data={data} options={options} />;
-      case "doughnut": return <Doughnut data={data} options={options} />;
-      default: return <Line data={data} options={options} />;
-    }
-  };
-
-  const EnhancedChartCard = ({ widgetId, index }) => {
-    const dropdownRef = useOutsideClick(() => setDropdownWidget(null));
-    const data = charts[widgetId];
-    
-    return (
-      <Draggable draggableId={widgetId} index={index}>
-        {(provided) => (
-          <div 
-            className="bg-white p-5 rounded-xl shadow-sm border border-sky-100 hover:shadow-md transition-all duration-300"
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-          >
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-md font-semibold text-sky-800">{data.title}</h3>
-              <div className="flex space-x-2 relative">
-                <div className="relative chart-dropdown">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); setDropdownWidget(dropdownWidget === widgetId ? null : widgetId); }} 
-                    className="p-1 rounded hover:bg-gray-100"
-                    data-tooltip-id="chart-type-tooltip" 
-                    data-tooltip-content="Options"
-                  >
-                    <BsThreeDotsVertical />
-                  </button>
-                  {dropdownWidget === widgetId && (
-                    <div ref={dropdownRef} className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-10 border border-gray-200">
-                      <div className="py-1 text-xs text-gray-800">
-                        <div 
-                          className="relative" 
-                          onMouseEnter={() => setHoveredChartType(widgetId)} 
-                          onMouseLeave={() => setHoveredChartType(null)}
-                        >
-                          <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex justify-between items-center">
-                            All Chart Types <FiChevronDown className="ml-1 text-xs" />
-                          </div>
-                          {hoveredChartType === widgetId && (
-                            <div className="absolute top-0 left-full w-40 bg-white rounded-md shadow-lg border border-gray-200 z-20 py-1" style={{ marginLeft: "-1px" }}>
-                              {["line", "bar", "pie", "doughnut"].map((type) => (
-                                <button 
-                                  key={type} 
-                                  onClick={(e) => { 
-                                    e.stopPropagation(); 
-                                    toggleChartType(widgetId, type); 
-                                    setDropdownWidget(null); 
-                                    setHoveredChartType(null); 
-                                  }} 
-                                  className="block w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-100 transition"
-                                >
-                                  {type.charAt(0).toUpperCase() + type.slice(1)} Chart
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={() => navigate(data.componentPath)}>
-                          Analyze
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <button 
-                  onClick={() => setShowAIDropdown(showAIDropdown === widgetId ? null : widgetId)} 
-                  className="p-1 rounded hover:bg-gray-100"
-                  data-tooltip-id="ai-tooltip" 
-                  data-tooltip-content="Ask AI"
-                >
-                  <BsStars />
-                </button>
-                {showAIDropdown === widgetId && (
-                  <div className="absolute right-0 top-5 mt-2 w-64 bg-white rounded-md shadow-lg z-10 border border-gray-200 py-2">
-                    <div className="flex flex-col items-center space-x-2">
-                      <h1 className="text-xs">Ask regarding the {data.title}</h1>
-                      <div className="flex justify-between gap-3 p-2">
-                        <input 
-                          type="text" 
-                          value={aiInput[widgetId] || ""} 
-                          onChange={(e) => setAiInput(prev => ({ ...prev, [widgetId]: e.target.value }))} 
-                          placeholder="Ask AI..." 
-                          className="w-full p-1 border border-gray-300 rounded text-xs" 
-                        />
-                        <button 
-                          onClick={() => handleSendAIQuery(widgetId)} 
-                          className="p-2 bg-sky-500 text-white rounded hover:bg-sky-600" 
-                          disabled={!aiInput[widgetId]?.trim()}
-                        >
-                          <FiSend />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div {...provided.dragHandleProps} className="p-1 rounded hover:bg-gray-100 cursor-move">
-                  <RiDragMove2Fill />
-                </div>
-              </div>
-            </div>
-            <div className="h-48">
-              {renderChart(chartTypes[widgetId], {
-                labels: data.labels,
-                datasets: data.datasets
-              }, data.options)}
-            </div>
-          </div>
-        )}
-      </Draggable>
-    );
-  };
-
-  const KPICard = ({ kpi }) => {
-    const [showAIDropdown, setShowAIDropdown] = useState(false);
-    const [localAIInput, setLocalAIInput] = useState("");
-    const dropdownRef = useRef(null);
-
-    useEffect(() => {
-      const handleClickOutside = (event) => {
-        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-          setShowAIDropdown(false);
-        }
-      };
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    const handleSendAIQuery = () => {
-      if (localAIInput.trim()) {
-        console.log(`AI Query for ${kpi.name}:`, localAIInput);
-        setLocalAIInput("");
-        setShowAIDropdown(false);
-      }
-    };
-
-    return (
-      <motion.div 
-        variants={cardVariants} 
-        initial="hidden" 
-        animate="visible" 
-        whileHover={{ y: -3 }} 
-        className="bg-white p-4 rounded-lg border border-sky-100 shadow-sm relative"
-      >
-        <div className="flex justify-between items-start">
-          <div>
-            <div className="flex items-center justify-between relative">
-              <div className="text-sky-600 text-sm font-medium">{kpi.name}</div>
-              <button 
-                onClick={(e) => { e.stopPropagation(); setShowAIDropdown(!showAIDropdown); }} 
-                className="p-1 rounded hover:bg-gray-100"
-                data-tooltip-id="ai-tooltip" 
-                data-tooltip-content="Ask AI"
-              >
-                <BsStars />
-              </button>
-              {showAIDropdown && (
-                <div 
-                  ref={dropdownRef} 
-                  className="absolute right-0 top-5 mt-2 w-44 bg-white rounded-md shadow-lg z-10 border border-gray-200 p-2" 
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="flex items-center space-x-2">
-                    <input 
-                      type="text" 
-                      value={localAIInput} 
-                      onChange={(e) => setLocalAIInput(e.target.value)} 
-                      placeholder="Ask AI..." 
-                      className="w-full p-1 border border-gray-300 rounded text-xs" 
-                      onClick={(e) => e.stopPropagation()} 
-                    />
-                    <button 
-                      onClick={handleSendAIQuery} 
-                      className="p-1 bg-sky-500 text-white rounded hover:bg-sky-600" 
-                      disabled={!localAIInput.trim()}
-                    >
-                      <FiSend />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="text-xl font-bold mt-1">{kpi.value}</div>
-            <div className="mt-3 flex justify-between items-center">
-              <div className="text-xs">
-                <span className={`${kpi.trend === 'up' ? kpi.color : 'text-red-600'}`}>
-                  {kpi.change} {kpi.trend === 'up' ? '↑' : '↓'}
-                </span>
-                <span className="text-sky-600 ml-1">vs previous</span>
-              </div>
-              <div className="text-xs text-sky-500 flex items-center">
-                <BsStars className="mr-1" /> {kpi.forecast}
-              </div>
-            </div>
-          </div>
-          <div className={`p-2 rounded-lg bg-sky-50 ${kpi.color}`}>
-            {kpi.icon}
-          </div>
-        </div>
-      </motion.div>
-    );
-  };
-
-  const onDragEnd = (result) => {
-    if (!result.destination) return;
-    const items = Array.from(activeWidgets);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-    setActiveWidgets(items);
+  const handleYearSelect = (year) => {
+    changeYear(year);
+    setShowYearPicker(false);
   };
 
   return (
-    <div className="space-y-6 p-4 min-h-screen relative bg-sky-50">
-      {/* Header with filters */}
-      <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-lg font-bold text-white">Performance Analytics</h1>
-            <p className="text-sky-100 text-xs">AI-driven insights across all business metrics</p>
+    <div className="flex items-center justify-between px-1.5 py-1 bg-sky-100 border-b border-sky-200 rounded-t-md relative">
+      <div className="flex items-center">
+        <button
+          onClick={decreaseMonth}
+          disabled={prevMonthButtonDisabled}
+          type="button"
+          className="p-1.5 text-sky-700 hover:bg-sky-200 rounded-full disabled:opacity-50 focus:outline-none"
+          aria-label="Previous Month"
+        >
+          <FiChevronLeft className="w-4 h-4" />
+        </button>
+        <span className="mx-2 text-xs font-semibold text-sky-800 min-w-[70px] text-center">
+          {currentMonthName}
+        </span>
+        <button
+          onClick={increaseMonth}
+          disabled={nextMonthButtonDisabled}
+          type="button"
+          className="p-1.5 text-sky-700 hover:bg-sky-200 rounded-full disabled:opacity-50 focus:outline-none"
+          aria-label="Next Month"
+        >
+          <FiChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+      <div className="relative">
+        <button
+          ref={yearPickerRef}
+          type="button"
+          onClick={() => setShowYearPicker(!showYearPicker)}
+          className="text-xs font-semibold text-sky-800 bg-transparent border-0 focus:outline-none p-1.5 hover:bg-sky-200 rounded-md"
+        >
+          {currentYear}
+        </button>
+        {showYearPicker && (
+          <div
+            ref={yearDropdownRef}
+            className="absolute right-0 mt-1 w-24 max-h-40 overflow-y-auto bg-white border border-sky-200 rounded-md shadow-lg z-20 scrollbar-thin scrollbar-thumb-sky-300 scrollbar-track-sky-100"
+          >
+            {yearDropdownValues.map((year) => (
+              <button
+                key={year}
+                onClick={() => handleYearSelect(year)}
+                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-sky-100 ${
+                  year === currentYear ? 'bg-sky-100 font-bold text-sky-700' : 'text-gray-700'
+                }`}
+              >
+                {year}
+              </button>
+            ))}
           </div>
-          <div className="flex space-x-2">
-            <button
-              className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <FiFilter className="mr-1" /> Filters
-            </button>
-            <select
-              className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200"
-              value={filters.timePeriod}
-              onChange={(e) => setFilters({...filters, timePeriod: e.target.value})}
-            >
-              <option>Last Quarter</option>
-              <option>Year to Date</option>
-              <option>Last Year</option>
-              <option>Custom Range</option>
-            </select>
-            <button 
-              className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
-              <BsBoxArrowUpRight className="mr-1" /> Export
-            </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+
+const SettingsCustomization = () => {
+  const [activeTab, setActiveTab] = useState('glfile');
+
+  const [colorSettings, setColorSettings] = useState({
+    primaryColor: '#0C4A6E', // Example: Tailwind sky-800
+    textColor: '#374151',    // Example: Tailwind gray-700
+    backgroundColor: '#F9FAFB', // Example: Tailwind gray-50
+    fontSize: '14px',
+    fontFamily: 'Inter'
+  });
+  const [emailNotifications, setEmailNotifications] = useState({
+    transactionAlerts: true,
+    reportReady: true,
+    systemUpdates: false,
+    weeklySummary: true
+  });
+
+  const { authToken } = useContext(AuthContext); // Assuming AuthContext provides authToken
+  const [glActiveTab, setGLActiveTab] = useState('manual');
+  const [glFile, setGLFile] = useState(null);
+  const [isGLLoading, setIsGLLoading] = useState(false);
+  const [isGLDragging, setIsGLDragging] = useState(false);
+  
+  // GL History States
+  const [glSelectedDate, setGLSelectedDate] = useState(new Date());
+  const [glHistoryFetchDate, setGLHistoryFetchDate] = useState(null);
+  const [glHistoryData, setGLHistoryData] = useState(null);
+  const [isFetchingGLHistory, setIsFetchingGLHistory] = useState(false);
+
+
+  const [glFormData, setGLFormData] = useState({
+    general_ledger_code: '',
+    account_name: '',
+    category: ''
+  });
+  const [glEntries, setGLEntries] = useState([]);
+  const [glParsedFileEntries, setGLParsedFileEntries] = useState([]);
+
+  const [allGLCodesData, setAllGLCodesData] = useState(null);
+  const [totalGLCodesCount, setTotalGLCodesCount] = useState(0);
+  const [isFetchingAllGLCodes, setIsFetchingAllGLCodes] = useState(false);
+  
+  // States for Editing GL Code
+  const [editingGLCode, setEditingGLCode] = useState(null);
+  const [editFormData, setEditFormData] = useState({ account_name: '', category: '' });
+  const [isUpdatingGLCode, setIsUpdatingGLCode] = useState(false);
+
+  // States for Deleting GL Code
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [glCodeToDelete, setGLCodeToDelete] = useState(null);
+  const [isDeletingGLCode, setIsDeletingGLCode] = useState(false);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      return new Date(dateString).toLocaleString(undefined, {
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  const showGLToast = (message, type = 'success', duration = 3000) => {
+    toast[type](message, {
+      position: "top-right", autoClose: duration, hideProgressBar: false,
+      closeOnClick: true, pauseOnHover: true, draggable: true, progress: undefined,
+    });
+  };
+
+  // GL History: Update selected date in DatePicker
+  const handleGLDateChange = (date) => {
+    setGLSelectedDate(date);
+  };
+
+  // GL History: Fetch data for the selected date
+  const fetchGLHistoryForSelectedDate = async () => {
+    if (!glSelectedDate) {
+      showGLToast('Please select a date first.', 'info');
+      return;
+    }
+    setGLHistoryFetchDate(glSelectedDate);
+    setIsFetchingGLHistory(true);
+    setGLHistoryData(null);
+    showGLToast(`Fetching history for ${glSelectedDate.toLocaleDateString()}`, 'info');
+
+    try {
+      // --- SIMULATED FETCH FOR DEMO ---
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      const mockData = [
+        { id: 1, general_ledger_code: 1001, account_name: "Cash & Bank", amount: 12500.75, type_of_entry: "File Upload", created_at: new Date(glSelectedDate.getFullYear(), glSelectedDate.getMonth(), glSelectedDate.getDate(), 9, 30).toISOString() },
+        { id: 2, general_ledger_code: 6010, account_name: "Office Supplies Expense", amount: -150.20, type_of_entry: "Manual Entry", created_at: new Date(glSelectedDate.getFullYear(), glSelectedDate.getMonth(), glSelectedDate.getDate(), 14, 15).toISOString() },
+        { id: 3, general_ledger_code: 4000, account_name: "Sales Revenue", amount: 7800.00, type_of_entry: "System Generated", created_at: new Date(glSelectedDate.getFullYear(), glSelectedDate.getMonth(), glSelectedDate.getDate(), 11, 0).toISOString() }
+      ];
+      if (glSelectedDate.getDate() % 3 !== 0) { // Simulate data for most dates
+          setGLHistoryData(mockData);
+          showGLToast(`Simulated history for ${glSelectedDate.toLocaleDateString()} fetched.`, 'success');
+      } else {
+          setGLHistoryData([]);
+          showGLToast(`No history found for ${glSelectedDate.toLocaleDateString()}.`, 'info');
+      }
+    } catch (error) {
+      showGLToast(error.message, 'error', 5000);
+      setGLHistoryData([]);
+    } finally {
+      setIsFetchingGLHistory(false);
+    }
+  };
+
+
+  const handleGLInputChange = (e) => {
+    const { name, value } = e.target;
+    setGLFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleGLAddEntry = () => {
+    if (!glFormData.general_ledger_code || !glFormData.account_name || !glFormData.category) {
+      showGLToast('All GL entry fields are required', 'error'); return;
+    }
+    if (isNaN(Number(glFormData.general_ledger_code))) {
+      showGLToast('GL Code must be a number', 'error'); return;
+    }
+    setGLEntries([...glEntries, { ...glFormData, general_ledger_code: Number(glFormData.general_ledger_code) }]);
+    setGLFormData({ general_ledger_code: '', account_name: '', category: '' });
+    showGLToast('GL Entry added successfully');
+  };
+
+  const handleGLDragOver = (e) => { e.preventDefault(); setIsGLDragging(true); };
+  const handleGLDragLeave = () => { setIsGLDragging(false); };
+  const handleGLDrop = (e) => {
+    e.preventDefault(); setIsGLDragging(false);
+    const selectedFile = e.dataTransfer.files[0];
+    handleGLFileValidationAndParse(selectedFile);
+  };
+  const handleGLFilePickerChange = (e) => {
+    const selectedFile = e.target.files[0];
+    handleGLFileValidationAndParse(selectedFile);
+    e.target.value = null;
+  };
+
+  const parseExcelFile = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = event.target.result;
+          const workbook = XLSX.read(data, { type: 'binary' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+            header: ["general_ledger_code", "account_name", "category"], range: 1
+          });
+          const validatedData = jsonData.map((row, index) => {
+            const rowNum = index + 2;
+            if (row.general_ledger_code === undefined || row.account_name === undefined || row.category === undefined) {
+              throw new Error(`Row ${rowNum} is missing required columns. Expected: 'general_ledger_code', 'account_name', 'category'.`);
+            }
+            if (row.general_ledger_code === null || row.general_ledger_code === '' || isNaN(Number(row.general_ledger_code))) {
+              throw new Error(`Invalid GL Code in Excel (Row ${rowNum}): '${row.general_ledger_code}' must be a non-empty number.`);
+            }
+            return {
+              general_ledger_code: Number(row.general_ledger_code),
+              account_name: String(row.account_name).trim() || `N/A (Row ${rowNum})`,
+              category: String(row.category).trim() || `N/A (Row ${rowNum})`
+            };
+          });
+          resolve(validatedData);
+        } catch (err) { reject(err); }
+      };
+      reader.onerror = (error) => reject(error);
+      reader.readAsBinaryString(file);
+    });
+  };
+
+  const handleGLFileValidationAndParse = async (selectedFile) => {
+    if (selectedFile) {
+      const validTypes = ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/octet-stream'];
+      const validExtensions = ['.xls', '.xlsx'];
+      const fileExtension = selectedFile.name.substring(selectedFile.name.lastIndexOf('.')).toLowerCase();
+      const isTypeValid = validTypes.includes(selectedFile.type);
+      const isExtensionValid = validExtensions.includes(fileExtension);
+
+      if (!isTypeValid && !(selectedFile.type === 'application/octet-stream' && isExtensionValid)) {
+        showGLToast('Please upload a valid Excel file (.xls, .xlsx)', 'error'); return;
+      }
+      setGLFile(selectedFile);
+      setIsGLLoading(true);
+      setGLParsedFileEntries([]);
+      try {
+        const parsedData = await parseExcelFile(selectedFile);
+        setGLParsedFileEntries(parsedData);
+        showGLToast(`GL File '${selectedFile.name}' parsed. ${parsedData.length} entries found. Review and submit.`, 'success', 4000);
+      } catch (error) {
+        showGLToast(`Error parsing file: ${error.message}`, 'error', 5000);
+        setGLFile(null);
+      } finally { setIsGLLoading(false); }
+    }
+  };
+
+  const handleParsedEntryChange = (index, field, value) => {
+    setGLParsedFileEntries(prevEntries =>
+      prevEntries.map((entry, i) =>
+        i === index ? { ...entry, [field]: field === 'general_ledger_code' ? (value === '' ? '' : Number(value)) : value } : entry
+      )
+    );
+  };
+
+  const removeGLFileAndParsedData = () => {
+    setGLFile(null); setGLParsedFileEntries([]);
+  };
+
+  const submitGLDataToMaster = async (entriesToSubmit, source) => {
+    if (entriesToSubmit.length === 0) {
+      showGLToast(`Please add or parse at least one GL entry to upload from ${source}.`, 'error'); return;
+    }
+    const invalidEntry = entriesToSubmit.find(entry =>
+        entry.general_ledger_code === '' || entry.general_ledger_code === null || isNaN(Number(entry.general_ledger_code)) ||
+        !entry.account_name || entry.account_name.startsWith('N/A (Row') ||
+        !entry.category || entry.category.startsWith('N/A (Row')
+    );
+    if (invalidEntry) {
+        showGLToast('All fields (GL Code, Account Name, Category) are required for every entry, and GL Code must be a number. Please correct any "N/A" values from parsing.', 'error', 6000);
+        return;
+    }
+    setIsGLLoading(true);
+    try {
+      const payload = {
+        data: entriesToSubmit.map(entry => ({
+          general_ledger_code: Number(entry.general_ledger_code),
+          account_name: String(entry.account_name),
+          category: String(entry.category)
+        }))
+      };
+      const response = await fetch(`${API_BASE_URL}/api/v1/company/financial/gl-master/`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+        body: JSON.stringify(payload)
+      });
+      const responseData = await response.json();
+      if (!response.ok) {
+        if (response.status === 422 && responseData.detail && Array.isArray(responseData.detail)) {
+          const errorMessages = responseData.detail.map(err => `${err.loc.join(' -> ')}: ${err.msg}`).join('; ');
+          throw new Error(`Validation Error: ${errorMessages}`);
+        }
+        throw new Error(responseData.detail || responseData.message || `Failed to upload GL data from ${source}. Status: ${response.status}`);
+      }
+      showGLToast(responseData.message || `${entriesToSubmit.length} GL entries uploaded successfully from ${source}!`, 'success');
+      if (responseData.created_ids) console.log("Created IDs:", responseData.created_ids);
+      if (responseData.skipped_gl_codes && responseData.skipped_gl_codes.length > 0) {
+          showGLToast(`Skipped GL Codes: ${responseData.skipped_gl_codes.join(', ')}`, 'warning', 5000);
+      }
+      if (source === 'manual entry') { setGLEntries([]); }
+      else if (source === 'file upload') { setGLParsedFileEntries([]); setGLFile(null); }
+    } catch (error) { showGLToast(error.message, 'error', 6000); }
+    finally { setIsGLLoading(false); }
+  };
+
+  const submitGLManualEntries = () => { submitGLDataToMaster(glEntries, 'manual entry'); };
+  const submitGLParsedFileEntries = () => { submitGLDataToMaster(glParsedFileEntries, 'file upload'); };
+
+  const fetchAllGLCodes = async (showToasts = true) => {
+    if(showToasts) setIsFetchingAllGLCodes(true);
+    if(showToasts) setAllGLCodesData(null);
+    if(showToasts) setTotalGLCodesCount(0);
+    if(showToasts && !isFetchingAllGLCodes) showGLToast('Fetching all GL codes...', 'info');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/company/financial/gl-master/codes`, {
+        method: 'GET', headers: { 'Authorization': `Bearer ${authToken}`, 'Accept': 'application/json' }
+      });
+      const responseData = await response.json();
+      if (!response.ok) {
+        throw new Error(responseData.detail || `Failed to fetch GL codes. Status: ${response.status}`);
+      }
+      const codes = responseData.master_gl_info;
+      const count = responseData.count;
+      if (codes && Array.isArray(codes)) {
+        if (codes.length === 0 && showToasts) {
+          showGLToast('No GL codes found or empty list returned.', 'warning');
+        } else if (showToasts && codes.length > 0) {
+          showGLToast(`Successfully fetched ${codes.length} of ${count || codes.length} GL codes!`, 'success');
+        }
+        setAllGLCodesData(codes);
+        setTotalGLCodesCount(count || codes.length);
+      } else {
+        if(showToasts) showGLToast('Unexpected response structure for GL codes.', 'error');
+        setAllGLCodesData([]); setTotalGLCodesCount(0);
+      }
+    } catch (error) {
+      if(showToasts) showGLToast(error.message, 'error', 5000);
+      setAllGLCodesData([]); setTotalGLCodesCount(0);
+    } finally { if(showToasts) setIsFetchingAllGLCodes(false); }
+  };
+  
+  // --- Edit Functions ---
+  const openEditDialog = (glCode) => {
+    setEditingGLCode(glCode);
+    setEditFormData({
+      account_name: glCode.account_name,
+      category: glCode.category,
+    });
+  };
+
+  const closeEditDialog = () => {
+    setEditingGLCode(null);
+    setEditFormData({ account_name: '', category: '' });
+  };
+  
+  const handleUpdateGLCode = async () => {
+    if (!editingGLCode || !editFormData.account_name || !editFormData.category) {
+      showGLToast('Account Name and Category cannot be empty.', 'error');
+      return;
+    }
+    setIsUpdatingGLCode(true);
+    try {
+      const payload = {
+        account_name: editFormData.account_name,
+        category: editFormData.category,
+      };
+      
+      const response = await fetch(`${API_BASE_URL}/api/v1/company/financial/gl-master/${editingGLCode.general_ledger_code}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+        body: JSON.stringify(payload)
+      });
+      const responseData = await response.json();
+      if (!response.ok) {
+        throw new Error(responseData.detail || `Failed to update GL Account ${editingGLCode.general_ledger_code}.`);
+      }
+      showGLToast(responseData.message || `GL Account '${editingGLCode.general_ledger_code}' updated successfully!`, 'success');
+      
+      closeEditDialog();
+      fetchAllGLCodes(false); // Refresh list without showing loading indicators
+    } catch (error) {
+      showGLToast(error.message, 'error', 6000);
+    } finally {
+      setIsUpdatingGLCode(false);
+    }
+  };
+
+  // --- Delete Functions ---
+  const openDeleteConfirmDialog = (glCode) => { setGLCodeToDelete(glCode); setShowDeleteConfirm(true); };
+  const closeDeleteConfirmDialog = () => { setGLCodeToDelete(null); setShowDeleteConfirm(false); };
+
+  const handleDeleteGLCode = async () => {
+    if (!glCodeToDelete) return;
+    setIsDeletingGLCode(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/company/financial/gl-master/${glCodeToDelete.general_ledger_code}`, {
+        method: 'DELETE', headers: { 'Authorization': `Bearer ${authToken}`, 'Accept': 'application/json' }
+      });
+      const responseData = await response.json().catch(() => ({}));
+      if (!response.ok) {
+         if (response.status === 422 && responseData.detail && Array.isArray(responseData.detail)) {
+          const errorMessages = responseData.detail.map(err => `${err.loc.join(' -> ')}: ${err.msg}`).join('; ');
+          throw new Error(`Validation Error: ${errorMessages}`);
+        }
+        throw new Error(responseData.message || responseData.detail || `Failed to delete GL Account ${glCodeToDelete.general_ledger_code}. Status: ${response.status}`);
+      }
+      showGLToast(responseData.message || `GL Account '${glCodeToDelete.general_ledger_code}' cleared successfully!`, 'success');
+      closeDeleteConfirmDialog();
+      fetchAllGLCodes(false);
+    } catch (error) { showGLToast(error.message, 'error', 6000); }
+    finally { setIsDeletingGLCode(false); }
+  };
+
+  const glIllustrationCommonStyle = 'w-full max-w-[180px] h-auto self-center lg:self-start mb-4 lg:mb-0';
+
+  const menuItems = [
+    { id: 'glfile', title: 'Upload GL', icon: <FiUpload /> },
+    { id: 'dashboard', title: 'Dashboard UI', icon: <FiLayout /> },
+    { id: 'reports', title: 'Reports & Workflow', icon: <FiActivity /> },
+    { id: 'alerts', title: 'Alerts & Notifications', icon: <FiBell /> },
+    { id: 'system', title: 'System & Data', icon: <FiDatabase /> },
+    { id: 'roles', title: 'Role Access', icon: <FiLock /> }
+  ];
+
+  const handleColorChange = (e, field) => setColorSettings(prev => ({ ...prev, [field]: e.target.value }));
+  const handleSubmitSettings = () => { console.log('Sending UI settings to backend:', colorSettings); toast.success('UI settings saved successfully!'); };
+  const handleEmailNotificationChange = (field) => setEmailNotifications(prev => ({ ...prev, [field]: !prev[field] }));
+
+  return (
+    <div className="p-4 sm:p-6 bg-sky-50 min-h-screen">
+      <ToastContainer position="top-right" autoClose={3000} newestOnTop />
+
+      {/* Header */}
+      <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-md mb-6">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center">
+            <FiSettings className="w-6 h-6 text-white mr-3" />
+            <h1 className="text-xl font-bold text-white">Settings & Customization</h1>
           </div>
         </div>
       </div>
 
-      {showFilters && (
-        <div className="bg-white p-4 rounded-lg shadow-sm" ref={filtersRef}>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
-              <select
-                className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                value={filters.region}
-                onChange={(e) => setFilters({...filters, region: e.target.value})}
-              >
-                <option>All Regions</option>
-                <option>North America</option>
-                <option>Europe</option>
-                <option>Asia</option>
-                <option>South America</option>
-                <option>Africa</option>
-              </select>
+      {/* Horizontal Tab Navigation */}
+      <div className="mb-6 bg-white p-2 rounded-lg shadow">
+        <nav className="flex flex-wrap gap-x-1 gap-y-1 sm:gap-x-2">
+          {menuItems.map((item) => (
+            <button
+              key={item.id} onClick={() => setActiveTab(item.id)}
+              className={`flex items-center px-3 py-2.5 sm:px-4 text-xs sm:text-sm font-medium rounded-md transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-sky-500
+                ${activeTab === item.id
+                  ? 'bg-sky-700 text-white shadow-sm'
+                  : 'text-sky-700 hover:bg-sky-100 hover:text-sky-800'
+                }`}
+            >
+              {React.cloneElement(item.icon, { className: "w-4 h-4 sm:w-5 sm:h-5 mr-2" })}
+              {item.title}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Content Area */}
+      <div className="bg-white rounded-xl shadow-xl p-6 ">
+        {activeTab === 'glfile' && (
+          <div>
+            <h3 className="text-2xl font-semibold text-sky-800 mb-1">Upload General Ledger File</h3>
+            <p className="text-gray-600 mb-6 text-sm">Manage General Ledger data by manual entry, file upload, view history, or list all GL codes.</p>
+            <div className="flex border-b border-sky-200 mb-8">
+              {[
+                { id: 'manual', label: 'Manual Entry', icon: FiPlus },
+                { id: 'upload', label: 'File Upload', icon: FiUpload },
+                { id: 'history', label: 'History', icon: FiCalendar },
+                { id: 'allGLCodes', label: 'All GL Codes', icon: FiList }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  className={`py-3 px-4 sm:px-6 font-medium text-xs sm:text-sm flex items-center focus:outline-none
+                    ${ glActiveTab === tab.id
+                      ? 'text-sky-600 border-b-2 border-sky-600'
+                      : 'text-gray-500 hover:text-sky-500 hover:border-b-2 hover:border-sky-300'
+                    }`}
+                  onClick={() => {
+                    setGLActiveTab(tab.id);
+                    if (tab.id !== 'manual') setGLEntries([]);
+                    if (tab.id !== 'upload') { setGLFile(null); setGLParsedFileEntries([]);}
+                    if (tab.id !== 'history') { setGLHistoryData(null); setGLHistoryFetchDate(null); }
+                  }}
+                >
+                  <tab.icon className="mr-1.5 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" /> {tab.label}
+                </button>
+              ))}
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Product</label>
-              <select
-                className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                value={filters.product}
-                onChange={(e) => setFilters({...filters, product: e.target.value})}
-              >
-                <option>All Products</option>
-                <option>Product A</option>
-                <option>Product B</option>
-                <option>Product C</option>
-              </select>
+
+            {glActiveTab === 'manual' && ( <div className="flex flex-col">{/*...Manual Entry UI...*/}</div> )}
+            {glActiveTab === 'upload' && ( <div>{/*...File Upload UI...*/}</div> )}
+            {glActiveTab === 'history' && ( <div>{/*...History UI...*/}</div> )}
+            
+            {glActiveTab === 'allGLCodes' && (
+              <div className="flex flex-col">
+                <div className='flex flex-col lg:flex-row items-start gap-6 mb-6'>
+                  <div className="flex-shrink-0">
+                    <img src={glUploadIllustration} className={glIllustrationCommonStyle} alt="All GL codes illustration" />
+                  </div>
+                  <div className="flex-grow w-full">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="text-xl font-semibold text-sky-800">All General Ledger Codes</h4>
+                      {allGLCodesData && (
+                          <span className="text-sm text-sky-600 bg-sky-100 px-3 py-1 rounded-full">
+                              Displaying {allGLCodesData.length} of {totalGLCodesCount} codes
+                          </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">
+                      View, edit, or delete General Ledger codes currently in the system.
+                    </p>
+                    <button
+                      onClick={() => fetchAllGLCodes(true)}
+                      disabled={isFetchingAllGLCodes}
+                      className={`bg-teal-500 hover:bg-teal-600 text-white px-5 py-2.5 rounded-lg flex items-center text-sm ${isFetchingAllGLCodes ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      {isFetchingAllGLCodes ? (
+                        <><TailSpin color="#FFFFFF" height={18} width={18} className="mr-2" /> Fetching...</>
+                      ) : (
+                        <><FiList className="mr-2" /> {allGLCodesData ? 'Refresh' : 'Fetch'} All GL Codes</>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {isFetchingAllGLCodes && !allGLCodesData && (
+                  <div className="text-center py-8">
+                    <TailSpin color="#0EA5E9" height={40} width={40} />
+                    <p className="text-sky-600 mt-2">Loading GL Codes...</p>
+                  </div>
+                )}
+
+                {allGLCodesData && allGLCodesData.length === 0 && !isFetchingAllGLCodes && (
+                   <div className="p-4 text-center bg-yellow-50 border border-yellow-300 rounded-lg">
+                      <FiInfo className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
+                      <p className="text-yellow-700">No General Ledger codes found or the list is empty.</p>
+                  </div>
+                )}
+
+                {allGLCodesData && allGLCodesData.length > 0 && (
+                  <div className="overflow-x-auto rounded-lg border border-sky-100 max-h-[calc(100vh-350px)]">
+                    <table className="min-w-full divide-y divide-sky-100">
+                      <thead className="bg-sky-50 sticky top-0 z-10">
+                        <tr>
+                          <th className="px-3 py-2.5 text-left text-xs font-medium text-sky-600 uppercase tracking-wider">GL Code</th>
+                          <th className="px-3 py-2.5 text-left text-xs font-medium text-sky-600 uppercase tracking-wider">Account Name</th>
+                          <th className="px-3 py-2.5 text-left text-xs font-medium text-sky-600 uppercase tracking-wider">Category</th>
+                          <th className="px-3 py-2.5 text-left text-xs font-medium text-sky-600 uppercase tracking-wider">Created At</th>
+                          <th className="px-3 py-2.5 text-left text-xs font-medium text-sky-600 uppercase tracking-wider">Updated At</th>
+                          <th className="px-3 py-2.5 text-left text-xs font-medium text-sky-600 uppercase tracking-wider">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-sky-100">
+                        {allGLCodesData.map((code, index) => (
+                          <tr key={code.id || index} className="hover:bg-sky-50/70">
+                            <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-800">{code.general_ledger_code}</td>
+                            <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-700">{code.account_name}</td>
+                            <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-700">{code.category}</td>
+                            <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{formatDate(code.created_at)}</td>
+                            <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{formatDate(code.updated_at)}</td>
+                            <td className="px-3 py-2 whitespace-nowrap text-sm text-center">
+                              <div className="flex items-center justify-center space-x-2">
+                                <button onClick={() => openEditDialog(code)} className="p-1.5 text-sky-600 hover:text-sky-800 hover:bg-sky-100 rounded-md transition-colors" title={`Edit GL Account ${code.general_ledger_code}`}><FiEdit2 className="w-4 h-4" /></button>
+                                <button onClick={() => openDeleteConfirmDialog(code)} className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-md transition-colors" title={`Delete GL Account ${code.general_ledger_code}`}><FiTrash2 className="w-4 h-4" /></button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Other main tabs (dashboard, reports, etc.) */}
+        {activeTab === 'dashboard' && ( <div>{/*...Dashboard UI content...*/}</div> )}
+        {activeTab === 'reports' && ( <div>{/*...Reports UI content...*/}</div> )}
+        {activeTab === 'alerts' && ( <div>{/*...Alerts UI content...*/}</div> )}
+        {activeTab === 'system' && ( <div>{/*...System UI content...*/}</div> )}
+        {activeTab === 'roles' && ( <div>{/*...Roles UI content...*/}</div> )}
+      </div>
+
+      {/* Edit GL Code Modal */}
+      {editingGLCode && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg">
+            <div className="flex justify-between items-center mb-4 border-b pb-3">
+               <h3 className="text-lg font-semibold text-gray-900">Edit GL Account</h3>
+               <button onClick={closeEditDialog} className="p-1.5 rounded-full hover:bg-gray-100"><FiX className="w-5 h-5 text-gray-500"/></button>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Segment</label>
-              <select
-                className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                value={filters.segment}
-                onChange={(e) => setFilters({...filters, segment: e.target.value})}
-              >
-                <option>All Segments</option>
-                <option>Enterprise</option>
-                <option>SMB</option>
-                <option>Startup</option>
-                <option>Education</option>
-              </select>
+            <div className="space-y-4">
+              <div>
+                  <label className="block text-sm font-medium text-gray-700">GL Code (Read-only)</label>
+                  <input type="text" value={editingGLCode.general_ledger_code} readOnly className="mt-1 block w-full bg-gray-100 border-gray-300 rounded-md shadow-sm p-2 text-sm" />
+              </div>
+              <div>
+                  <label htmlFor="edit_account_name" className="block text-sm font-medium text-gray-700">Account Name</label>
+                  <input id="edit_account_name" type="text" value={editFormData.account_name} onChange={(e) => setEditFormData({...editFormData, account_name: e.target.value})} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 text-sm focus:ring-sky-500 focus:border-sky-500" />
+              </div>
+              <div>
+                  <label htmlFor="edit_category" className="block text-sm font-medium text-gray-700">Category</label>
+                  <input id="edit_category" type="text" value={editFormData.category} onChange={(e) => setEditFormData({...editFormData, category: e.target.value})} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 text-sm focus:ring-sky-500 focus:border-sky-500" />
+              </div>
             </div>
-            <div className="flex items-end">
-              <button className="px-4 py-2 text-sm bg-sky-600 text-white rounded hover:bg-sky-700">
-                Apply Filters
+            <div className="mt-8 flex justify-end space-x-3">
+              <button onClick={closeEditDialog} disabled={isUpdatingGLCode} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md border border-gray-300 disabled:opacity-50">Cancel</button>
+              <button onClick={handleUpdateGLCode} disabled={isUpdatingGLCode} className="px-4 py-2 text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 rounded-md border border-sky-600 disabled:opacity-50 disabled:bg-sky-400 flex items-center">
+                {isUpdatingGLCode ? (<><TailSpin color="#FFFFFF" height={16} width={16} className="mr-2" /> Saving...</>) : "Save Changes"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-        {kpiData.map(kpi => (
-          <KPICard key={kpi.id} kpi={kpi} />
-        ))}
-      </div>
-
-      {/* Navigation Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {navItems.map((item, index) => (
-          <Link to={item.path} key={index}>
-            <motion.div 
-              variants={cardVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ y: -3 }}
-              className="bg-white p-4 rounded-lg border border-sky-100 shadow-sm hover:shadow-md transition-all duration-300"
-            >
-              <div className="flex flex-col items-center text-center">
-                <div className="p-3 rounded-full bg-sky-100 text-sky-600 mb-2">
-                  {item.icon}
-                </div>
-                <h3 className="text-sm font-medium text-sky-800">{item.name}</h3>
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && glCodeToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <div className="flex items-start">
+              <div className="mr-3 flex-shrink-0 bg-red-100 rounded-full p-2">
+                 <FiAlertTriangle className="w-6 h-6 text-red-600" />
               </div>
-            </motion.div>
-          </Link>
-        ))}
-      </div>
-
-      {/* Chart Widgets */}
-      <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="charts" direction="horizontal">
-          {(provided) => (
-            <div 
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-            >
-              {activeWidgets.map((widgetId, index) => (
-                <EnhancedChartCard 
-                  key={widgetId}
-                  widgetId={widgetId}
-                  index={index}
-                />
-              ))}
-              {provided.placeholder}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete GL Account</h3>
+                <p className="text-sm text-gray-600 mb-1">
+                  Are you sure you want to delete GL Account:
+                </p>
+                <p className="text-sm font-medium text-gray-800">
+                    Code: <span className="text-red-600">{glCodeToDelete.general_ledger_code}</span>
+                </p>
+                 <p className="text-sm font-medium text-gray-800">
+                    Name: <span className="text-red-600">{glCodeToDelete.account_name}</span>
+                </p>
+                <p className="text-xs text-gray-500 mt-3">This action cannot be undone.</p>
+              </div>
             </div>
-          )}
-        </Droppable>
-      </DragDropContext>
-
-      {/* AI Insights Panel */}
-      <div className="bg-gradient-to-r from-sky-100 to-blue-50 p-5 rounded-xl shadow-sm border border-sky-200 mt-6">
-        <h3 className="text-lg font-semibold text-sky-800 mb-3 flex items-center">
-          <BsStars className="text-blue-500 mr-2" />
-          AI Performance Insights
-        </h3>
-        <div className="space-y-3 text-sm">
-          <div className="bg-white p-3 rounded-lg shadow-sm">
-            <div className="font-medium text-sky-900">Revenue Growth Opportunity</div>
-            <div className="text-sky-700">Enterprise segment shows 25% higher growth potential than SMB. Consider reallocating 15% of SMB resources to enterprise sales.</div>
-          </div>
-          <div className="bg-white p-3 rounded-lg shadow-sm">
-            <div className="font-medium text-sky-900">Churn Risk Alert</div>
-            <div className="text-sky-700">Customers with 6-12 months tenure have 18% higher churn risk. Recommend implementing a loyalty program for this cohort.</div>
-          </div>
-          <div className="bg-white p-3 rounded-lg shadow-sm">
-            <div className="font-medium text-sky-900">Marketing Optimization</div>
-            <div className="text-sky-700">Content marketing yields 3.2x higher ROI than paid ads for lead generation. Suggest increasing content budget by 20%.</div>
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                onClick={closeDeleteConfirmDialog}
+                disabled={isDeletingGLCode}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md border border-gray-300 disabled:opacity-50"
+              >
+                No, Cancel
+              </button>
+              <button
+                onClick={handleDeleteGLCode}
+                disabled={isDeletingGLCode}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md border border-red-600 disabled:opacity-50 disabled:bg-red-400 flex items-center"
+              >
+                {isDeletingGLCode ? (
+                  <><TailSpin color="#FFFFFF" height={16} width={16} className="mr-2" /> Deleting...</>
+                ) : (
+                  "Yes, Delete"
+                )}
+              </button>
+            </div>
           </div>
         </div>
-        <div className="mt-4 flex">
-          <input 
-            type="text" 
-            placeholder="Ask about any performance metric..." 
-            className="flex-1 p-2 border border-gray-300 rounded-l text-sm" 
-          />
-          <button className="bg-sky-600 text-white px-4 py-2 rounded-r hover:bg-sky-700">
-            Ask AI
-          </button>
-        </div>
-      </div>
+      )}
+      <style jsx global>{`
+        .react-datepicker-small .react-datepicker__month-container { width: 100%; }
+        .react-datepicker-small .react-datepicker__day,
+        .react-datepicker-small .react-datepicker__day-name {
+          margin: 0.1rem;
+          font-size: 0.7rem;
+          line-height: 1.4rem;
+          width: 1.4rem;
+          height: 1.4rem;
+        }
+        .react-datepicker-small .react-datepicker__header--custom {
+          background-color: transparent; border-bottom: none; padding: 0;
+        }
+        .react-datepicker-popper[data-placement^=top] .react-datepicker__triangle::before,
+        .react-datepicker-popper[data-placement^=bottom] .react-datepicker__triangle::before,
+        .react-datepicker-popper[data-placement^=top] .react-datepicker__triangle::after,
+        .react-datepicker-popper[data-placement^=bottom] .react-datepicker__triangle::after {
+          /* You might need to adjust triangle colors if they don't match the custom header */
+        }
+        .react-datepicker-inline { width: 100%; }
 
-      <ReactTooltip id="chart-type-tooltip" place="top" effect="solid" />
-      <ReactTooltip id="ai-tooltip" place="top" effect="solid" />
+        /* Tailwind CSS Scrollbar Plugin (optional, but makes it look nicer) */
+        .scrollbar-thin { scrollbar-width: thin; }
+        .scrollbar-thumb-sky-300::-webkit-scrollbar-thumb { --tw-scrollbar-thumb: #7dd3fc; background-color: var(--tw-scrollbar-thumb); }
+        .scrollbar-thumb-sky-300 { scrollbar-color: #7dd3fc var(--tw-scrollbar-track); }
+        .scrollbar-track-sky-100::-webkit-scrollbar-track { --tw-scrollbar-track: #e0f2fe; background-color: var(--tw-scrollbar-track); }
+        .scrollbar-track-sky-100 { --tw-scrollbar-track: #e0f2fe; }
+
+      `}</style>
     </div>
   );
 };
 
-export default PerformanceAnalytics;
+export default SettingsCustomization;
