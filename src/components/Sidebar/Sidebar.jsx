@@ -401,7 +401,7 @@ const MENUITEMS = [
       {
         path: "/gl-upload-screen",
         icon: { name: "TbWorldUpload" },
-        title: "Upload GL File ",
+        title: "Upload GL Filefin ",
         type: "link",
       },
       {
