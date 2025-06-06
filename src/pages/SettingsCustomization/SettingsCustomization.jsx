@@ -180,9 +180,16 @@ const SettingsCustomization = () => {
   const [totalGLCodesCount, setTotalGLCodesCount] = useState(0);
   const [isFetchingAllGLCodes, setIsFetchingAllGLCodes] = useState(false);
 
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [glCodeToDelete, setGLCodeToDelete] = useState(null);
-  const [isDeletingGLCode, setIsDeletingGLCode] = useState(false);
+ // States for Editing GL Code
+   const [editingGLCode, setEditingGLCode] = useState(null);
+   const [editFormData, setEditFormData] = useState({ account_name: '', category: '' });
+   const [isUpdatingGLCode, setIsUpdatingGLCode] = useState(false);
+ 
+   // States for Deleting GL Code
+   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+   const [glCodeToDelete, setGLCodeToDelete] = useState(null);
+   const [isDeletingGLCode, setIsDeletingGLCode] = useState(false);
+ 
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -445,6 +452,55 @@ const SettingsCustomization = () => {
     } finally { if(showToasts) setIsFetchingAllGLCodes(false); }
   };
 
+
+  // --- Edit Functions ---
+    const openEditDialog = (glCode) => {
+      setEditingGLCode(glCode);
+      setEditFormData({
+        account_name: glCode.account_name,
+        category: glCode.category,
+      });
+    };
+  
+    const closeEditDialog = () => {
+      setEditingGLCode(null);
+      setEditFormData({ account_name: '', category: '' });
+    };
+    
+    const handleUpdateGLCode = async () => {
+      if (!editingGLCode || !editFormData.account_name || !editFormData.category) {
+        showGLToast('Account Name and Category cannot be empty.', 'error');
+        return;
+      }
+      setIsUpdatingGLCode(true);
+      try {
+        const payload = {
+          account_name: editFormData.account_name,
+          category: editFormData.category,
+        };
+        
+        const response = await fetch(`${API_BASE_URL}/api/v1/company/financial/gl-master/${editingGLCode.general_ledger_code}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+          body: JSON.stringify(payload)
+        });
+        const responseData = await response.json();
+        if (!response.ok) {
+          throw new Error(responseData.detail || `Failed to update GL Account ${editingGLCode.general_ledger_code}.`);
+        }
+        showGLToast(responseData.message || `GL Account '${editingGLCode.general_ledger_code}' updated successfully!`, 'success');
+        
+        closeEditDialog();
+        fetchAllGLCodes(false); // Refresh list without showing loading indicators
+      } catch (error) {
+        showGLToast(error.message, 'error', 6000);
+      } finally {
+        setIsUpdatingGLCode(false);
+      }
+    };
+  
+
+  // Delete Functions
   const openDeleteConfirmDialog = (glCode) => { setGLCodeToDelete(glCode); setShowDeleteConfirm(true); };
   const closeDeleteConfirmDialog = () => { setGLCodeToDelete(null); setShowDeleteConfirm(false); };
 
@@ -836,8 +892,7 @@ const SettingsCustomization = () => {
                       )}
                     </div>
                     <p className="text-sm text-gray-600 mb-4">
-                      View a list of all General Ledger codes currently in the system.
-                      Click the button below to fetch or refresh the data.
+                      View, edit, or delete General Ledger codes currently in the system.
                     </p>
                     <button
                       onClick={() => fetchAllGLCodes(true)}
@@ -891,14 +946,11 @@ const SettingsCustomization = () => {
                             <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{formatDate(code.updated_at)}</td>
                             <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500 text-opacity-70">{code.id}</td>
                             <td className="px-3 py-2 whitespace-nowrap text-sm text-center">
-                              <button
-                                onClick={() => openDeleteConfirmDialog(code)}
-                                className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-md transition-colors"
-                                title={`Delete GL Account ${code.general_ledger_code}`}
-                              >
-                                <FiTrash2 className="w-4 h-4" />
-                              </button>
-                            </td>
+                                                          <div className="flex items-center justify-center space-x-2">
+                                                            <button onClick={() => openEditDialog(code)} className="p-1.5 text-sky-600 hover:text-sky-800 hover:bg-sky-100 rounded-md transition-colors" title={`Edit GL Account ${code.general_ledger_code}`}><FiEdit2 className="w-4 h-4" /></button>
+                                                            <button onClick={() => openDeleteConfirmDialog(code)} className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-md transition-colors" title={`Delete GL Account ${code.general_ledger_code}`}><FiTrash2 className="w-4 h-4" /></button>
+                                                          </div>
+                                                        </td>
                           </tr>
                         ))}
                       </tbody>
@@ -918,6 +970,39 @@ const SettingsCustomization = () => {
 
       </div>
 
+      {/* Edit GL Code Modal */}
+            {editingGLCode && (
+              <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg">
+                  <div className="flex justify-between items-center mb-4 border-b pb-3">
+                     <h3 className="text-lg font-semibold text-gray-900">Edit GL Account</h3>
+                     <button onClick={closeEditDialog} className="p-1.5 rounded-full hover:bg-gray-100"><FiX className="w-5 h-5 text-gray-500"/></button>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">GL Code (Read-only)</label>
+                        <input type="text" value={editingGLCode.general_ledger_code} readOnly className="mt-1 block w-full bg-gray-100 border-gray-300 rounded-md shadow-sm p-2 text-sm" />
+                    </div>
+                    <div>
+                        <label htmlFor="edit_account_name" className="block text-sm font-medium text-gray-700">Account Name</label>
+                        <input id="edit_account_name" type="text" value={editFormData.account_name} onChange={(e) => setEditFormData({...editFormData, account_name: e.target.value})} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 text-sm focus:ring-sky-500 focus:border-sky-500" />
+                    </div>
+                    <div>
+                        <label htmlFor="edit_category" className="block text-sm font-medium text-gray-700">Category</label>
+                        <input id="edit_category" type="text" value={editFormData.category} onChange={(e) => setEditFormData({...editFormData, category: e.target.value})} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 text-sm focus:ring-sky-500 focus:border-sky-500" />
+                    </div>
+                  </div>
+                  <div className="mt-8 flex justify-end space-x-3">
+                    <button onClick={closeEditDialog} disabled={isUpdatingGLCode} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md border border-gray-300 disabled:opacity-50">Cancel</button>
+                    <button onClick={handleUpdateGLCode} disabled={isUpdatingGLCode} className="px-4 py-2 text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 rounded-md border border-sky-600 disabled:opacity-50 disabled:bg-sky-400 flex items-center">
+                      {isUpdatingGLCode ? (<><TailSpin color="#FFFFFF" height={16} width={16} className="mr-2" /> Saving...</>) : "Save Changes"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+      
+            {/* Delete Confirmation Modal */}
       {showDeleteConfirm && glCodeToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
