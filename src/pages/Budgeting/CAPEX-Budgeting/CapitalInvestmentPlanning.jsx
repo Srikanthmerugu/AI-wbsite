@@ -149,12 +149,11 @@ const CapitalInvestmentPlanning = () => {
         </div>
         <div className="flex items-center space-x-4 mt-3 md:mt-0">
           <div className="text-xs text-right text-gray-500">
-            <span className="font-semibold">Version 3.0</span>
-            <div className="font-mono">Last Saved: {new Date().toLocaleTimeString()}</div>
+            {/* <div className="font-mono">Last Saved: {new Date().toLocaleTimeString()}</div> */}
           </div>
-          <button className="flex items-center py-2 px-4 text-xs font-medium text-white bg-sky-600 rounded-lg shadow-sm hover:bg-sky-700 transition-colors">
+          {/* <button className="flex items-center py-2 px-4 text-xs font-medium text-white bg-sky-600 rounded-lg shadow-sm hover:bg-sky-700 transition-colors">
             <FiCheckCircle className="mr-2" /> Submit for Approval
-          </button>
+          </button> */}
         </div>
       </div>
       

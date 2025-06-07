@@ -181,7 +181,7 @@ const BudgetVsActuals = () => {
                                 <BsStars className="inline mr-1 text-sky-500"/>{alert.aiInsight.substring(0, 40)}...
                                 <span className="absolute bottom-full left-0 mb-2 w-full p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 shadow-lg">{alert.aiInsight}</span>
                             </p>
-                             <button className="text-xs mt-2 text-sky-700 hover:text-sky-900 font-semibold">Review Details →</button>
+                             {/* <button className="text-xs mt-2 text-sky-700 hover:text-sky-900 font-semibold">Review Details →</button> */}
                         </div>
                     );
                 }) : (

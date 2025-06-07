@@ -118,8 +118,8 @@ export const HeadcountPlanning = () => {
                 <select value={scenario} onChange={e => setScenario(e.target.value)} className="p-2 border border-sky-400 rounded-lg text-sm bg-white/20 text-white shadow-sm focus:ring-2 focus:ring-white">
                   <option className="text-black" value="base">Base Plan</option><option className="text-black" value="growth">Growth Plan</option><option className="text-black" value="conservative">Conservative Plan</option>
                 </select>
-                <div className="bg-white/20 text-white text-xs font-semibold px-3 py-2 rounded-lg">Version: {initialHeadcountData[scenario].version}</div>
-                <button className="flex items-center py-2 px-4 text-xs font-medium text-white bg-sky-700 rounded-lg border border-sky-600 hover:bg-sky-600"><FiCheckCircle className="mr-1.5" /> Submit for Approval</button>
+                {/* <div className="bg-white/20 text-white text-xs font-semibold px-3 py-2 rounded-lg">Version: {initialHeadcountData[scenario].version}</div> */}
+                {/* <button className="flex items-center py-2 px-4 text-xs font-medium text-white bg-sky-700 rounded-lg border border-sky-600 hover:bg-sky-600"><FiCheckCircle className="mr-1.5" /> Submit for Approval</button> */}
             </div>
         </div>
       </div>
