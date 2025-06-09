@@ -1,709 +1,361 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { BsGraphUp, BsShieldCheck, BsSliders, BsStars, BsTable, BsPencil, BsCalculator, BsPieChart, BsInfoCircle } from "react-icons/bs";
-import { FiDownload, FiChevronDown, FiChevronRight } from "react-icons/fi";
-import { Bar, Doughnut } from 'react-chartjs-2';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useRef, useEffect } from "react";
+import * as XLSX from 'xlsx';
 import {
-  Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend, Filler
-} from 'chart.js';
-import { Tooltip as ReactTooltip } from 'react-tooltip';
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Bar, Line, Pie } from "react-chartjs-2";
+import { FiSave, FiUpload, FiDownload, FiPrinter, FiInfo } from "react-icons/fi";
+import { BsFilter } from 'react-icons/bs';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend, Filler);
+// Register ChartJS components
+ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, ArcElement, Title, Tooltip, Legend);
 
-// Enhanced Currency Formatter with more formatting options
-const formatCurrency = (value, compact = true) => {
-  if (value === 0) return '₹0';
-  const isNegative = value < 0;
-  const absValue = Math.abs(value);
-  
-  let formattedValue;
-  if (compact) {
-    if (absValue >= 10000000) formattedValue = `₹${(absValue / 10000000).toFixed(2)} Cr`;
-    else if (absValue >= 100000) formattedValue = `₹${(absValue / 100000).toFixed(2)} L`;
-    else formattedValue = `₹${Math.round(absValue).toLocaleString('en-IN')}`;
-  } else {
-    formattedValue = `₹${Math.round(absValue).toLocaleString('en-IN')}`;
-  }
-  
-  return isNegative ? `-${formattedValue}` : formattedValue;
+const SCENARIOS = {
+  BASELINE: "Baseline",
+  OPTIMISTIC_REVENUE: "Optimistic Revenue",
+  PESSIMISTIC_REVENUE: "Pessimistic Revenue",
 };
 
-// Expanded Mock Data
-const initialRevenueForecast = [
-  { id: 'p1', name: 'Enterprise Suite', confidence: 91, monthly_revenue: 32000000, growth: 12 },
-  { id: 'p2', name: 'SaaS Platform', confidence: 85, monthly_revenue: 18000000, growth: 22 },
-  { id: 'p3', name: 'Consulting Services', confidence: 78, monthly_revenue: 8500000, growth: 8 },
-  { id: 'p4', name: 'API Services', confidence: 95, monthly_revenue: 11000000, growth: 35 },
-  { id: 'p5', name: 'Training Programs', confidence: 70, monthly_revenue: 6000000, growth: 15 },
-  { id: 'p6', name: 'Marketplace', confidence: 88, monthly_revenue: 4500000, growth: 42 },
-  { id: 'p7', name: 'Licensing', confidence: 82, monthly_revenue: 7500000, growth: 5 },
-  { id: 'p8', name: 'Support Contracts', confidence: 90, monthly_revenue: 5200000, growth: 18 },
-];
-
-const initialExpenseLinkage = [
-  // Marketing
-  { id: 'e1', department: 'Marketing', category: 'Digital Ads', type: 'Variable', sourceId: 'p1', baseBudget: 1920000, allocationPercent: 6, justification: 'Q3 campaign focus', aiInsight: 'Benchmark for Enterprise is 5-8%. Consider shifting 1% to performance channels.' },
-  { id: 'e2', department: 'Marketing', category: 'Events', type: 'Variable', sourceId: 'p2', baseBudget: 900000, allocationPercent: 5, justification: 'Annual user conference', aiInsight: 'High ROI channel for SaaS. Recommend maintaining allocation.' },
-  { id: 'e3', department: 'Marketing', category: 'Content', type: 'Fixed', sourceId: 'none', baseBudget: 500000, allocationPercent: 0, justification: 'Blog, whitepapers' },
-  
-  // Sales
-  { id: 'e4', department: 'Sales', category: 'Commissions', type: 'Variable', sourceId: 'all', baseBudget: 4000000, allocationPercent: 7, justification: 'Standard rate', aiInsight: '7% is market competitive. Consider accelerator for >100% quota.' },
-  { id: 'e5', department: 'Sales', category: 'Enablement', type: 'Variable', sourceId: 'p1', baseBudget: 800000, allocationPercent: 2.5, justification: 'Enterprise training', aiInsight: 'Critical for complex sales. Keep allocation.' },
-  
-  // Support
-  { id: 'e6', department: 'Support', category: 'Salaries', type: 'Variable', sourceId: 'p1', baseBudget: 3200000, allocationPercent: 10, justification: 'Tier 2 team', aiInsight: 'High cost. Explore automation for Tier 1 queries.' },
-  { id: 'e7', department: 'Support', category: 'Tools', type: 'Variable', sourceId: 'p2', baseBudget: 450000, allocationPercent: 2.5, justification: 'Zendesk license' },
-  
-  // Cloud Ops
-  { id: 'e8', department: 'Cloud Ops', category: 'Hosting', type: 'Variable', sourceId: 'p2', baseBudget: 2160000, allocationPercent: 12, justification: 'AWS costs', aiInsight: 'Optimize reserved instances to save 15-20%.' },
-  { id: 'e9', department: 'Cloud Ops', category: 'Infra', type: 'Fixed', sourceId: 'none', baseBudget: 1200000, allocationPercent: 0, justification: 'Monitoring tools' },
-  
-  // R&D
-  { id: 'e10', department: 'R&D', category: 'Core Dev', type: 'Fixed', sourceId: 'none', baseBudget: 6000000, allocationPercent: 0, justification: 'Project Titan' },
-  { id: 'e11', department: 'R&D', category: 'Innovation', type: 'Fixed', sourceId: 'none', baseBudget: 2000000, allocationPercent: 0, justification: 'Labs team' },
-  
-  // G&A
-  { id: 'e12', department: 'G&A', category: 'Facilities', type: 'Fixed', sourceId: 'none', baseBudget: 2500000, allocationPercent: 0, justification: 'Office lease' },
-  { id: 'e13', department: 'G&A', category: 'Legal', type: 'Fixed', sourceId: 'none', baseBudget: 1000000, allocationPercent: 0, justification: 'Compliance' },
-];
-
-const scenarioMultipliers = { 
-  Base: 1.0, 
-  Stretch: 1.15, 
-  Conservative: 0.9,
-  'Downside': 0.75 
-};
-
-const departmentColors = [
-  '#3b82f6', // Marketing - blue
-  '#8b5cf6', // Sales - purple
-  '#10b981', // Support - emerald
-  '#ef4444', // Cloud Ops - red
-  '#f59e0b', // R&D - amber
-  '#64748b', // G&A - slate
-  '#ec4899', // Product - pink
-  '#14b8a6'  // HR - teal
+// Mock data for revenue-driven allocation
+const initialAllocationData = [
+  {
+    department: "Marketing", expenseType: "Demand Generation", linkedRevenue: "New Business ARR",
+    [SCENARIOS.BASELINE]:            { revenueForecast: 1200000, allocationPercent: 12, userAdjustment: 0, aiInsight: "12% is the historical average for this revenue stream to maintain growth." },
+    [SCENARIOS.OPTIMISTIC_REVENUE]:  { revenueForecast: 1500000, allocationPercent: 15, userAdjustment: 0, aiInsight: "Increased allocation to 15% to capitalize on strong market demand and accelerate growth." },
+    [SCENARIOS.PESSIMISTIC_REVENUE]: { revenueForecast: 900000,  allocationPercent: 10, userAdjustment: 0, aiInsight: "Reduced allocation to 10% to preserve cash in a slower market." },
+  },
+  {
+    department: "Sales", expenseType: "Commissions & Bonuses", linkedRevenue: "New Business ARR",
+    [SCENARIOS.BASELINE]:            { revenueForecast: 1200000, allocationPercent: 10, userAdjustment: 0, aiInsight: "Standard 10% commission rate on new business revenue." },
+    [SCENARIOS.OPTIMISTIC_REVENUE]:  { revenueForecast: 1500000, allocationPercent: 11, userAdjustment: 0, aiInsight: "Includes accelerator bonuses for hitting stretch targets." },
+    [SCENARIOS.PESSIMISTIC_REVENUE]: { revenueForecast: 900000,  allocationPercent: 9, userAdjustment: 0, aiInsight: "Lower commission payouts due to smaller deal sizes." },
+  },
+  {
+    department: "Support", expenseType: "Customer Support Staff", linkedRevenue: "Total ARR",
+    [SCENARIOS.BASELINE]:            { revenueForecast: 5000000, allocationPercent: 5, userAdjustment: 0, aiInsight: "Support costs are consistently 5% of total revenue base." },
+    [SCENARIOS.OPTIMISTIC_REVENUE]:  { revenueForecast: 6000000, allocationPercent: 5, userAdjustment: 0, aiInsight: "Support scales linearly with the total customer base." },
+    [SCENARIOS.PESSIMISTIC_REVENUE]: { revenueForecast: 4500000, allocationPercent: 6, userAdjustment: 0, aiInsight: "Higher support ratio due to potential for more issues from cost-sensitive customers." },
+  },
 ];
 
 const RevenueDrivenExpenseAllocation = () => {
-  const [scenario, setScenario] = useState('Base');
-  const [revenueForecast, setRevenueForecast] = useState(initialRevenueForecast);
-  const [expenseLinkage, setExpenseLinkage] = useState(initialExpenseLinkage);
-  const [expandedDepts, setExpandedDepts] = useState({});
-  const [activeTab, setActiveTab] = useState('allocation');
+  const [activeTab, setActiveTab] = useState("allocate");
+  const [period, setPeriod] = useState("Q1 2025");
+  const [hasChanges, setHasChanges] = useState(false);
+  
+  const [allocationData, setAllocationData] = useState(JSON.parse(JSON.stringify(initialAllocationData)));
+  const [activeScenario, setActiveScenario] = useState(SCENARIOS.BASELINE);
+  const [scenarioAssumptions, setScenarioAssumptions] = useState({
+    [SCENARIOS.BASELINE]: "Standard allocation model. Marketing and Sales budgets are a direct percentage of New Business ARR. Support costs are a percentage of Total ARR.",
+    [SCENARIOS.OPTIMISTIC_REVENUE]: "Aggressive investment model. In a high-growth scenario, allocation percentages for Marketing and Sales are increased to fuel further expansion.",
+    [SCENARIOS.PESSIMISTIC_REVENUE]: "Conservative model. In a downturn, allocation percentages are reduced to preserve margin and focus on profitability.",
+  });
+
+  const [allocationVersions, setAllocationVersions] = useState([]);
+  const [allocationTotals, setAllocationTotals] = useState({});
+  const filtersRef = useRef(null);
+
+  const getScenarioDataItem = (item, scenarioKey) => {
+    return item[scenarioKey] || { revenueForecast: 0, allocationPercent: 0, userAdjustment: 0, aiInsight: "N/A" };
+  };
+  
+  const calculateTotalsForScenario = (data, scenarioKey) => {
+    const totals = { totalRevenue: 0, totalAllocated: 0, byDepartment: {}, byRevenueStream: {} };
+    if (!data || data.length === 0) return totals;
+    
+    const revenueStreams = {};
+
+    data.forEach(item => {
+      const scenarioData = getScenarioDataItem(item, scenarioKey);
+      if (!revenueStreams[item.linkedRevenue]) {
+        revenueStreams[item.linkedRevenue] = scenarioData.revenueForecast;
+      }
+      const aiAllocation = scenarioData.revenueForecast * (scenarioData.allocationPercent / 100);
+      const finalAllocation = aiAllocation + scenarioData.userAdjustment;
+
+      totals.totalAllocated += finalAllocation;
+      
+      if (!totals.byDepartment[item.department]) totals.byDepartment[item.department] = 0;
+      totals.byDepartment[item.department] += finalAllocation;
+
+      if (!totals.byRevenueStream[item.linkedRevenue]) totals.byRevenueStream[item.linkedRevenue] = 0;
+      totals.byRevenueStream[item.linkedRevenue] += finalAllocation;
+    });
+    
+    totals.totalRevenue = Object.values(revenueStreams).reduce((sum, rev) => sum + rev, 0);
+
+    return totals;
+  };
 
   useEffect(() => {
-    const initialDepts = initialExpenseLinkage.reduce((acc, exp) => ({...acc, [exp.department]: false}), {});
-    setExpandedDepts(initialDepts);
-  }, []);
+    setAllocationTotals(calculateTotalsForScenario(allocationData, activeScenario));
+  }, [allocationData, activeScenario]);
 
-  const handleRevenueChange = (id, value) => setRevenueForecast(prev => 
-    prev.map(item => (item.id === id ? { ...item, monthly_revenue: parseFloat(value) * 100000 || 0 } : item))
-  );
-  
-  const handleAllocationChange = (id, value) => setExpenseLinkage(prev => 
-    prev.map(item => (item.id === id ? { ...item, allocationPercent: parseFloat(value) || 0 } : item))
-  );
-  
-  const toggleDept = (dept) => setExpandedDepts(prev => ({...prev, [dept]: !prev[dept]}));
-
-  // Enhanced Calculation Engine with Growth Rates
-  const { kpis, charts, groupedExpenses } = useMemo(() => {
-    const baseTotalBudget = initialExpenseLinkage.reduce((sum, e) => sum + e.baseBudget, 0);
-    const totalForecastedRevenue = revenueForecast.reduce((sum, r) => sum + r.monthly_revenue, 0) * scenarioMultipliers[scenario];
-    const revenueGrowth = revenueForecast.reduce((sum, r) => sum + (r.monthly_revenue * (r.growth/100)), 0) / revenueForecast.reduce((sum, r) => sum + r.monthly_revenue, 0);
-    
-    let newTotalAllocatedBudget = 0;
-
-    const finalCalculatedExpenses = expenseLinkage.map(e => {
-      let newAllocatedBudget = e.baseBudget;
-      if (e.type === 'Variable') {
-        const sourceRevenue = e.sourceId === 'all' ? 
-          totalForecastedRevenue : 
-          (revenueForecast.find(r => r.id === e.sourceId)?.monthly_revenue * scenarioMultipliers[scenario] || 0);
-        newAllocatedBudget = sourceRevenue * (e.allocationPercent / 100);
-      }
-      newTotalAllocatedBudget += newAllocatedBudget;
-      return { ...e, newAllocatedBudget, variance: newAllocatedBudget - e.baseBudget };
+  const handleInputChange = (index, field, value) => {
+    setAllocationData(prev => {
+      const newData = JSON.parse(JSON.stringify(prev));
+      newData[index][activeScenario][field] = parseFloat(value) || 0;
+      return newData;
     });
-
-    const varianceFromBase = newTotalAllocatedBudget - baseTotalBudget;
-    const departmentTotals = finalCalculatedExpenses.reduce((acc, curr) => 
-      ({...acc, [curr.department]: (acc[curr.department] || 0) + curr.newAllocatedBudget}), {});
-      
-    const finalGroupedExpenses = finalCalculatedExpenses.reduce((acc, expense) => 
-      ({...acc, [expense.department]: [...(acc[expense.department] || []), expense]}), {});
-
-    return {
-      kpis: { 
-        baseTotalBudget, 
-        totalForecastedRevenue, 
-        newTotalAllocatedBudget, 
-        varianceFromBase,
-        revenueGrowth: (revenueGrowth * 100).toFixed(1),
-        expenseRatio: (newTotalAllocatedBudget / totalForecastedRevenue * 100).toFixed(1)
-      },
-      groupedExpenses: finalGroupedExpenses,
-      charts: {
-        revenueForecast: { 
-          labels: revenueForecast.map(r => r.name), 
-          datasets: [{ 
-            label: 'Monthly Revenue', 
-            data: revenueForecast.map(r => r.monthly_revenue * scenarioMultipliers[scenario]), 
-            backgroundColor: 'rgba(14, 165, 233, 0.7)', 
-            borderColor: 'rgb(14, 165, 233)', 
-            borderWidth: 1 
-          }] 
-        },
-        waterfall: { 
-          labels: ['Base Budget', 'Adjustments', 'New Budget'], 
-          datasets: [{ 
-            data: [baseTotalBudget, varianceFromBase, newTotalAllocatedBudget], 
-            backgroundColor: ['#64748b', varianceFromBase >= 0 ? '#ef4444' : '#22c55e', '#0369a1'], 
-            stack: 'stack' 
-          }, { 
-            data: [0, baseTotalBudget, 0], 
-            backgroundColor: 'rgba(0,0,0,0)', 
-            stack: 'stack' 
-          }] 
-        },
-        composition: { 
-          labels: Object.keys(departmentTotals), 
-          datasets: [{ 
-            data: Object.values(departmentTotals), 
-            backgroundColor: departmentColors, 
-            borderColor: '#fff', 
-            borderWidth: 2 
-          }] 
-        },
-        growthRates: {
-          labels: revenueForecast.map(r => r.name),
-          datasets: [{
-            label: 'Growth Rate',
-            data: revenueForecast.map(r => r.growth),
-            backgroundColor: 'rgba(74, 222, 128, 0.7)',
-            borderColor: 'rgb(22, 163, 74)',
-            borderWidth: 1
-          }]
-        }
-      }
-    };
-  }, [scenario, revenueForecast, expenseLinkage]);
-
-  return (
-    <div className="p-4 md:p-6 bg-slate-50 min-h-screen font-sans">
-      {/* Header Section */}
-      <div className="bg-gradient-to-r from-sky-800 to-sky-600 p-5 rounded-xl shadow-lg mb-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Revenue-Driven Expense Allocation</h1>
-            <p className="text-sky-100 text-sm mt-1">Dynamically align spending with revenue performance</p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0 w-full md:w-auto">
-            <div className="bg-white/10 p-2 rounded-lg">
-              <label className="block text-xs font-medium text-sky-100 mb-1">Scenario Model</label>
-              <select 
-                value={scenario} 
-                onChange={(e) => setScenario(e.target.value)} 
-                className="w-full p-2 border border-sky-400 rounded-lg text-sm bg-white/20 text-white shadow-sm focus:ring-2 focus:ring-white"
-              >
-                <option value="Base" className="text-black">Base Case</option>
-                <option value="Stretch" className="text-black">Stretch (+15%)</option>
-                <option value="Conservative" className="text-black">Conservative (-10%)</option>
-                <option value="Downside" className="text-black">Downside (-25%)</option>
-              </select>
-            </div>
-            <button className="bg-white text-sky-700 hover:bg-slate-100 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
-              <FiDownload size={14} /> Export Plan
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow border border-slate-200">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-xs font-medium text-slate-500">Total Revenue</p>
-              <h3 className="text-2xl font-bold text-slate-800 mt-1">{formatCurrency(kpis.totalForecastedRevenue)}</h3>
-            </div>
-            <BsGraphUp className="text-sky-500 mt-1" />
-          </div>
-          <div className="flex items-center mt-2">
-            <span className={`text-xs font-medium ${parseFloat(kpis.revenueGrowth) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {kpis.revenueGrowth}% YoY
-            </span>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-lg shadow border border-slate-200">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-xs font-medium text-slate-500">Total Expenses</p>
-              <h3 className="text-2xl font-bold text-slate-800 mt-1">{formatCurrency(kpis.newTotalAllocatedBudget)}</h3>
-            </div>
-            <BsCalculator className="text-sky-500 mt-1" />
-          </div>
-          <div className="flex items-center mt-2">
-            <span className={`text-xs font-medium ${kpis.varianceFromBase >= 0 ? 'text-red-600' : 'text-green-600'}`}>
-              {kpis.varianceFromBase >= 0 ? '+' : ''}{formatCurrency(kpis.varianceFromBase)} vs Base
-            </span>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-lg shadow border border-slate-200">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-xs font-medium text-slate-500">Expense Ratio</p>
-              <h3 className="text-2xl font-bold text-slate-800 mt-1">{kpis.expenseRatio}%</h3>
-            </div>
-            <BsPieChart className="text-sky-500 mt-1" />
-          </div>
-          <div className="flex items-center mt-2">
-            <span className="text-xs font-medium text-slate-500">of Revenue</span>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-lg shadow border border-slate-200">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-xs font-medium text-slate-500">Variable Expenses</p>
-              <h3 className="text-2xl font-bold text-slate-800 mt-1">
-                {expenseLinkage.filter(e => e.type === 'Variable').length}
-              </h3>
-            </div>
-            <BsSliders className="text-sky-500 mt-1" />
-          </div>
-          <div className="flex items-center mt-2">
-            <span className="text-xs font-medium text-slate-500">Linked Drivers</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Chart Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* Revenue Forecast */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm lg:col-span-2">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-              <BsGraphUp className="text-sky-600" /> Revenue Forecast ({scenario} Scenario)
-            </h3>
-            <div className="flex items-center gap-2">
-              <button 
-                className={`text-xs px-3 py-1 rounded-full ${activeTab === 'revenue' ? 'bg-sky-100 text-sky-700' : 'bg-slate-100 text-slate-600'}`}
-                onClick={() => setActiveTab('revenue')}
-              >
-                Revenue
-              </button>
-              <button 
-                className={`text-xs px-3 py-1 rounded-full ${activeTab === 'growth' ? 'bg-sky-100 text-sky-700' : 'bg-slate-100 text-slate-600'}`}
-                onClick={() => setActiveTab('growth')}
-              >
-                Growth Rates
-              </button>
-            </div>
-          </div>
-          <div className="h-64">
-            {activeTab === 'revenue' ? (
-              <Bar 
-                options={{
-                  responsive: true, 
-                  maintainAspectRatio: false, 
-                  indexAxis: 'y', 
-                  plugins: { legend: { display: false } }, 
-                  scales: { 
-                    x: { 
-                      ticks: { callback: v => formatCurrency(v) },
-                      grid: { color: 'rgba(0,0,0,0.05)' }
-                    },
-                    y: {
-                      grid: { display: false }
-                    }
-                  }
-                }} 
-                data={charts.revenueForecast} 
-              />
-            ) : (
-              <Bar 
-                options={{
-                  responsive: true, 
-                  maintainAspectRatio: false, 
-                  indexAxis: 'y', 
-                  plugins: { legend: { display: false } }, 
-                  scales: { 
-                    x: { 
-                      max: 50,
-                      ticks: { callback: v => `${v}%` },
-                      grid: { color: 'rgba(0,0,0,0.05)' }
-                    },
-                    y: {
-                      grid: { display: false }
-                    }
-                  }
-                }} 
-                data={charts.growthRates} 
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Budget Waterfall */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-            <BsCalculator className="text-sky-600" /> Budget Waterfall
-          </h3>
-          <div className="h-64">
-            <Bar 
-              options={{
-                responsive: true, 
-                maintainAspectRatio: false, 
-                plugins: { legend: { display: false } }, 
-                scales: { 
-                  y: { 
-                    ticks: { callback: v => formatCurrency(v) },
-                    grid: { color: 'rgba(0,0,0,0.05)' }
-                  },
-                  x: {
-                    grid: { display: false }
-                  }
-                }
-              }} 
-              data={charts.waterfall} 
-            />
-          </div>
-          <div className="flex justify-between items-center mt-3 text-xs text-slate-600">
-            <div className="flex items-center">
-              <div className="w-3 h-3 rounded-sm bg-slate-500 mr-2"></div>
-              <span>Base Budget</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 rounded-sm bg-red-500 mr-2"></div>
-              <span>Adjustment</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 rounded-sm bg-blue-600 mr-2"></div>
-              <span>New Budget</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Expense Composition */}
-<div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
-  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm lg:col-span-1">
-    <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-      <BsPieChart className="text-sky-600" /> Expense Composition
-    </h3>
-    <div className="relative h-48 w-full mx-auto">
-      <Doughnut 
-        options={{
-          responsive: true, 
-          maintainAspectRatio: false, 
-          cutout: '65%', 
-          plugins: { 
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const label = context.label || '';
-                  const value = context.raw || 0;
-                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                  const percentage = Math.round((value / total) * 100);
-                  return `${label}: ${formatCurrency(value)} (${percentage}%)`;
-                }
-              }
-            }
-          }
-        }} 
-        data={charts.composition} 
-      />
-    </div>
-    
-    {/* Detailed Explanation Section */}
-    <div className="mt-4 space-y-3">
-      <div className="flex items-start gap-2">
-        <BsInfoCircle className="text-sky-500 mt-0.5 flex-shrink-0" />
-        <p className="text-xs text-slate-600">
-          This breakdown shows how expenses are distributed across departments under the {scenario} scenario.
-        </p>
-      </div>
-      
-      <div className="border-t border-slate-100 pt-3">
-        <div className="flex justify-between text-xs mb-1">
-          <span className="text-slate-500">Total Expenses:</span>
-          <span className="font-medium text-slate-700">{formatCurrency(kpis.newTotalAllocatedBudget)}</span>
-        </div>
-        <div className="flex justify-between text-xs">
-          <span className="text-slate-500">Variable Ratio:</span>
-          <span className="font-medium text-slate-700">
-            {(
-              expenseLinkage
-                .filter(e => e.type === 'Variable')
-                .reduce((sum, e) => sum + e.newAllocatedBudget, 0) / 
-              kpis.newTotalAllocatedBudget * 100
-            ).toFixed(1)}%
-          </span>
-        </div>
-      </div>
-      
-      <div className="border-t border-slate-100 pt-3">
-        <h4 className="text-xs font-semibold text-slate-700 mb-1">Key Observations:</h4>
-        <ul className="text-xs text-slate-600 space-y-1">
-          <li className="flex items-start gap-1">
-            <span>•</span>
-            <span>R&D accounts for the largest fixed cost center</span>
-          </li>
-          <li className="flex items-start gap-1">
-            <span>•</span>
-            <span>Sales has the highest variable component (commissions)</span>
-          </li>
-          <li className="flex items-start gap-1">
-            <span>•</span>
-            <span>Cloud costs scale directly with SaaS revenue</span>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </div>
+    setHasChanges(true);
+  };
   
-  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm lg:col-span-3">
-          <h3 className="text-lg font-semibold text-slate-800 mb-3 flex items-center gap-2">
-            <BsTable className="text-sky-600" /> Department Breakdown
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-xs text-slate-500 bg-slate-100">
-                <tr>
-                  <th className="px-4 py-2 text-left font-semibold w-1/4">Department</th>
-                  <th className="px-4 py-2 text-right font-semibold">Budget</th>
-                  <th className="px-4 py-2 text-right font-semibold">% of Total</th>
-                  <th className="px-4 py-2 text-right font-semibold">Var/Fixed</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(groupedExpenses).map(([dept, expenses], i) => {
-                  const deptTotal = expenses.reduce((sum, e) => sum + e.newAllocatedBudget, 0);
-                  const variablePercent = (expenses.filter(e => e.type === 'Variable').reduce((sum, e) => sum + e.newAllocatedBudget, 0) / deptTotal * 100);
-                  
-                  return (
-                    <tr key={dept} className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50">
-                      <td className="px-4 py-3 font-medium text-slate-700">
-                        <div className="flex items-center">
-                          <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: departmentColors[i] }}></div>
-                          {dept}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono font-medium text-slate-800">
-                        {formatCurrency(deptTotal)}
-                      </td>
-                      <td className="px-4 py-3 text-right text-slate-600">
-                        {(deptTotal / kpis.newTotalAllocatedBudget * 100).toFixed(1)}%
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex justify-end">
-                          <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full">
-                            {variablePercent.toFixed(0)}% Variable
-                          </span>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+  const handleSaveAll = () => {
+    const timestamp = new Date().toISOString();
+    const totalsByScenario = {};
+    Object.values(SCENARIOS).forEach(scen => {
+      totalsByScenario[scen] = calculateTotalsForScenario(allocationData, scen);
+    });
+    setAllocationVersions(prev => [...prev, { period, timestamp, data: JSON.parse(JSON.stringify(allocationData)), totalsByScenario, assumptions: JSON.parse(JSON.stringify(scenarioAssumptions))}]);
+    setHasChanges(false);
+    alert("Allocation model version saved successfully!");
+  };
+
+  const handleExport = () => {
+    const dataForExport = allocationData.map(item => {
+      const scenarioData = getScenarioDataItem(item, activeScenario);
+      const aiAllocation = scenarioData.revenueForecast * (scenarioData.allocationPercent / 100);
+      const finalAllocation = aiAllocation + scenarioData.userAdjustment;
+      return {
+        'Department': item.department, 'Expense Type': item.expenseType, 'Linked Revenue': item.linkedRevenue,
+        'Revenue Forecast': scenarioData.revenueForecast, 'Allocation (%)': scenarioData.allocationPercent,
+        'User Adjustment': scenarioData.userAdjustment, 'Final Allocation': finalAllocation,
+      };
+    });
+    const worksheet = XLSX.utils.json_to_sheet(dataForExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, `Revenue-Driven Budget`);
+    XLSX.writeFile(workbook, `Revenue_Driven_Budget_${activeScenario.replace(/\s+/g, '_')}.xlsx`);
+  };
+
+  const handleImport = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data);
+      const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+      
+      const dataMap = new Map(allocationData.map(d => [`${d.department}-${d.expenseType}`, JSON.parse(JSON.stringify(d))]));
+      jsonData.forEach(row => {
+        const key = `${row['Department']}-${row['Expense Type']}`;
+        if (dataMap.has(key)) {
+          const itemToUpdate = dataMap.get(key);
+          const scenarioItem = getScenarioDataItem(itemToUpdate, activeScenario);
+          scenarioItem.revenueForecast = row['Revenue Forecast'] ?? scenarioItem.revenueForecast;
+          scenarioItem.allocationPercent = row['Allocation (%)'] ?? scenarioItem.allocationPercent;
+          scenarioItem.userAdjustment = row['User Adjustment'] ?? scenarioItem.userAdjustment;
+          dataMap.set(key, itemToUpdate);
+        }
+      });
+      setAllocationData(Array.from(dataMap.values()));
+      setHasChanges(true);
+      alert(`Data for ${activeScenario} imported. Review changes.`);
+      e.target.value = '';
+    } catch (error) {
+      console.error("Error importing file:", error);
+      alert("Error importing file.");
+    }
+  };
+  
+  const handleRestoreVersion = (version) => {
+    setAllocationData(JSON.parse(JSON.stringify(version.data)));
+    setScenarioAssumptions(JSON.parse(JSON.stringify(version.assumptions)));
+    setHasChanges(false);
+    alert(`Version from ${new Date(version.timestamp).toLocaleString()} restored.`);
+  };
+  
+  const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "top" } } };
+  const pieChartData = {
+    labels: Object.keys(allocationTotals.byDepartment || {}),
+    datasets: [{ data: Object.values(allocationTotals.byDepartment || {}), backgroundColor: ['#3b82f6', '#10b981', '#f97316', '#ef4444', '#8b5cf6'], hoverOffset: 4 }],
+  };
+  const barChartData = {
+    labels: Object.keys(allocationTotals.byRevenueStream || {}),
+    datasets: [{ label: 'Expense Allocation by Revenue Stream', data: Object.values(allocationTotals.byRevenueStream || {}), backgroundColor: 'rgba(16, 185, 129, 0.7)' }],
+  };
+  
+  return (
+    <div className="space-y-6 p-4 min-h-screen relative bg-sky-50">
+      <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
+        <div className="flex justify-between items-center">
+          <div><h1 className="text-lg font-bold text-white">Revenue-Driven Expense Allocation</h1><p className="text-sky-100 text-xs">Adjust budgets based on expected income trends.</p></div>
+          <div className="flex items-center space-x-4">
+             <div><label className="text-sm text-white font-medium mr-2">Forecast Period:</label><select value={period} onChange={(e) => setPeriod(e.target.value)} className="p-1.5 border bg-sky-50 text-sky-900 border-sky-200 rounded-md text-xs"><option>Q1 2025</option><option>Q2 2025</option></select></div>
+             <button onClick={() => window.print()} className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 transition-colors"><FiPrinter className="text-sky-50" /><span className="text-sky-50">Print</span></button>
           </div>
         </div>
       </div>
 
-      {/* Data Tables Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue Source Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-          <div className="p-5 border-b border-slate-200 flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-              <BsPencil className="text-sky-600" /> Revenue Drivers
-            </h2>
-            <div className="flex items-center gap-2">
-              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                {revenueForecast.length} Products
-              </span>
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-xs text-slate-500 bg-slate-100">
-                <tr>
-                  <th className="px-4 py-2 text-left font-semibold">Revenue Source</th>
-                  <th className="px-4 py-2 text-right font-semibold">Forecast (₹L)</th>
-                  <th className="px-4 py-2 text-right font-semibold">Growth</th>
-                  <th className="px-4 py-2 text-right font-semibold">Confidence</th>
-                </tr>
-              </thead>
-              <tbody>
-                {revenueForecast.map((r, index) => (
-                  <tr 
-                    key={r.id} 
-                    className={`${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'} border-b border-slate-100 last:border-b-0 hover:bg-slate-100`}
-                  >
-                    <td className="px-4 py-3 font-medium text-slate-700">{r.name}</td>
-                    <td className="px-4 py-3">
-                      <div className="relative flex justify-end items-center">
-                        <input 
-                          type="number" 
-                          value={(r.monthly_revenue / 100000).toFixed(2)} 
-                          onChange={e => handleRevenueChange(r.id, e.target.value)} 
-                          className="w-24 text-right font-mono bg-slate-100 rounded-md p-1.5 border border-slate-300 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-                        />
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span className={`font-medium ${r.growth >= 20 ? 'text-green-600' : r.growth >= 10 ? 'text-amber-600' : 'text-red-600'}`}>
-                        {r.growth}%
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex justify-end">
-                        <div className="w-full max-w-[80px] bg-slate-200 rounded-full h-2">
-                          <div 
-                            className={`h-2 rounded-full ${r.confidence >= 85 ? 'bg-green-500' : r.confidence >= 70 ? 'bg-amber-500' : 'bg-red-500'}`} 
-                            style={{ width: `${r.confidence}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      <div className="flex items-center gap-3 border-b mt-5 py-3 border-gray-200 mb-6">
+        {[{id: 'allocate', label: 'Allocate by Revenue'}, {id: 'import', label: 'Import Budgets'}, {id: 'compare', label: 'Compare Scenarios'}].map(tab => (
+          <button key={tab.id} className={`py-2 px-4 font-medium text-sm ${activeTab === tab.id ? 'text-sky-50 border-b-2 border-sky-600 bg-sky-800 rounded-t-lg' : 'text-sky-900 hover:text-sky-500 hover:bg-sky-100 rounded-t-lg'}`} onClick={() => setActiveTab(tab.id)}>{tab.label}</button>
+        ))}
+        <div className="ml-4">
+            <label className="text-sm font-medium text-sky-800 mr-2">Active Scenario:</label>
+            <select value={activeScenario} onChange={(e) => { if(hasChanges && !window.confirm("Unsaved changes. Switch anyway?")) return; setActiveScenario(e.target.value); setHasChanges(false); }} className="p-1.5 border border-sky-300 bg-white text-sky-900 rounded-md text-xs">
+                {Object.values(SCENARIOS).map(name => <option key={name} value={name}>{name}</option>)}
+            </select>
         </div>
-
-        {/* Detailed Allocation Ledger */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-          <div className="p-5 border-b border-slate-200 flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-              <BsPencil className="text-sky-600" /> Expense Drivers
-            </h2>
-            <div className="flex items-center gap-2">
-              <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
-                {expenseLinkage.length} Line Items
-              </span>
+        <div className="relative ml-auto" ref={filtersRef}><button className="py-2 px-3 text-gray-500 hover:text-blue-500 flex items-center text-sm"><BsFilter className="mr-1" /> Filters</button></div>
+      </div>
+      
+      <div>
+        {activeTab === 'allocate' && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Expected Revenue</p><p className="text-2xl font-bold text-green-600">${(allocationTotals?.totalRevenue || 0).toLocaleString()}</p></div>
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Total Allocated Budget</p><p className="text-2xl font-bold text-sky-900">${(allocationTotals?.totalAllocated || 0).toLocaleString()}</p></div>
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Spend-to-Revenue Ratio</p><p className="text-2xl font-bold text-sky-900">{allocationTotals.totalRevenue > 0 ? ((allocationTotals.totalAllocated / allocationTotals.totalRevenue) * 100).toFixed(1) : 0}%</p></div>
             </div>
-          </div>
-          <div className="space-y-2 p-3">
-            {Object.entries(groupedExpenses).map(([dept, expenses]) => {
-              const deptTotal = expenses.reduce((sum, e) => sum + e.newAllocatedBudget, 0);
-              const deptColor = departmentColors[Object.keys(groupedExpenses).indexOf(dept)];
-              
-              return (
-                <div key={dept} className="border border-slate-200 rounded-lg bg-white shadow-xs overflow-hidden">
-                  <div 
-                    className="p-3 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition-colors"
-                    onClick={() => toggleDept(dept)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: deptColor }}></div>
-                      <h4 className="font-semibold text-slate-700">{dept}</h4>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <span className="font-semibold text-slate-800">{formatCurrency(deptTotal)}</span>
-                      {expandedDepts[dept] ? (
-                        <FiChevronDown className="text-slate-500 transition-transform" />
-                      ) : (
-                        <FiChevronRight className="text-slate-500 transition-transform" />
-                      )}
-                    </div>
+
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="bg-white p-4 rounded-lg shadow-sm flex-1 border"><h2 className="text-lg font-semibold text-sky-900 mb-3">Expense by Linked Revenue</h2><div className="h-[250px]"><Bar data={barChartData} options={chartOptions}/></div></div>
+                <div className="bg-white p-4 rounded-lg shadow-sm flex-1 border"><h2 className="text-lg font-semibold text-sky-900 mb-3">Allocation by Department</h2><div className="h-[250px]"><Pie data={pieChartData} options={{...chartOptions, plugins: { legend: { position: 'right' } }}}/></div></div>
+            </div>
+
+            <div className="bg-white rounded-lg mt-5 shadow-sm overflow-hidden border">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold text-sky-900">Revenue-Linked Allocation Editor ({activeScenario})</h2>
+                  <div className="flex space-x-2">
+                    <button onClick={handleExport} className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center"><FiDownload className="mr-2" /> Export</button>
+                    <button onClick={handleSaveAll} disabled={!hasChanges} className={`px-4 py-2 text-sm rounded-lg flex items-center ${hasChanges ? "bg-sky-600 text-white hover:bg-sky-700" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}><FiSave className="mr-2" /> Save Plan</button>
                   </div>
-                  
-                  <AnimatePresence>
-                    {expandedDepts[dept] && (
-                      <motion.div 
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="overflow-x-auto bg-slate-50">
-                          <table className="w-full text-sm">
-                            <thead className="text-xs text-slate-500 bg-slate-100">
-                              <tr>
-                                <th className="px-4 py-2 text-left font-semibold w-1/4">Category</th>
-                                <th className="px-4 py-2 text-left font-semibold w-1/3">Driver</th>
-                                <th className="px-4 py-2 text-right font-semibold">Allocated</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {expenses.map((e, index) => (
-                                <tr 
-                                  key={e.id} 
-                                  className={`border-t border-slate-100 ${index % 2 !== 0 ? 'bg-slate-50/70' : 'bg-white'}`}
-                                >
-                                  <td className="px-4 py-3 font-medium text-slate-700">{e.category}</td>
-                                  <td className="px-4 py-3">
-                                    <div className="flex items-center gap-2 relative">
-                                      {e.type === 'Variable' ? (
-                                        <>
-                                          <input 
-                                            type="number" 
-                                            value={e.allocationPercent} 
-                                            onChange={evt => handleAllocationChange(e.id, evt.target.value)} 
-                                            className="w-16 text-center font-mono bg-white rounded-md p-1.5 border border-slate-300 focus:ring-2 focus:ring-sky-500 focus:border-sky-500" 
-                                          />
-                                          <span className="text-slate-500 text-xs whitespace-nowrap">
-                                            % of {e.sourceId === 'all' ? 'Total Rev' : revenueForecast.find(r => r.id === e.sourceId)?.name.split(' ')[0]}
-                                          </span>
-                                          {e.aiInsight && (
-                                            <button 
-                                              data-tooltip-id="ai-tooltip" 
-                                              data-tooltip-content={e.aiInsight} 
-                                              className="text-purple-500 hover:text-purple-700"
-                                            >
-                                              <BsStars size={14} />
-                                            </button>
-                                          )}
-                                        </>
-                                      ) : (
-                                        <span className="text-xs font-semibold px-2 py-1 bg-slate-200 text-slate-600 rounded-full">
-                                          Fixed Amount
-                                        </span>
-                                      )}
-                                    </div>
-                                  </td>
-                                  <td className="px-4 py-3 text-right">
-                                    <div className="flex flex-col items-end">
-                                      <span className="font-mono font-bold text-slate-800">
-                                        {formatCurrency(e.newAllocatedBudget)}
-                                      </span>
-                                      {e.type === 'Variable' && (
-                                        <span className={`text-xs ${e.variance >= 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                          {e.variance >= 0 ? '+' : ''}{formatCurrency(e.variance)}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
                 </div>
-              );
-            })}
+
+                <div className="overflow-x-auto max-h-[calc(100vh-250px)] relative">
+                  <table className="min-w-full divide-y divide-sky-100">
+                    <thead className="bg-sky-50 sticky top-0 z-10">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-sky-900 uppercase sticky left-0 bg-sky-50 z-20 min-w-[200px]">Department / Expense</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[150px]">Linked Revenue Stream</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">Revenue Forecast</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">Allocation %</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">AI-Suggested</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">User Adjustment</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">Final Allocation</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-sky-100">
+                      {allocationData.map((item, index) => {
+                        const scenarioData = getScenarioDataItem(item, activeScenario);
+                        const rowBgClass = index % 2 === 0 ? "bg-white" : "bg-sky-50/70";
+                        const aiAllocation = scenarioData.revenueForecast * (scenarioData.allocationPercent / 100);
+                        const finalAllocation = aiAllocation + scenarioData.userAdjustment;
+                        return (
+                          <tr key={index} className={`${rowBgClass} hover:bg-sky-100/50`}>
+                            <td className={`px-4 py-3 text-sm font-medium text-sky-900 sticky left-0 z-[5] ${rowBgClass}`}>
+                                <div className="font-semibold">{item.department}</div><div className="text-xs text-sky-600">{item.expenseType}</div>
+                            </td>
+                            <td className="px-2 py-1 text-center text-sm">{item.linkedRevenue}</td>
+                            <td className="px-2 py-1"><input type="number" value={scenarioData.revenueForecast} onChange={(e) => handleInputChange(index, 'revenueForecast', e.target.value)} className="w-full p-1.5 border border-sky-300 rounded-md text-sm text-center bg-white"/></td>
+                            <td className="px-2 py-1"><input type="number" value={scenarioData.allocationPercent} onChange={(e) => handleInputChange(index, 'allocationPercent', e.target.value)} className="w-full p-1.5 border border-sky-300 rounded-md text-sm text-center bg-white"/></td>
+                            <td className="px-2 py-1 text-center text-sm">
+                                <div className="relative group">${aiAllocation.toLocaleString()} <FiInfo className="inline-block ml-1 text-gray-400" />
+                                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 w-max p-1.5 text-xs text-white bg-slate-700 rounded-md opacity-0 group-hover:opacity-100 z-30 pointer-events-none">{scenarioData.aiInsight}</span>
+                                </div>
+                            </td>
+                            <td className="px-2 py-1"><input type="number" value={scenarioData.userAdjustment} onChange={(e) => handleInputChange(index, 'userAdjustment', e.target.value)} className="w-full p-1.5 border border-sky-300 rounded-md text-sm text-center bg-white"/></td>
+                            <td className="px-2 py-1 text-center text-sm font-bold text-sky-900">${finalAllocation.toLocaleString()}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div className="mb-6 mt-6 p-4 bg-sky-100/70 rounded-lg shadow-sm border">
+                <label className="block text-md font-semibold text-sky-800 mb-2">Allocation Strategy & Assumptions for {activeScenario}:</label>
+                <textarea value={scenarioAssumptions[activeScenario] || ''} onChange={(e) => { setScenarioAssumptions(prev => ({...prev, [activeScenario]: e.target.value})); setHasChanges(true); }} rows="3" className="w-full p-2 border border-sky-300 rounded-lg text-sm bg-white" placeholder={`e.g., Allocation logic, income dependency...`} />
+            </div>
+          </>
+        )}
+        
+        {activeTab === 'import' && (
+          <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+            <h2 className="text-xl font-semibold text-sky-900 mb-4">Import Revenue-Linked Budgets</h2>
+            <p className="text-sm text-gray-600 mb-4">Upload an Excel (.xlsx) or CSV (.csv) file with your allocation data. Match by 'Department' and 'Expense Type'.</p>
+            <div className="border-2 border-dashed border-sky-300 rounded-lg p-8 text-center">
+              <FiUpload className="mx-auto text-4xl text-sky-500 mb-3" />
+              <label htmlFor="importFile" className="px-6 py-3 bg-blue-600 text-white text-md font-medium rounded-lg hover:bg-blue-700 cursor-pointer">Choose File to Import</label>
+              <input id="importFile" type="file" onChange={handleImport} accept=".xlsx,.xls,.csv" className="hidden"/>
+              <p className="text-xs text-gray-500 mt-3">File must contain 'Department', 'Expense Type', 'Revenue Forecast', 'Allocation (%)', and 'User Adjustment'.</p>
+            </div>
           </div>
+        )}
+
+        {activeTab === 'compare' && (
+          <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+            <h2 className="text-xl font-semibold text-sky-900 mb-6">Compare Revenue-Based Scenarios</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-sky-200">
+                <thead className="bg-sky-100">
+                  <tr>
+                    <th className="px-5 py-3 text-left text-xs font-semibold text-sky-800 uppercase">Metric</th>
+                    {Object.values(SCENARIOS).map(name => <th key={name} className="px-5 py-3 text-left text-xs font-semibold text-sky-800 uppercase">{name}</th>)}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-sky-100">
+                  {['Total Revenue', 'Total Allocated Budget', 'Spend-to-Revenue Ratio', 'Assumptions'].map(metric => (
+                    <tr key={metric} className={metric === 'Assumptions' ? 'align-top' : ''}>
+                      <td className="px-5 py-4 whitespace-nowrap text-sm font-medium text-sky-900">{metric}</td>
+                      {Object.values(SCENARIOS).map(scenarioName => {
+                        const totals = calculateTotalsForScenario(allocationData, scenarioName);
+                        let value, className = "text-sm text-sky-700";
+                        if (metric === 'Total Revenue') { value = `$${(totals.totalRevenue || 0).toLocaleString()}`; className = "text-sm font-semibold text-green-600"; }
+                        else if (metric === 'Total Allocated Budget') { value = `$${(totals.totalAllocated || 0).toLocaleString()}`; className = "text-sm font-semibold text-sky-800"; }
+                        else if (metric === 'Spend-to-Revenue Ratio') { value = totals.totalRevenue > 0 ? `${((totals.totalAllocated / totals.totalRevenue) * 100).toFixed(1)}%` : '0%'; }
+                        else if (metric === 'Assumptions') { value = scenarioAssumptions[scenarioName] || 'N/A'; className = "text-xs text-gray-600 whitespace-pre-wrap max-w-xs"; }
+                        return <td key={`${metric}-${scenarioName}`} className={`px-5 py-4 ${className}`}>{value}</td>;
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+          <h2 className="text-xl font-semibold text-sky-900 mb-4">Model Version History</h2>
+          {allocationVersions.length === 0 ? <p className="text-sm text-gray-500">No versions saved yet.</p> : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-sky-100">
+                <thead className="bg-sky-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">Timestamp</th>
+                    {Object.values(SCENARIOS).map(scen => <th key={scen} className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">{scen} Total Allocation</th>)}
+                    <th className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-sky-100">
+                  {allocationVersions.map((version, index) => (
+                    <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-sky-50/70"}>
+                      <td className="px-4 py-3 text-sm text-sky-800">{new Date(version.timestamp).toLocaleString()}</td>
+                      {Object.values(SCENARIOS).map(scen => {
+                        const total = version.totalsByScenario?.[scen] || { totalAllocated: 0 };
+                        return <td key={`${index}-${scen}`} className="px-4 py-3 text-sm font-semibold text-sky-800">${total.totalAllocated.toLocaleString()}</td>
+                      })}
+                      <td className="px-4 py-3"><button onClick={() => handleRestoreVersion(version)} className="text-sm text-sky-700 hover:text-sky-900 hover:underline">Restore</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
-
-      <ReactTooltip 
-        id="ai-tooltip" 
-        place="top" 
-        effect="solid" 
-        className="max-w-xs !bg-slate-800 !text-white !text-sm !py-2 !px-3 !rounded-lg !shadow-lg" 
-      />
     </div>
   );
 };

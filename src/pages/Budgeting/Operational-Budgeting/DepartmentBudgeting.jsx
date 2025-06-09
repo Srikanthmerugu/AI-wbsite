@@ -1,554 +1,370 @@
-
-import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useRef, useEffect } from "react";
+import * as XLSX from 'xlsx';
 import {
-  FiFilter,
-  FiDollarSign,
-  FiUsers,
-  FiSave,
-  FiUpload,
-  FiDownload,
-  FiInfo,
-  FiPlusCircle,
-  FiMessageSquare,
-  FiCheckCircle,
-  FiXCircle,
-  FiClock,
-  FiChevronRight,
-  FiCalendar,
-  FiTrendingUp,
-  FiPieChart,
-  FiPrinter,
-  FiSettings,
-  FiEdit,    // <<< NEW IMPORT
-  FiTrash2,  // <<< NEW IMPORT
-} from "react-icons/fi";
-import { BsStars, BsGraphUp, BsExclamationTriangleFill } from "react-icons/bs";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement } from 'chart.js';
-import { Doughnut, Bar } from 'react-chartjs-2';
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Bar, Line, Pie } from "react-chartjs-2";
+import { FiSave, FiUpload, FiDownload, FiPrinter, FiInfo } from "react-icons/fi";
+import { BsFilter } from 'react-icons/bs';
 
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement);
-
-const DEPARTMENTS = {
-  MARKETING: "Marketing",
-  SALES: "Sales",
-  IT: "Information Technology",
-  HR: "Human Resources",
-  OPERATIONS: "Operations",
-  RD: "Research & Development",
-  FINANCE: "Finance",
-};
+// Register ChartJS components
+ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, ArcElement, Title, Tooltip, Legend);
 
 const SCENARIOS = {
   BASELINE: "Baseline",
-  STRETCH: "Stretch Case",
-  WORST_CASE: "Worst Case",
+  STRETCH: "Stretch",
+  CONSERVATIVE: "Conservative",
 };
 
-const PERIODS = ["FY 2025", "H1 2025", "Q1 2025", "Q2 2025", "Q3 2025", "Q4 2025"];
-const MONTHS_FY = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const MONTHS_H1 = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
-
-// Helper function to generate monthly data with slight, realistic variance
-const generateMonthlyValues = (baseValue, monthsArray) => {
-  const monthly = {};
-  monthsArray.forEach(month => {
-    // Simple variation for mock data to look more realistic
-    monthly[month] = Math.round(baseValue * (0.8 + Math.random() * 0.4));
-  });
-  return monthly;
+const EXPENSE_TYPE = {
+  RECURRING: "Recurring",
+  ONE_TIME: "One-Time",
 };
 
-// MOCK DATA: Simulating a configuration that would be fetched from a backend
-const MOCK_DEPARTMENT_CONFIG = {
-  [DEPARTMENTS.MARKETING]: {
-    expenseCategories: [
-      { id: "mkt_adv", name: "Digital Advertising", glCode: "60100", 
-        drivers: [{ id: "da_spend", name: "Monthly Ad Spend Target", type: "currency", value: 20000 }],
-        aiExplanation: "Based on historical Q1 spend, planned product launch, and projected 15% increase in CPC.",
-        isRecurring: true,
-      },
-      { id: "mkt_evt", name: "Events & Conferences", glCode: "60200", 
-        drivers: [
-          { id: "ec_major_qty", name: "Major Events (Qty)", type: "number", value: 1 },
-          { id: "ec_major_cost", name: "Avg Cost/Major Event", type: "currency", value: 15000 },
-          { id: "ec_minor_qty", name: "Minor Events (Qty)", type: "number", value: 3 },
-          { id: "ec_minor_cost", name: "Avg Cost/Minor Event", type: "currency", value: 3000 },
-        ],
-        aiExplanation: "Includes Annual Summit in Q3. AI predicts slightly higher venue and travel costs due to inflation.",
-        isRecurring: false,
-      },
-      { id: "mkt_tools", name: "Marketing Software & Tools", glCode: "60300", 
-        drivers: [{ id: "mt_monthly_lic", name: "Monthly License Costs", type: "currency", value: 5000 }],
-        aiExplanation: "Standard SaaS subscriptions. AI suggests a 5% buffer for potential new tool adoption mid-year.",
-        isRecurring: true,
-      },
-    ],
+const AI_CONFIDENCE = {
+  HIGH: "High",
+  MED: "Medium",
+  LOW: "Low",
+};
+
+// Mock data for department budgets
+const initialDeptData = [
+  {
+    department: "Marketing", expenseCategory: "Campaigns",
+    [SCENARIOS.BASELINE]:    { m1: {ai: 50000, user: 50000}, m2: {ai: 50000, user: 50000}, m3: {ai: 55000, user: 55000}, type: EXPENSE_TYPE.RECURRING, confidence: AI_CONFIDENCE.HIGH, notes: "Standard Q1 lead gen.", aiInsight: "Based on historical Q1 spend." },
+    [SCENARIOS.STRETCH]:     { m1: {ai: 60000, user: 60000}, m2: {ai: 65000, user: 65000}, m3: {ai: 70000, user: 70000}, type: EXPENSE_TYPE.RECURRING, confidence: AI_CONFIDENCE.MED, notes: "Aggressive market expansion.", aiInsight: "Increased spend to capture market share." },
+    [SCENARIOS.CONSERVATIVE]:{ m1: {ai: 40000, user: 40000}, m2: {ai: 40000, user: 40000}, m3: {ai: 40000, user: 40000}, type: EXPENSE_TYPE.RECURRING, confidence: AI_CONFIDENCE.HIGH, notes: "Focus on high-ROI channels only.", aiInsight: "Reduces spend by cutting experimental channels." },
   },
-  [DEPARTMENTS.IT]: {
-    expenseCategories: [
-      { id: "it_infra", name: "Cloud Infrastructure (AWS/Azure)", glCode: "70100", 
-        drivers: [{ id: "ci_monthly_spend", name: "Avg. Monthly Cloud Spend", type: "currency", value: 30000 }],
-        aiExplanation: "Projected based on 10% YoY growth in data processing and storage needs, consistent with user growth.",
-        isRecurring: true,
-      },
-      { id: "it_hw", name: "Hardware Purchases (Laptops, Servers)", glCode: "70200", 
-        drivers: [
-          { id: "hw_laptops_qty", name: "New Laptops (Qty)", type: "number", value: 20 },
-          { id: "hw_laptops_cost", name: "Avg Cost/Laptop", type: "currency", value: 1500 },
-          { id: "hw_servers_qty", name: "New Servers (Qty)", type: "number", value: 2 },
-          { id: "hw_servers_cost", name: "Avg Cost/Server", type: "currency", value: 8000 },
-        ],
-        aiExplanation: "Hardware refresh cycle for 20% of staff and new server for R&D project. Costs reflect current market prices.",
-        isRecurring: false,
-      },
-      { id: "it_sw", name: "Software Licenses (Enterprise)", glCode: "70300", 
-        drivers: [{ id: "sw_annual_cost", name: "Total Annual License Cost", type: "currency", value: 120000 }],
-        aiExplanation: "Includes major renewals for ERP and CRM. AI accounts for a standard 3% vendor price increase.",
-        isRecurring: true,
-      },
-    ],
+  {
+    department: "IT", expenseCategory: "Cloud Tools",
+    [SCENARIOS.BASELINE]:    { m1: {ai: 25000, user: 25000}, m2: {ai: 25000, user: 25000}, m3: {ai: 25000, user: 25000}, type: EXPENSE_TYPE.RECURRING, confidence: AI_CONFIDENCE.HIGH, notes: "AWS, GCP, and monitoring tools.", aiInsight: "Stable usage pattern." },
+    [SCENARIOS.STRETCH]:     { m1: {ai: 30000, user: 30000}, m2: {ai: 30000, user: 30000}, m3: {ai: 30000, user: 30000}, type: EXPENSE_TYPE.RECURRING, confidence: AI_CONFIDENCE.MED, notes: "Increased server capacity for new product.", aiInsight: "Higher capacity for stretch goals." },
+    [SCENARIOS.CONSERVATIVE]:{ m1: {ai: 22000, user: 22000}, m2: {ai: 22000, user: 22000}, m3: {ai: 22000, user: 22000}, type: EXPENSE_TYPE.RECURRING, confidence: AI_CONFIDENCE.HIGH, notes: "Cost optimization via reserved instances.", aiInsight: "Potential for savings with reserved instances." },
   },
-  // Placeholders for other departments to demonstrate scalability
-  [DEPARTMENTS.SALES]: { expenseCategories: [ { id: "sales_comm", name: "Sales Commissions", glCode: "61100", drivers: [{ id: "comm_rate", name: "Avg Commission Rate %", type: "number", value: 10 }, {id: "sales_target", name:"Sales Target", type:"currency", value: 5000000}], aiExplanation: "Based on historical attainment and new compensation plan.", isRecurring: true } ] },
-  [DEPARTMENTS.HR]: { expenseCategories: [ { id: "hr_recruit", name: "Recruitment Fees", glCode: "62100", drivers: [{ id: "hires_qty", name: "Planned New Hires", type: "number", value: 25 }, {id: "avg_fee", name:"Avg Fee per Hire", type:"currency", value: 8000}], aiExplanation: "Based on company growth targets and competitive talent market.", isRecurring: false } ] },
-  [DEPARTMENTS.OPERATIONS]: { expenseCategories: [] },
-  [DEPARTMENTS.RD]: { expenseCategories: [] },
-  [DEPARTMENTS.FINANCE]: { expenseCategories: [] },
-};
+  {
+    department: "Sales", expenseCategory: "Travel & Entertainment",
+    [SCENARIOS.BASELINE]:    { m1: {ai: 15000, user: 15000}, m2: {ai: 15000, user: 15000}, m3: {ai: 20000, user: 20000}, type: EXPENSE_TYPE.ONE_TIME, confidence: AI_CONFIDENCE.MED, notes: "Includes Q1 industry conference.", aiInsight: "Travel costs aligned with prior years." },
+    [SCENARIOS.STRETCH]:     { m1: {ai: 20000, user: 20000}, m2: {ai: 20000, user: 20000}, m3: {ai: 25000, user: 25000}, type: EXPENSE_TYPE.ONE_TIME, confidence: AI_CONFIDENCE.MED, notes: "More client visits to push for stretch goals.", aiInsight: "Higher T&E to support aggressive targets." },
+    [SCENARIOS.CONSERVATIVE]:{ m1: {ai: 10000, user: 10000}, m2: {ai: 10000, user: 10000}, m3: {ai: 10000, user: 10000}, type: EXPENSE_TYPE.ONE_TIME, confidence: AI_CONFIDENCE.HIGH, notes: "Limit travel to only essential trips.", aiInsight: "Reduces discretionary travel spend." },
+  },
+];
 
-const DepartmentBudgeting = () => {
-  const [selectedDepartment, setSelectedDepartment] = useState(DEPARTMENTS.MARKETING);
-  const [selectedScenario, setSelectedScenario] = useState(SCENARIOS.BASELINE);
-  const [selectedPeriod, setSelectedPeriod] = useState(PERIODS[0]);
-  
-  const [budgetData, setBudgetData] = useState([]);
-  const [kpiData, setKpiData] = useState({});
+const DepartmentLevelBudgeting = () => {
+  const [activeTab, setActiveTab] = useState("budgets");
+  const [period, setPeriod] = useState("Q1 2025");
   const [hasChanges, setHasChanges] = useState(false);
-  const [showAiExplanation, setShowAiExplanation] = useState(null); // { categoryId: 'xxx', text: '...' }
+  
+  const [departmentData, setDepartmentData] = useState(JSON.parse(JSON.stringify(initialDeptData)));
+  const [activeScenario, setActiveScenario] = useState(SCENARIOS.BASELINE);
+  const [scenarioAssumptions, setScenarioAssumptions] = useState({
+    [SCENARIOS.BASELINE]: "Standard operating budget. Assumes linear growth and stable market conditions. Corporate guidelines followed.",
+    [SCENARIOS.STRETCH]: "Stretch budget for aggressive growth. Higher allocation to demand generation and sales capacity, accepting higher risk for higher potential reward.",
+    [SCENARIOS.CONSERVATIVE]: "Conservative budget focused on capital preservation. Reduced discretionary spending across all departments.",
+  });
 
-  const currentMonths = selectedPeriod.startsWith("H1") ? MONTHS_H1 : MONTHS_FY;
+  const [budgetVersions, setBudgetVersions] = useState([]);
+  const [budgetTotals, setBudgetTotals] = useState({});
+  const filtersRef = useRef(null);
 
-  // This function calculates the total budget for a category based on its drivers
-  const calculateTotalFromDrivers = (category, months) => {
-    let total = 0;
-    // Specific calculation logic per category ID for robust demo
-    switch (category.id) {
-        case "mkt_adv":
-        case "mkt_tools":
-        case "it_infra":
-            total = category.drivers[0].value * months.length;
-            break;
-        case "it_sw":
-            total = category.drivers[0].value; // Annual cost
-            break;
-        case "mkt_evt":
-            total = (category.drivers.find(d => d.id === "ec_major_qty").value * category.drivers.find(d => d.id === "ec_major_cost").value) +
-                    (category.drivers.find(d => d.id === "ec_minor_qty").value * category.drivers.find(d => d.id === "ec_minor_cost").value);
-            break;
-        case "it_hw":
-            total = (category.drivers.find(d => d.id === "hw_laptops_qty").value * category.drivers.find(d => d.id === "hw_laptops_cost").value) +
-                    (category.drivers.find(d => d.id === "hw_servers_qty").value * category.drivers.find(d => d.id === "hw_servers_cost").value);
-            break;
-        default:
-            // Fallback for simple cases
-            if (category.drivers.length > 0 && category.drivers[0].type === "currency") {
-                total = category.drivers[0].value * (category.drivers[0].name.toLowerCase().includes("annual") ? 1 : months.length);
-            }
-            break;
-    }
-    return total;
+  const getScenarioDataItem = (item, scenarioKey) => {
+    return item[scenarioKey] || { m1: {ai:0,user:0}, m2:{ai:0,user:0}, m3:{ai:0,user:0}, type: EXPENSE_TYPE.RECURRING, confidence: AI_CONFIDENCE.LOW, notes: "", aiInsight: "N/A" };
+  };
+  
+  const calculateTotalsForScenario = (data, scenarioKey) => {
+    const totals = { aiTotal: 0, userTotal: 0, byDepartment: {}, byType: { [EXPENSE_TYPE.RECURRING]: 0, [EXPENSE_TYPE.ONE_TIME]: 0 } };
+    if (!data || data.length === 0) return totals;
+
+    data.forEach(item => {
+      const scenarioData = getScenarioDataItem(item, scenarioKey);
+      const userQuarterly = (scenarioData.m1.user || 0) + (scenarioData.m2.user || 0) + (scenarioData.m3.user || 0);
+      const aiQuarterly = (scenarioData.m1.ai || 0) + (scenarioData.m2.ai || 0) + (scenarioData.m3.ai || 0);
+      
+      totals.userTotal += userQuarterly;
+      totals.aiTotal += aiQuarterly;
+      
+      totals.byDepartment[item.department] = (totals.byDepartment[item.department] || 0) + userQuarterly;
+      totals.byType[scenarioData.type] += userQuarterly;
+    });
+    return totals;
   };
 
   useEffect(() => {
-    // This effect simulates fetching and preparing data when filters change.
-    const deptConfig = JSON.parse(JSON.stringify(MOCK_DEPARTMENT_CONFIG[selectedDepartment])); // Deep copy for reset
-    if (!deptConfig || !deptConfig.expenseCategories) {
-      setBudgetData([]);
-      setKpiData({});
-      return;
-    }
+    setBudgetTotals(calculateTotalsForScenario(departmentData, activeScenario));
+  }, [departmentData, activeScenario]);
 
-    const newBudgetData = deptConfig.expenseCategories.map(cat => {
-      // For demo, AI baseline is 95% of the user's initial driver-based budget
-      const userBudgetTotal = calculateTotalFromDrivers(cat, currentMonths);
-      const aiTotal = Math.round(userBudgetTotal * 0.95); 
-
-      const userBudgetMonthly = generateMonthlyValues(userBudgetTotal / currentMonths.length, currentMonths);
-      const aiBaselineMonthly = generateMonthlyValues(aiTotal / currentMonths.length, currentMonths);
-
-      return {
-        ...cat,
-        aiBaselineMonthly,
-        aiTotal,
-        userBudgetMonthly,
-        userBudgetTotal,
-        varianceVsAI: userBudgetTotal - aiTotal,
-        lastYearBudget: Math.round(aiTotal * (0.8 + Math.random() * 0.2)), // Mock last year
-        comments: [],
-        approvalStatus: "Pending",
-      };
+  const handleInputChange = (index, field, value, month = null) => {
+    setDepartmentData(prev => {
+      const newData = JSON.parse(JSON.stringify(prev));
+      const scenarioItem = newData[index][activeScenario];
+      if (month) {
+        scenarioItem[month].user = parseFloat(value) || 0;
+      } else {
+        scenarioItem[field] = value;
+      }
+      return newData;
     });
-    setBudgetData(newBudgetData);
-    setHasChanges(false);
-  }, [selectedDepartment, selectedScenario, selectedPeriod]);
-
-
-  useEffect(() => {
-    // This effect recalculates KPIs whenever the main budget data changes.
-    if (budgetData.length === 0) {
-        setKpiData({});
-        return;
-    };
-    
-    const totalUserBudget = budgetData.reduce((sum, item) => sum + item.userBudgetTotal, 0);
-    const totalAIBudget = budgetData.reduce((sum, item) => sum + item.aiTotal, 0);
-    const totalLastYear = budgetData.reduce((sum, item) => sum + item.lastYearBudget, 0);
-    
-    setKpiData({
-      totalBudget: totalUserBudget,
-      aiSuggestedTotal: totalAIBudget,
-      varianceVsAI: totalUserBudget - totalAIBudget,
-      varianceVsLastYear: totalUserBudget - totalLastYear,
-      categoriesCount: budgetData.length,
-    });
-    
-  }, [budgetData]);
-
-
-  const handleDriverChange = (categoryIndex, driverIndex, newValue) => {
-    const updatedBudgetData = [...budgetData];
-    const categoryToUpdate = updatedBudgetData[categoryIndex];
-    
-    categoryToUpdate.drivers[driverIndex].value = parseFloat(newValue) || 0;
-
-    // Recalculate totals for the updated category
-    const newUserBudgetTotal = calculateTotalFromDrivers(categoryToUpdate, currentMonths);
-    categoryToUpdate.userBudgetTotal = newUserBudgetTotal;
-    categoryToUpdate.userBudgetMonthly = generateMonthlyValues(newUserBudgetTotal / currentMonths.length, currentMonths);
-    categoryToUpdate.varianceVsAI = newUserBudgetTotal - categoryToUpdate.aiTotal;
-
-    setBudgetData(updatedBudgetData);
     setHasChanges(true);
   };
-
-  const handleSave = () => {
-    console.log("Saving budget data:", budgetData);
-    setHasChanges(false);
-    alert(`${selectedDepartment} budget for ${selectedScenario} saved!`);
-  };
   
-  const handleSubmitForApproval = () => {
-    console.log("Submitting for approval:", budgetData);
-    alert(`${selectedDepartment} budget for ${selectedScenario} submitted for approval.`);
+  const handleSaveAll = () => {
+    const timestamp = new Date().toISOString();
+    const totalsByScenario = {};
+    Object.values(SCENARIOS).forEach(scen => {
+      totalsByScenario[scen] = calculateTotalsForScenario(departmentData, scen);
+    });
+    setBudgetVersions(prev => [...prev, { period, timestamp, data: JSON.parse(JSON.stringify(departmentData)), totalsByScenario, assumptions: JSON.parse(JSON.stringify(scenarioAssumptions))}]);
+    setHasChanges(false);
+    alert("Department budget version saved successfully!");
   };
 
-  // <<< NEW FUNCTION FOR DELETING A ROW >>>
-  const handleDeleteRow = (categoryIdToDelete, categoryName) => {
-    if (window.confirm(`Are you sure you want to delete the category "${categoryName}"? This action cannot be undone.`)) {
-        setBudgetData(prevData => prevData.filter(item => item.id !== categoryIdToDelete));
-        setHasChanges(true);
+  const handleExport = () => {
+    const dataForExport = departmentData.map(item => {
+      const scenarioData = getScenarioDataItem(item, activeScenario);
+      return {
+        'Department': item.department, 'Expense Category': item.expenseCategory,
+        'M1 Budget': scenarioData.m1.user, 'M2 Budget': scenarioData.m2.user, 'M3 Budget': scenarioData.m3.user,
+        'Type': scenarioData.type, 'Notes': scenarioData.notes,
+      };
+    });
+    const worksheet = XLSX.utils.json_to_sheet(dataForExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, `Department Budget`);
+    XLSX.writeFile(workbook, `Department_Budget_${activeScenario.replace(/\s+/g, '_')}.xlsx`);
+  };
+
+  const handleImport = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data);
+      const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+      
+      const dataMap = new Map(departmentData.map(d => [`${d.department}-${d.expenseCategory}`, JSON.parse(JSON.stringify(d))]));
+      jsonData.forEach(row => {
+        const key = `${row['Department']}-${row['Expense Category']}`;
+        if (dataMap.has(key)) {
+          const itemToUpdate = dataMap.get(key);
+          const scenarioItem = getScenarioDataItem(itemToUpdate, activeScenario);
+          scenarioItem.m1.user = row['M1 Budget'] ?? scenarioItem.m1.user;
+          scenarioItem.m2.user = row['M2 Budget'] ?? scenarioItem.m2.user;
+          scenarioItem.m3.user = row['M3 Budget'] ?? scenarioItem.m3.user;
+          scenarioItem.type = row['Type'] ?? scenarioItem.type;
+          scenarioItem.notes = row['Notes'] ?? scenarioItem.notes;
+          dataMap.set(key, itemToUpdate);
+        }
+      });
+      setDepartmentData(Array.from(dataMap.values()));
+      setHasChanges(true);
+      alert(`Data for ${activeScenario} imported. Review changes.`);
+      e.target.value = '';
+    } catch (error) {
+      console.error("Error importing file:", error);
+      alert("Error importing file.");
     }
   };
-
-  // Chart Data Preparation
-  const categoryChartData = {
-    labels: budgetData.map(cat => cat.name.length > 20 ? cat.name.substring(0,18)+'...' : cat.name),
-    datasets: [{
-        data: budgetData.map(cat => cat.userBudgetTotal),
-        backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#6366F1', '#8B5CF6', '#EC4899'],
-        borderColor: '#fff',
-        borderWidth: 2,
-    }],
+  
+  const handleRestoreVersion = (version) => {
+    setDepartmentData(JSON.parse(JSON.stringify(version.data)));
+    setScenarioAssumptions(JSON.parse(JSON.stringify(version.assumptions)));
+    setHasChanges(false);
+    alert(`Version from ${new Date(version.timestamp).toLocaleString()} restored.`);
   };
 
-  const trendChartData = {
-    labels: currentMonths,
-    datasets: [
-      {
-        label: 'Total User Budget',
-        data: currentMonths.map(month => budgetData.reduce((sum, cat) => sum + (cat.userBudgetMonthly[month] || 0), 0)),
-        borderColor: '#3B82F6',
-        backgroundColor: 'rgba(59, 130, 246, 0.2)',
-        tension: 0.3,
-        fill: true,
-      },
-      {
-        label: 'Total AI Baseline',
-        data: currentMonths.map(month => budgetData.reduce((sum, cat) => sum + (cat.aiBaselineMonthly[month] || 0), 0)),
-        borderColor: '#10B981',
-        backgroundColor: 'rgba(16, 185, 129, 0.2)',
-        tension: 0.3,
-        fill: true,
-      },
-    ],
+  const getConfidenceColor = (level) => {
+    if (level === AI_CONFIDENCE.HIGH) return "bg-green-100 text-green-800";
+    if (level === AI_CONFIDENCE.MED) return "bg-yellow-100 text-yellow-800";
+    return "bg-red-100 text-red-800";
   };
 
+  const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "top" } } };
+  const barChartData = {
+    labels: Object.keys(budgetTotals.byDepartment || {}),
+    datasets: [{ label: 'Budget by Department', data: Object.values(budgetTotals.byDepartment || {}), backgroundColor: ['#3b82f6', '#10b981', '#f97316', '#ef4444', '#8b5cf6'] }],
+  };
+  const pieChartData = {
+    labels: Object.keys(budgetTotals.byType || {}),
+    datasets: [{ data: Object.values(budgetTotals.byType || {}), backgroundColor: ['#3b82f6', '#f97316'], hoverOffset: 4 }],
+  };
+  
   return (
-    <div className="space-y-6 p-4 sm:p-6 bg-slate-50 min-h-screen">
-      {/* Breadcrumb Navigation */}
-            <nav className="flex mb-4" aria-label="Breadcrumb">
-              <ol className="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
-                <li className="inline-flex items-center">
-                  <Link to="/" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
-                    <svg className="w-3 h-3 me-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z"/>
-                    </svg>
-                    Home
-                  </Link>
-                </li>
-                <li>
-                  <div className="flex items-center">
-                    <FiChevronRight className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" />
-                    <Link to="/operational-budgeting" className="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2">
-                      Operational Budgeting
-                    </Link>
-                  </div>
-                </li>
-                <li aria-current="page">
-                  <div className="flex items-center">
-                    <FiChevronRight className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" />
-                    <span className="ms-1 text-sm font-medium text-gray-500 md:ms-2">Department-Level Budgeting</span>
-                  </div>
-                </li>
-              </ol>
-            </nav>
-      
-      <header className="bg-gradient-to-r from-sky-900 via-sky-800 to-sky-700 p-4 rounded-lg shadow-md text-white">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-          <div>
-            <h1 className="text-xl font-bold">Department-Level Operational Budgeting</h1>
-            <p className="text-sky-200 text-xs">Plan and manage expenses with AI-powered insights and driver-based modeling.</p>
+    <div className="space-y-6 p-4 min-h-screen relative bg-sky-50">
+      <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
+        <div className="flex justify-between items-center">
+          <div><h1 className="text-lg font-bold text-white">Department-Level Budgeting</h1><p className="text-sky-100 text-xs">Plan budgets for Marketing, Sales, Operations, HR, IT, R&D, etc.</p></div>
+          <div className="flex items-center space-x-4">
+             <div><label className="text-sm text-white font-medium mr-2">Forecast Period:</label><select value={period} onChange={(e) => setPeriod(e.target.value)} className="p-1.5 border bg-sky-50 text-sky-900 border-sky-200 rounded-md text-xs"><option>Q1 2025</option><option>Q2 2025</option></select></div>
+             <button onClick={() => window.print()} className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 transition-colors"><FiPrinter className="text-sky-50" /><span className="text-sky-50">Print</span></button>
           </div>
-          <div className="flex items-center space-x-2 mt-3 sm:mt-0">
-             <button
-                onClick={() => window.print()}
-                className="flex gap-2 items-center py-1.5 px-3 text-xs font-medium bg-sky-600 rounded-md border border-sky-500 hover:bg-sky-500 transition-colors">
-                <FiPrinter /> Export
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-white rounded-lg shadow-sm border border-slate-200">
-        {/* Control Filters */}
-        <div>
-          <label htmlFor="departmentSelect" className="block text-xs font-medium text-slate-600 mb-1">Department</label>
-          <select id="departmentSelect" value={selectedDepartment} onChange={e => setSelectedDepartment(e.target.value)}
-            className="w-full p-2 border border-slate-300 rounded-md text-sm shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
-            {Object.values(DEPARTMENTS).map(name => <option key={name} value={name}>{name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="scenarioSelect" className="block text-xs font-medium text-slate-600 mb-1">Scenario</label>
-          <select id="scenarioSelect" value={selectedScenario} onChange={e => setSelectedScenario(e.target.value)}
-            className="w-full p-2 border border-slate-300 rounded-md text-sm shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
-            {Object.values(SCENARIOS).map(name => <option key={name} value={name}>{name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="periodSelect" className="block text-xs font-medium text-slate-600 mb-1">Period</label>
-          <select id="periodSelect" value={selectedPeriod} onChange={e => setSelectedPeriod(e.target.value)}
-            className="w-full p-2 border border-slate-300 rounded-md text-sm shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
-            {PERIODS.map(p => <option key={p} value={p}>{p}</option>)}
-          </select>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        {/* KPI Cards */}
-        {kpiData.totalBudget !== undefined && (
+      <div className="flex items-center gap-3 border-b mt-5 py-3 border-gray-200 mb-6">
+        {[{id: 'budgets', label: 'Department Budgets'}, {id: 'import', label: 'Import Plans'}, {id: 'compare', label: 'Compare Scenarios'}].map(tab => (
+          <button key={tab.id} className={`py-2 px-4 font-medium text-sm ${activeTab === tab.id ? 'text-sky-50 border-b-2 border-sky-600 bg-sky-800 rounded-t-lg' : 'text-sky-900 hover:text-sky-500 hover:bg-sky-100 rounded-t-lg'}`} onClick={() => setActiveTab(tab.id)}>{tab.label}</button>
+        ))}
+        <div className="ml-4">
+            <label className="text-sm font-medium text-sky-800 mr-2">Active Scenario:</label>
+            <select value={activeScenario} onChange={(e) => { if(hasChanges && !window.confirm("Unsaved changes. Switch anyway?")) return; setActiveScenario(e.target.value); setHasChanges(false); }} className="p-1.5 border border-sky-300 bg-white text-sky-900 rounded-md text-xs">
+                {Object.values(SCENARIOS).map(name => <option key={name} value={name}>{name}</option>)}
+            </select>
+        </div>
+        <div className="relative ml-auto" ref={filtersRef}><button className="py-2 px-3 text-gray-500 hover:text-blue-500 flex items-center text-sm"><BsFilter className="mr-1" /> Filters</button></div>
+      </div>
+      
+      <div>
+        {activeTab === 'budgets' && (
           <>
-            <KPIBudgetCard title="Total Department Budget" value={`$${kpiData.totalBudget?.toLocaleString()}`} icon={<FiDollarSign className="text-sky-600" />} />
-            <KPIBudgetCard title="AI Suggested Total" value={`$${kpiData.aiSuggestedTotal?.toLocaleString()}`} icon={<BsStars className="text-purple-500" />} />
-            <KPIBudgetCard title="Variance vs AI" value={`${kpiData.varianceVsAI <= 0 ? '' : '+'}$${kpiData.varianceVsAI?.toLocaleString()}`}
-              isPositive={kpiData.varianceVsAI <= 0} icon={<BsGraphUp className={kpiData.varianceVsAI > 0 ? "text-red-500" : "text-green-500"} />} />
-            <KPIBudgetCard title="YoY Variance" value={`${kpiData.varianceVsLastYear <= 0 ? '' : '+'}$${kpiData.varianceVsLastYear?.toLocaleString()}`}
-              isPositive={kpiData.varianceVsLastYear <= 0} icon={<FiTrendingUp className={kpiData.varianceVsLastYear > 0 ? "text-red-500" : "text-green-500"} />} />
-            <KPIBudgetCard title="Budget Categories" value={kpiData.categoriesCount} icon={<FiFilter className="text-slate-500" />} />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Total Budget (User vs AI)</p><p className="text-2xl font-bold text-sky-900">${(budgetTotals?.userTotal || 0).toLocaleString()} <span className="text-lg font-medium text-gray-500">vs</span> ${(budgetTotals?.aiTotal || 0).toLocaleString()}</p></div>
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Variance from Guidelines</p><p className={`text-2xl font-bold text-red-600`}>+${(budgetTotals.userTotal - budgetTotals.aiTotal).toLocaleString()}</p></div>
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Pending Approvals</p><p className="text-2xl font-bold text-sky-900">3 Items</p></div>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="bg-white p-4 rounded-lg shadow-sm flex-1 border"><h2 className="text-lg font-semibold text-sky-900 mb-3">Spend by Department</h2><div className="h-[250px]"><Bar data={barChartData} options={chartOptions}/></div></div>
+                <div className="bg-white p-4 rounded-lg shadow-sm flex-1 border"><h2 className="text-lg font-semibold text-sky-900 mb-3">Recurring vs. One-Time</h2><div className="h-[250px]"><Pie data={pieChartData} options={{...chartOptions, plugins: { legend: { position: 'right' } }}}/></div></div>
+            </div>
+
+            <div className="bg-white rounded-lg mt-5 shadow-sm overflow-hidden border">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold text-sky-900">Department Budget Editor ({activeScenario})</h2>
+                  <div className="flex space-x-2">
+                    <button onClick={handleExport} className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center"><FiDownload className="mr-2" /> Export</button>
+                    <button onClick={handleSaveAll} disabled={!hasChanges} className={`px-4 py-2 text-sm rounded-lg flex items-center ${hasChanges ? "bg-sky-600 text-white hover:bg-sky-700" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}><FiSave className="mr-2" /> Save Budget</button>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto max-h-[calc(100vh-250px)] relative">
+                  <table className="min-w-full divide-y divide-sky-100">
+                    <thead className="bg-sky-50 sticky top-0 z-10">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-sky-900 uppercase sticky left-0 bg-sky-50 z-20 min-w-[200px]">Department / Category</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">Month 1</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">Month 2</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">Month 3</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[150px]">Type</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-sky-700 uppercase min-w-[250px]">Notes / Justification</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-sky-100">
+                      {departmentData.map((item, index) => {
+                        const scenarioData = getScenarioDataItem(item, activeScenario);
+                        const rowBgClass = index % 2 === 0 ? "bg-white" : "bg-sky-50/70";
+                        return (
+                          <tr key={index} className={`${rowBgClass} hover:bg-sky-100/50`}>
+                            <td className={`px-4 py-3 text-sm font-medium text-sky-900 sticky left-0 z-[5] ${rowBgClass}`}>
+                                <div className="font-semibold">{item.department}</div><div className="text-xs text-sky-600">{item.expenseCategory}</div>
+                            </td>
+                            {['m1', 'm2', 'm3'].map(month => (
+                                <td key={month} className="px-2 py-1">
+                                    <div className="text-xs text-gray-500 text-center relative group">AI: ${scenarioData[month].ai.toLocaleString()} <FiInfo className="inline-block ml-1 text-gray-400" /><span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 w-max p-1.5 text-xs text-white bg-slate-700 rounded-md opacity-0 group-hover:opacity-100 z-30 pointer-events-none">{scenarioData.aiInsight}</span></div>
+                                    <input type="number" value={scenarioData[month].user} onChange={(e) => handleInputChange(index, null, e.target.value, month)} className="w-full mt-1 p-1.5 border border-sky-300 rounded-md text-sm text-center bg-white"/>
+                                </td>
+                            ))}
+                            <td className="px-2 py-1"><select value={scenarioData.type} onChange={(e) => handleInputChange(index, 'type', e.target.value)} className="w-full p-1.5 border border-sky-300 rounded-md text-sm bg-white">{Object.values(EXPENSE_TYPE).map(t=><option key={t}>{t}</option>)}</select></td>
+                            <td className="px-2 py-1"><textarea value={scenarioData.notes} onChange={(e) => handleInputChange(index, 'notes', e.target.value)} rows="1" className="w-full p-1.5 border border-sky-300 rounded-md text-sm bg-white"/></td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div className="mb-6 mt-6 p-4 bg-sky-100/70 rounded-lg shadow-sm border">
+                <label className="block text-md font-semibold text-sky-800 mb-2">Budget Assumptions for {activeScenario}:</label>
+                <textarea value={scenarioAssumptions[activeScenario] || ''} onChange={(e) => { setScenarioAssumptions(prev => ({...prev, [activeScenario]: e.target.value})); setHasChanges(true); }} rows="3" className="w-full p-2 border border-sky-300 rounded-lg text-sm bg-white" placeholder={`e.g., Allocation rules, team-level commentary...`} />
+            </div>
           </>
         )}
-      </div>
-      
-      <div className="space-y-6">
-        {/* --- Budget Details Table (Full Width) --- */}
-        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-slate-200">
-          <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
-            <h2 className="text-lg font-semibold text-slate-800">
-              {selectedDepartment} Budget Details - {selectedScenario} ({selectedPeriod})
-            </h2>
-            <div className="flex items-center space-x-2">
-              <button onClick={handleSave} disabled={!hasChanges}
-                className={`px-3 py-1.5 text-xs rounded-md flex items-center transition-colors font-semibold ${hasChanges ? "bg-sky-600 text-white hover:bg-sky-700 shadow-sm" : "bg-slate-200 text-slate-500 cursor-not-allowed"}`}>
-                <FiSave className="mr-1.5" /> Save Changes
-              </button>
-              <button onClick={handleSubmitForApproval}
-                className="px-3 py-1.5 text-xs rounded-md flex items-center bg-green-600 text-white hover:bg-green-700 transition-colors font-semibold shadow-sm">
-                <FiCheckCircle className="mr-1.5" /> Submit for Approval
-              </button>
+        
+        {activeTab === 'import' && (
+          <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+            <h2 className="text-xl font-semibold text-sky-900 mb-4">Import Department Expense Plans</h2>
+            <p className="text-sm text-gray-600 mb-4">Upload an Excel (.xlsx) or CSV (.csv) file with your department budget data. Match by 'Department' and 'Expense Category'.</p>
+            <div className="border-2 border-dashed border-sky-300 rounded-lg p-8 text-center">
+              <FiUpload className="mx-auto text-4xl text-sky-500 mb-3" />
+              <label htmlFor="importFile" className="px-6 py-3 bg-blue-600 text-white text-md font-medium rounded-lg hover:bg-blue-700 cursor-pointer">Choose File to Import</label>
+              <input id="importFile" type="file" onChange={handleImport} accept=".xlsx,.xls,.csv" className="hidden"/>
+              <p className="text-xs text-gray-500 mt-3">File must contain 'Department', 'Expense Category', 'M1 Budget', 'M2 Budget', 'M3 Budget', 'Type', and 'Notes'.</p>
             </div>
           </div>
+        )}
 
-          <div className="overflow-x-auto border border-slate-200 rounded-lg" style={{maxHeight: '60vh'}}>
-            <table className="min-w-full divide-y divide-slate-200 text-sm">
-              <thead className="bg-slate-100 sticky top-0 z-10">
-                <tr>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider sticky left-0 bg-slate-100 z-20 min-w-[200px]">Expense Category</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider min-w-[250px]">Drivers (User Input)</th>
-                  <th className="px-3 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider min-w-[150px]">AI Baseline</th>
-                  <th className="px-3 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider min-w-[150px]">User Budget</th>
-                  <th className="px-3 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider min-w-[120px]">Variance (vs AI)</th>
-                  {currentMonths.map(month => (
-                    <th key={month} className="px-3 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider min-w-[100px]">{month}</th>
-                  ))}
-                  <th className="px-3 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider min-w-[100px]">Status</th>
-                  <th className="px-3 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider min-w-[120px]">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {budgetData.map((cat, catIndex) => {
-                  const rowBgClass = catIndex % 2 === 0 ? "bg-white" : "bg-slate-50";
-                  return (
-                  <tr key={cat.id} className={`${rowBgClass} hover:bg-sky-50/70`}>
-                    <td className={`px-3 py-2 font-medium text-slate-800 sticky left-0 z-[5] ${rowBgClass} border-r border-slate-200 min-w-[200px]`}>
-                      <div>{cat.name}</div>
-                      <div className="text-xs text-slate-500 font-normal">GL: {cat.glCode} {cat.isRecurring && <span className="text-sky-600">(Recurring)</span>}</div>
-                    </td>
-                    <td className="px-3 py-2 min-w-[250px] space-y-2">
-                      {cat.drivers.map((driver, driverIndex) => (
-                        <div key={driver.id} className="flex items-center gap-2">
-                          <label htmlFor={`${cat.id}-${driver.id}`} className="text-xs text-slate-600 w-2/3 truncate" title={driver.name}>{driver.name}:</label>
-                          <input type="number" id={`${cat.id}-${driver.id}`} value={driver.value}
-                            onChange={e => handleDriverChange(catIndex, driverIndex, e.target.value)}
-                            className="w-1/3 p-1 border border-slate-300 rounded-md text-xs focus:ring-1 focus:ring-sky-500 bg-white"
-                            step={driver.type === 'currency' ? '100' : '1'} />
-                        </div>
-                      ))}
-                    </td>
-                    <td className="px-3 py-2 text-right text-slate-700 min-w-[150px]">
-                      ${cat.aiTotal.toLocaleString()}
-                      <FiInfo className="ml-1.5 inline text-sky-500 hover:text-sky-700 cursor-pointer" 
-                        onClick={() => setShowAiExplanation({ categoryId: cat.id, text: cat.aiExplanation })} title="View AI Explanation" />
-                    </td>
-                    <td className="px-3 py-2 text-right font-semibold text-slate-900 min-w-[150px]">
-                      ${cat.userBudgetTotal.toLocaleString()}
-                    </td>
-                    <td className={`px-3 py-2 text-right font-semibold min-w-[120px] ${cat.varianceVsAI > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                      {cat.varianceVsAI > 0 ? '+' : ''}${cat.varianceVsAI.toLocaleString()}
-                    </td>
-                    {currentMonths.map(month => (
-                      <td key={month} className="px-3 py-2 text-right text-slate-700 min-w-[100px]">
-                        ${(cat.userBudgetMonthly[month] || 0).toLocaleString()}
-                      </td>
-                    ))}
-                     <td className="px-3 py-2 text-center text-xs min-w-[100px]">
-                        <span className={`px-2 py-1 rounded-full font-semibold ${
-                            cat.approvalStatus === 'Approved' ? 'bg-green-100 text-green-800' : 
-                            cat.approvalStatus === 'Rejected' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
-                        }`}>{cat.approvalStatus}</span>
-                    </td>
-                    {/* <<< MODIFIED ACTIONS COLUMN >>> */}
-                    <td className="px-3 py-2 text-center text-slate-500 min-w-[120px]">
-                      <div className="flex items-center justify-center gap-4">
-                        <button title="Comments" className="hover:text-sky-600 transition-colors">
-                          <FiMessageSquare />
-                        </button>
-                        <button title="Edit drivers directly in the input fields" className="text-slate-400 cursor-not-allowed">
-                          <FiEdit />
-                        </button>
-                        <button onClick={() => handleDeleteRow(cat.id, cat.name)} title="Delete Row" className="hover:text-red-600 transition-colors">
-                          <FiTrash2 />
-                        </button>
-                      </div>
-                    </td>
+        {activeTab === 'compare' && (
+          <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+            <h2 className="text-xl font-semibold text-sky-900 mb-6">Compare Department Scenarios</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-sky-200">
+                <thead className="bg-sky-100">
+                  <tr>
+                    <th className="px-5 py-3 text-left text-xs font-semibold text-sky-800 uppercase">Metric</th>
+                    {Object.values(SCENARIOS).map(name => <th key={name} className="px-5 py-3 text-left text-xs font-semibold text-sky-800 uppercase">{name}</th>)}
                   </tr>
-                )})}
-                {/* --- Totals Row --- */}
-                <tr className="bg-slate-200 font-bold sticky bottom-0 z-[5] border-t-2 border-slate-300">
-                    <td className="px-3 py-2 text-slate-900 sticky left-0 bg-slate-200 z-[6] border-r border-slate-300">Total</td>
-                    <td className="px-3 py-2 bg-slate-200"></td>
-                    <td className="px-3 py-2 text-right text-slate-900">${kpiData.aiSuggestedTotal?.toLocaleString()}</td>
-                    <td className="px-3 py-2 text-right text-slate-900">${kpiData.totalBudget?.toLocaleString()}</td>
-                    <td className={`px-3 py-2 text-right ${kpiData.varianceVsAI > 0 ? 'text-red-700' : 'text-green-700'}`}>
-                        {kpiData.varianceVsAI > 0 ? '+' : ''}${kpiData.varianceVsAI?.toLocaleString()}
-                    </td>
-                    {currentMonths.map(month => (
-                      <td key={`total-${month}`} className="px-3 py-2 text-right text-slate-900">
-                        ${budgetData.reduce((sum, cat) => sum + (cat.userBudgetMonthly[month] || 0), 0).toLocaleString()}
-                      </td>
-                    ))}
-                    <td className="px-3 py-2 bg-slate-200"></td>
-                    <td className="px-3 py-2 bg-slate-200"></td>
-                </tr>
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-sky-100">
+                  {['Total User Budget', 'Total AI Budget', 'Variance vs AI', 'Assumptions'].map(metric => (
+                    <tr key={metric} className={metric === 'Assumptions' ? 'align-top' : ''}>
+                      <td className="px-5 py-4 whitespace-nowrap text-sm font-medium text-sky-900">{metric}</td>
+                      {Object.values(SCENARIOS).map(scenarioName => {
+                        const totals = calculateTotalsForScenario(departmentData, scenarioName);
+                        let value, className = "text-sm text-sky-700";
+                        if (metric === 'Total User Budget') { value = `$${(totals.userTotal || 0).toLocaleString()}`; className = "text-sm font-semibold text-sky-800"; }
+                        else if (metric === 'Total AI Budget') { value = `$${(totals.aiTotal || 0).toLocaleString()}`; }
+                        else if (metric === 'Variance vs AI') { const variance = totals.userTotal - totals.aiTotal; value = `$${variance.toLocaleString()}`; className = `text-sm font-semibold ${variance >= 0 ? 'text-red-600' : 'text-green-600'}`; }
+                        else if (metric === 'Assumptions') { value = scenarioAssumptions[scenarioName] || 'N/A'; className = "text-xs text-gray-600 whitespace-pre-wrap max-w-xs"; }
+                        return <td key={`${metric}-${scenarioName}`} className={`px-5 py-4 ${className}`}>{value}</td>;
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-            <button className="mt-4 text-sm text-sky-600 hover:text-sky-800 flex items-center font-semibold">
-                <FiPlusCircle className="mr-2"/> Add Expense Category
-            </button>
-        </div>
+        )}
 
-        {/* --- Charts and AI Insights Row --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
-            <h3 className="text-md font-semibold text-slate-800 mb-3">Budget Allocation by Category</h3>
-            <div className="h-64">
-              {budgetData.length > 0 ? <Doughnut data={categoryChartData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels:{font:{size:10}, boxWidth: 12} } } }} /> : <p className="text-sm text-gray-500 text-center pt-10">No categories to display.</p>}
+        <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+          <h2 className="text-xl font-semibold text-sky-900 mb-4">Budget Version History</h2>
+          {budgetVersions.length === 0 ? <p className="text-sm text-gray-500">No versions saved yet.</p> : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-sky-100">
+                <thead className="bg-sky-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">Timestamp</th>
+                    {Object.values(SCENARIOS).map(scen => <th key={scen} className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">{scen} User Total</th>)}
+                    <th className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-sky-100">
+                  {budgetVersions.map((version, index) => (
+                    <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-sky-50/70"}>
+                      <td className="px-4 py-3 text-sm text-sky-800">{new Date(version.timestamp).toLocaleString()}</td>
+                      {Object.values(SCENARIOS).map(scen => {
+                        const total = version.totalsByScenario?.[scen] || { userTotal: 0 };
+                        return <td key={`${index}-${scen}`} className="px-4 py-3 text-sm font-semibold text-sky-800">${total.userTotal.toLocaleString()}</td>
+                      })}
+                      <td className="px-4 py-3"><button onClick={() => handleRestoreVersion(version)} className="text-sm text-sky-700 hover:text-sky-900 hover:underline">Restore</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
-            <h3 className="text-md font-semibold text-slate-800 mb-3">Monthly Budget Trend</h3>
-             <div className="h-64">
-              {budgetData.length > 0 ? <Bar data={trendChartData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', align: 'end', labels:{font:{size:10}, boxWidth: 12} } }, scales: { y: { ticks: { callback: value => `$${value/1000}k` } }, x: { grid: { display: false } } } }} /> : <p className="text-sm text-gray-500 text-center pt-10">No categories to display.</p>}
-            </div>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
-            <h3 className="text-md font-semibold text-slate-800 mb-3 flex items-center">
-                <BsStars className="mr-2 text-purple-500"/> AI Insights & Recommendations
-            </h3>
-            <div className="space-y-2">
-            {MOCK_DEPARTMENT_CONFIG[selectedDepartment]?.expenseCategories.slice(0,2).map(cat => (
-                <div key={`insight-${cat.id}`} className="text-xs text-slate-700 p-2 bg-slate-50 rounded-md border border-slate-200">
-                    <strong className="text-slate-800">{cat.name}:</strong> {cat.aiExplanation}
-                    {Math.random() > 0.6 && <span className="mt-1 text-amber-600 flex items-center text-xs font-semibold"><BsExclamationTriangleFill className="mr-1.5 flex-shrink-0"/> AI Risk Flag: Consider a 10% cost increase for Q4 due to market volatility.</span>}
-                </div>
-            ))}
-            </div>
-            <button className="text-xs text-sky-600 hover:underline mt-3 font-medium">View All AI Insights</button>
-          </div>
+          )}
         </div>
       </div>
-
-
-      {showAiExplanation && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" onClick={() => setShowAiExplanation(null)}>
-          <div className="bg-white p-6 rounded-lg shadow-2xl max-w-md w-full animate-fade-in-up" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
-                <h4 className="text-lg font-semibold text-slate-800 flex items-center"><BsStars className="mr-2 text-purple-500"/> AI Explanation</h4>
-                <FiXCircle className="text-2xl text-gray-400 hover:text-red-500 cursor-pointer transition-colors" onClick={() => setShowAiExplanation(null)} />
-            </div>
-            <p className="text-sm text-slate-600 mb-2"><strong>Category:</strong> {budgetData.find(c => c.id === showAiExplanation.categoryId)?.name}</p>
-            <p className="text-sm text-slate-700 bg-slate-100 p-3 rounded-md border border-slate-200">{showAiExplanation.text}</p>
-            <button onClick={() => setShowAiExplanation(null)} className="mt-5 px-4 py-2 bg-sky-600 text-white text-sm rounded-lg hover:bg-sky-700 transition-colors w-full font-semibold">
-                Close
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
-const KPIBudgetCard = ({ title, value, icon, isPositive }) => (
-  <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:shadow-md hover:border-sky-300 transition-all duration-200">
-    <div className="flex items-center justify-between">
-      <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">{title}</p>
-      <span className="text-2xl text-slate-400">{icon}</span>
-    </div>
-    <p className={`text-2xl font-bold text-slate-800 mt-2 ${isPositive === false ? 'text-red-600' : isPositive === true ? 'text-green-600' : ''}`}>
-        {value}
-    </p>
-  </div>
-);
-
-export default DepartmentBudgeting;
+export default DepartmentLevelBudgeting;

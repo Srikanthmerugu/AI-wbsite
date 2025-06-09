@@ -1,214 +1,375 @@
-// src/pages/Budgeting/DepreciationAmortizationForecast.jsx
-import React, { useState, useMemo } from 'react';
-import { Line, Bar } from 'react-chartjs-2';
+import React, { useState, useRef, useEffect } from "react";
+import * as XLSX from 'xlsx';
 import {
-  Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler
-} from 'chart.js';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FiDollarSign, FiCalendar, FiDownload, FiPlusCircle, FiBarChart2, FiTrendingDown, FiInfo, FiTag } from 'react-icons/fi';
-import { BsStars } from 'react-icons/bs';
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Bar, Line, Pie } from "react-chartjs-2";
+import { FiSave, FiUpload, FiDownload, FiPrinter, FiInfo } from "react-icons/fi";
+import { BsFilter } from 'react-icons/bs';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler);
+// Register ChartJS components
+ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, ArcElement, Title, Tooltip, Legend);
 
-// --- Data Structure ---
-const baseAssets = [
-  { id: 1, name: 'Manufacturing Equipment A', category: 'Machinery', type: 'Tangible', purchaseDate: '2023-06-15', cost: 450000, usefulLife: 10 },
-  { id: 2, name: 'Office Building East', category: 'Real Estate', type: 'Tangible', purchaseDate: '2020-02-10', cost: 2500000, usefulLife: 39 },
-  { id: 3, name: 'Company Software License', category: 'Software', type: 'Intangible', purchaseDate: '2022-11-30', cost: 180000, usefulLife: 3 },
-  { id: 4, name: 'Delivery Trucks (5 units)', category: 'Vehicles', type: 'Tangible', purchaseDate: '2021-08-20', cost: 320000, usefulLife: 7 },
-  { id: 5, name: 'Acquired Brand Name', category: 'Goodwill', type: 'Intangible', purchaseDate: '2019-05-12', cost: 750000, usefulLife: 10 },
-  { id: 6, name: 'Server Hardware', category: 'IT Equipment', type: 'Tangible', purchaseDate: '2022-03-15', cost: 210000, usefulLife: 5 },
+const SCENARIOS = {
+  BASELINE: "Baseline",
+  ACCELERATED: "Accelerated Depreciation",
+  STRAIGHT_LINE: "Straight-Line (Default)",
+};
+
+const DEPRECIATION_METHOD = {
+  STRAIGHT_LINE: "Straight-Line",
+  DOUBLE_DECLINING: "Double-Declining Balance",
+  NONE: "N/A (Amortization)",
+};
+
+// Mock data for D&A forecasting
+const initialAssetData = [
+  {
+    assetName: "Manufacturing Equipment", category: "Equipment", cost: 500000,
+    [SCENARIOS.BASELINE]:        { life: 10, method: DEPRECIATION_METHOD.STRAIGHT_LINE, aiInsight: "Standard 10-year life for heavy machinery." },
+    [SCENARIOS.ACCELERATED]:     { life: 10, method: DEPRECIATION_METHOD.DOUBLE_DECLINING, aiInsight: "Higher expense in early years, reflecting faster loss of utility." },
+    [SCENARIOS.STRAIGHT_LINE]:   { life: 10, method: DEPRECIATION_METHOD.STRAIGHT_LINE, aiInsight: "Even expense distribution over the asset's life." },
+  },
+  {
+    assetName: "Custom Software Development", category: "Intangible Asset", cost: 120000,
+    [SCENARIOS.BASELINE]:        { life: 3, method: DEPRECIATION_METHOD.NONE, aiInsight: "Amortized over 3 years, typical for software." },
+    [SCENARIOS.ACCELERATED]:     { life: 3, method: DEPRECIATION_METHOD.NONE, aiInsight: "Amortization period is fixed by accounting standards." },
+    [SCENARIOS.STRAIGHT_LINE]:   { life: 3, method: DEPRECIATION_METHOD.NONE, aiInsight: "Amortization period is fixed by accounting standards." },
+  },
+  {
+    assetName: "Office Computers", category: "Technology", cost: 80000,
+    [SCENARIOS.BASELINE]:        { life: 5, method: DEPRECIATION_METHOD.STRAIGHT_LINE, aiInsight: "Standard 5-year lifespan for IT hardware." },
+    [SCENARIOS.ACCELERATED]:     { life: 5, method: DEPRECIATION_METHOD.DOUBLE_DECLINING, aiInsight: "Reflects faster obsolescence of technology." },
+    [SCENARIOS.STRAIGHT_LINE]:   { life: 5, method: DEPRECIATION_METHOD.STRAIGHT_LINE, aiInsight: "Simple, consistent expense recognition." },
+  },
 ];
 
-const scenarioAssetData = {
-  base: { assets: baseAssets },
-  growth: {
-    assets: [
-      ...baseAssets,
-      { id: 7, name: 'NEW: West Coast Sales Office', category: 'Real Estate', type: 'Tangible', purchaseDate: '2024-10-01', cost: 3500000, usefulLife: 20 },
-      { id: 8, name: 'NEW: CRM Platform License', category: 'Software', type: 'Intangible', purchaseDate: '2024-07-01', cost: 850000, usefulLife: 5 },
-    ]
-  },
-  conservative: { assets: baseAssets.filter(asset => [1, 2, 3, 6].includes(asset.id)) }
-};
-
-const currentYear = new Date().getFullYear();
-
-// --- Main Forecast Calculation Engine ---
-const calculateForecastData = (assets) => {
-  const data = assets.map(asset => {
-    const yearlyExpense = asset.cost / asset.usefulLife;
-    const purchaseYear = new Date(asset.purchaseDate).getFullYear();
-    const age = currentYear - purchaseYear;
-    const accumulatedExpense = Math.max(0, Math.min(age * yearlyExpense, asset.cost));
-    const currentBookValue = asset.cost - accumulatedExpense;
-    const remainingLife = Math.max(0, asset.usefulLife - age);
-    return { ...asset, yearlyExpense, currentBookValue, remainingLife };
+const DepreciationAmortizationForecasting = () => {
+  const [activeTab, setActiveTab] = useState("forecast");
+  const [period, setPeriod] = useState("12 Months");
+  const [hasChanges, setHasChanges] = useState(false);
+  
+  const [assetData, setAssetData] = useState(JSON.parse(JSON.stringify(initialAssetData)));
+  const [activeScenario, setActiveScenario] = useState(SCENARIOS.BASELINE);
+  const [scenarioAssumptions, setScenarioAssumptions] = useState({
+    [SCENARIOS.BASELINE]: "Uses a mix of Straight-Line and accelerated methods based on asset class to balance tax benefits and P&L impact.",
+    [SCENARIOS.ACCELERATED]: "Prioritizes accelerated depreciation (e.g., Double-Declining Balance) to maximize early-year tax deductions.",
+    [SCENARIOS.STRAIGHT_LINE]: "Uses Straight-Line depreciation for all applicable assets for simplicity and predictable expense reporting.",
   });
-  return data;
-};
 
-// --- Reusable UI Components ---
-const KpiCard = ({ title, value, icon, description }) => (
-  <div className="bg-white p-4 rounded-xl border border-sky-100 shadow-sm">
-    <div className="flex items-center justify-between text-sky-800 mb-1">
-      <span className="font-medium text-sm">{title}</span>
-      {icon}
-    </div>
-    <div className="text-2xl font-bold text-sky-900">{value}</div>
-    <div className="text-xs text-sky-600 mt-1">{description}</div>
-  </div>
-);
+  const [forecastVersions, setForecastVersions] = useState([]);
+  const [forecastTotals, setForecastTotals] = useState({});
+  const filtersRef = useRef(null);
 
-const AssetCard = ({ asset }) => {
-  const isWarning = asset.remainingLife <= 2;
-  return (
-    <div className={`bg-white p-5 rounded-xl shadow-sm border ${isWarning ? 'border-amber-300' : 'border-sky-100'} hover:border-sky-300 transition-colors`}>
-      <div className="flex justify-between items-start mb-3">
-        <h3 className="font-semibold text-sky-900">{asset.name}</h3>
-        <span className={`px-2 py-0.5 text-xs rounded-full ${asset.type === 'Intangible' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>{asset.type}</span>
-      </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-        <div><div className="text-sky-600">Initial Cost</div><div className="font-medium">${asset.cost.toLocaleString()}</div></div>
-        <div><div className="text-sky-600">Current Value</div><div className="font-medium">${asset.currentBookValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div></div>
-        <div><div className="text-sky-600">Annual Expense</div><div className="font-medium">${asset.yearlyExpense.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div></div>
-        <div><div className="text-sky-600">Remaining Life</div><div className={`font-medium ${isWarning ? 'text-amber-600' : 'text-green-600'}`}>{asset.remainingLife.toFixed(1)} yrs</div></div>
-      </div>
-      {isWarning && asset.remainingLife > 0 && (
-          <div className="mt-3 pt-3 border-t border-amber-100 text-amber-600 flex items-center text-xs">
-              <FiInfo className="mr-1.5" /> This asset is nearing the end of its useful life. Plan for replacement or renewal.
-          </div>
-      )}
-    </div>
-  );
-};
-
-export const DepreciationAmortizationForecast = () => {
-  const [scenario, setScenario] = useState('base');
-  const [activeTab, setActiveTab] = useState('all');
-  const [showNewAssetForm, setShowNewAssetForm] = useState(false);
-
-  // --- Dynamic Data Calculation ---
-  const allAssets = useMemo(() => calculateForecastData(scenarioAssetData[scenario].assets), [scenario]);
+  const getScenarioDataItem = (item, scenarioKey) => {
+    return item[scenarioKey] || { life: 0, method: DEPRECIATION_METHOD.STRAIGHT_LINE, aiInsight: "N/A" };
+  };
   
-  const filteredAssets = useMemo(() => {
-    if (activeTab === 'all') return allAssets;
-    return allAssets.filter(asset => asset.type.toLowerCase() === activeTab);
-  }, [allAssets, activeTab]);
+  const calculateMonthlyExpense = (cost, life, method) => {
+    if (life <= 0) return 0;
+    if (method === DEPRECIATION_METHOD.STRAIGHT_LINE) {
+        return cost / (life * 12);
+    }
+    if (method === DEPRECIATION_METHOD.DOUBLE_DECLINING) {
+        // This is a simplified calculation for one month. A real implementation would track remaining book value.
+        return (cost / life) * 2 / 12; 
+    }
+    // Amortization (treated like Straight-Line here)
+    if (method === DEPRECIATION_METHOD.NONE) {
+        return cost / (life * 12);
+    }
+    return 0;
+  };
   
-  const { totalNBV, totalDepreciation, totalAmortization } = useMemo(() => {
-    return allAssets.reduce((acc, asset) => {
-        acc.totalNBV += asset.currentBookValue;
-        if(asset.remainingLife > 0) {
-          if (asset.type === 'Tangible') acc.totalDepreciation += asset.yearlyExpense;
-          else acc.totalAmortization += asset.yearlyExpense;
-        }
-        return acc;
-    }, { totalNBV: 0, totalDepreciation: 0, totalAmortization: 0 });
-  }, [allAssets]);
+  const calculateTotalsForScenario = (data, scenarioKey) => {
+    const totals = { depreciation: 0, amortization: 0, byCategory: {} };
+    if (!data || data.length === 0) return totals;
 
-  const forecastChartData = useMemo(() => {
-    const labels = Array.from({ length: 5 }, (_, i) => currentYear + i);
-    const datasets = { depreciation: Array(5).fill(0), amortization: Array(5).fill(0) };
+    data.forEach(item => {
+      const scenarioData = getScenarioDataItem(item, scenarioKey);
+      const monthlyExpense = calculateMonthlyExpense(item.cost, scenarioData.life, scenarioData.method);
+      const totalExpense = monthlyExpense * 12; // For annual view
 
-    allAssets.forEach(asset => {
-        for (let i = 0; i < 5; i++) {
-            if (asset.remainingLife > i) {
-                if (asset.type === 'Tangible') datasets.depreciation[i] += asset.yearlyExpense;
-                else datasets.amortization[i] += asset.yearlyExpense;
-            }
-        }
+      if (scenarioData.method === DEPRECIATION_METHOD.NONE) {
+        totals.amortization += totalExpense;
+      } else {
+        totals.depreciation += totalExpense;
+      }
+      
+      totals.byCategory[item.category] = (totals.byCategory[item.category] || 0) + totalExpense;
     });
-    return {
-        labels: labels.map(String),
-        datasets: [
-            { label: 'Depreciation', data: datasets.depreciation, backgroundColor: 'rgb(59, 130, 246)', stack: 'a' },
-            { label: 'Amortization', data: datasets.amortization, backgroundColor: 'rgb(139, 92, 246)', stack: 'a' },
-        ]
-    };
-  }, [allAssets]);
+    return totals;
+  };
 
+  useEffect(() => {
+    setForecastTotals(calculateTotalsForScenario(assetData, activeScenario));
+  }, [assetData, activeScenario]);
 
+  const handleInputChange = (index, field, value) => {
+    setAssetData(prev => {
+      const newData = JSON.parse(JSON.stringify(prev));
+      const scenarioItem = newData[index][activeScenario];
+      scenarioItem[field] = (field === 'life') ? parseFloat(value) || 0 : value;
+      return newData;
+    });
+    setHasChanges(true);
+  };
+  
+  const handleSaveAll = () => {
+    const timestamp = new Date().toISOString();
+    const totalsByScenario = {};
+    Object.values(SCENARIOS).forEach(scen => {
+      totalsByScenario[scen] = calculateTotalsForScenario(assetData, scen);
+    });
+    setForecastVersions(prev => [...prev, { period, timestamp, data: JSON.parse(JSON.stringify(assetData)), totalsByScenario, assumptions: JSON.parse(JSON.stringify(scenarioAssumptions))}]);
+    setHasChanges(false);
+    alert("D&A forecast version saved successfully!");
+  };
+
+  const handleExport = () => {
+    const dataForExport = assetData.map(item => {
+      const scenarioData = getScenarioDataItem(item, activeScenario);
+      return {
+        'Asset Name': item.assetName, 'Category': item.category,
+        'Purchase Cost': item.cost, 'Useful Life (Years)': scenarioData.life,
+        'Depreciation Method': scenarioData.method,
+        'Monthly Expense': calculateMonthlyExpense(item.cost, scenarioData.life, scenarioData.method),
+      };
+    });
+    const worksheet = XLSX.utils.json_to_sheet(dataForExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, `Depreciation Forecast`);
+    XLSX.writeFile(workbook, `Depreciation_Forecast_${activeScenario.replace(/\s+/g, '_')}.xlsx`);
+  };
+
+  const handleImport = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data);
+      const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+      
+      const dataMap = new Map(assetData.map(d => [d.assetName, JSON.parse(JSON.stringify(d))]));
+      jsonData.forEach(row => {
+        const assetName = row['Asset Name'];
+        if (dataMap.has(assetName)) {
+          const itemToUpdate = dataMap.get(assetName);
+          const scenarioItem = getScenarioDataItem(itemToUpdate, activeScenario);
+          itemToUpdate.cost = row['Purchase Cost'] ?? itemToUpdate.cost;
+          scenarioItem.life = row['Useful Life (Years)'] ?? scenarioItem.life;
+          scenarioItem.method = row['Depreciation Method'] ?? scenarioItem.method;
+          dataMap.set(assetName, itemToUpdate);
+        }
+      });
+      setAssetData(Array.from(dataMap.values()));
+      setHasChanges(true);
+      alert(`Asset data for ${activeScenario} imported. Review changes.`);
+      e.target.value = '';
+    } catch (error) {
+      console.error("Error importing file:", error);
+      alert("Error importing file.");
+    }
+  };
+  
+  const handleRestoreVersion = (version) => {
+    setAssetData(JSON.parse(JSON.stringify(version.data)));
+    setScenarioAssumptions(JSON.parse(JSON.stringify(version.assumptions)));
+    setHasChanges(false);
+    alert(`Version from ${new Date(version.timestamp).toLocaleString()} restored.`);
+  };
+  
+  const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "top" } } };
+  const barChartData = {
+    labels: Object.keys(forecastTotals.byCategory || {}),
+    datasets: [{ label: 'Annual Expense by Asset Category', data: Object.values(forecastTotals.byCategory || {}), backgroundColor: ['#3b82f6', '#10b981', '#f97316'] }],
+  };
+  const pieChartData = {
+    labels: ['Depreciation', 'Amortization'],
+    datasets: [{ data: [forecastTotals.depreciation || 0, forecastTotals.amortization || 0], backgroundColor: ['#3b82f6', '#f97316'], hoverOffset: 4 }],
+  };
+  
   return (
-    <div className="space-y-6 p-6 min-h-screen bg-sky-50">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-sky-900">Depreciation & Amortization Forecast</h1>
-            <p className="text-sm text-gray-500 mt-1">Modeling the P&L and Balance Sheet impact of your asset base.</p>
+    <div className="space-y-6 p-4 min-h-screen relative bg-sky-50">
+      <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
+        <div className="flex justify-between items-center">
+          <div><h1 className="text-lg font-bold text-white">Depreciation & Amortization Forecasting</h1><p className="text-sky-100 text-xs">Understand the financial impact of capital assets over time.</p></div>
+          <div className="flex items-center space-x-4">
+             <div><label className="text-sm text-white font-medium mr-2">Forecast Period:</label><select value={period} onChange={(e) => setPeriod(e.target.value)} className="p-1.5 border bg-sky-50 text-sky-900 border-sky-200 rounded-md text-xs"><option>12 Months</option><option>24 Months</option></select></div>
+             <button onClick={() => window.print()} className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 transition-colors"><FiPrinter className="text-sky-50" /><span className="text-sky-50">Print</span></button>
           </div>
-          <div className="flex items-center space-x-4 mt-3 md:mt-0">
-            <select value={scenario} onChange={e => setScenario(e.target.value)} className="p-2 border border-gray-300 rounded-lg text-sm bg-white shadow-sm">
-                <option value="base">Base Scenario</option>
-                <option value="growth">Growth Scenario</option>
-                <option value="conservative">Conservative Case</option>
-            </select>
-          </div>
-      </div>
-      
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        <KpiCard title="Current Net Book Value" value={`$${totalNBV.toLocaleString(undefined,{maximumFractionDigits:0})}`} icon={<FiTrendingDown/>} description="Total value on balance sheet" />
-        <KpiCard title="Y1 Depreciation" value={`$${totalDepreciation.toLocaleString(undefined,{maximumFractionDigits:0})}`} icon={<FiBarChart2 className="text-blue-500"/>} description="Expense from tangible assets" />
-        <KpiCard title="Y1 Amortization" value={`$${totalAmortization.toLocaleString(undefined,{maximumFractionDigits:0})}`} icon={<FiBarChart2 className="text-purple-500"/>} description="Expense from intangible assets" />
-        <KpiCard title="Assets Modeled" value={allAssets.length} icon={<FiTag/>} description={`For ${scenario} scenario`} />
-      </div>
-      
-      {/* Tabs & Controls */}
-      <div className="flex border-b border-sky-200">
-        {['all', 'tangible', 'intangible'].map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 font-semibold capitalize transition-colors ${activeTab === tab ? 'text-sky-700 border-b-2 border-sky-600' : 'text-gray-500 hover:text-sky-600'}`}>
-                {tab} Assets
-            </button>
-        ))}
-        <button onClick={() => setShowNewAssetForm(true)} className="ml-auto flex items-center text-sm font-medium text-green-600 hover:text-green-700"><FiPlusCircle className="mr-2"/>Add Asset</button>
+        </div>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-4">
-            <AnimatePresence>
-            {showNewAssetForm && (
-                <motion.div initial={{opacity:0, height:0}} animate={{opacity:1, height:'auto'}} exit={{opacity:0, height:0}} className="bg-white p-5 rounded-xl shadow-sm border border-green-200 mb-4 overflow-hidden">
-                    <h3 className="text-lg font-semibold text-sky-900 mb-4">Add New Asset to Scenario</h3>
-                    {/* Simplified form UI */}
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                        <input placeholder="Asset Name" className="p-2 border rounded-md"/>
-                        <select className="p-2 border rounded-md"><option>Tangible</option><option>Intangible</option></select>
-                        <input placeholder="Cost ($)" type="number" className="p-2 border rounded-md"/>
-                        <input placeholder="Useful Life (Yrs)" type="number" className="p-2 border rounded-md"/>
-                    </div>
-                    <div className="flex justify-end gap-3 mt-4">
-                        <button onClick={() => setShowNewAssetForm(false)} className="text-sm text-gray-600">Cancel</button>
-                        <button className="text-sm bg-sky-600 text-white px-4 py-2 rounded-md hover:bg-sky-700">Add Asset</button>
-                    </div>
-                </motion.div>
-            )}
-            </AnimatePresence>
-            {filteredAssets.map(asset => <AssetCard key={asset.id} asset={asset} />)}
-            {filteredAssets.length === 0 && <div className="text-center p-8 bg-white rounded-xl border">No assets match this filter.</div>}
+      <div className="flex items-center gap-3 border-b mt-5 py-3 border-gray-200 mb-6">
+        {[{id: 'forecast', label: 'Forecast D&A'}, {id: 'import', label: 'Import Assets'}, {id: 'compare', label: 'Compare Scenarios'}].map(tab => (
+          <button key={tab.id} className={`py-2 px-4 font-medium text-sm ${activeTab === tab.id ? 'text-sky-50 border-b-2 border-sky-600 bg-sky-800 rounded-t-lg' : 'text-sky-900 hover:text-sky-500 hover:bg-sky-100 rounded-t-lg'}`} onClick={() => setActiveTab(tab.id)}>{tab.label}</button>
+        ))}
+        <div className="ml-4">
+            <label className="text-sm font-medium text-sky-800 mr-2">Active Scenario:</label>
+            <select value={activeScenario} onChange={(e) => { if(hasChanges && !window.confirm("Unsaved changes. Switch anyway?")) return; setActiveScenario(e.target.value); setHasChanges(false); }} className="p-1.5 border border-sky-300 bg-white text-sky-900 rounded-md text-xs">
+                {Object.values(SCENARIOS).map(name => <option key={name} value={name}>{name}</option>)}
+            </select>
         </div>
+        <div className="relative ml-auto" ref={filtersRef}><button className="py-2 px-3 text-gray-500 hover:text-blue-500 flex items-center text-sm"><BsFilter className="mr-1" /> Filters</button></div>
+      </div>
+      
+      <div>
+        {activeTab === 'forecast' && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Total Depreciation Forecast (Annual)</p><p className="text-2xl font-bold text-sky-900">${(forecastTotals?.depreciation || 0).toLocaleString()}</p></div>
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Total Amortization Forecast (Annual)</p><p className="text-2xl font-bold text-sky-900">${(forecastTotals?.amortization || 0).toLocaleString()}</p></div>
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Cumulative Expense Impact</p><p className="text-2xl font-bold text-red-600">${((forecastTotals.depreciation || 0) + (forecastTotals.amortization || 0)).toLocaleString()}</p></div>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="bg-white p-4 rounded-lg shadow-sm flex-1 border"><h2 className="text-lg font-semibold text-sky-900 mb-3">Asset Category Impact</h2><div className="h-[250px]"><Bar data={barChartData} options={chartOptions}/></div></div>
+                <div className="bg-white p-4 rounded-lg shadow-sm flex-1 border"><h2 className="text-lg font-semibold text-sky-900 mb-3">Expense Allocation by Type</h2><div className="h-[250px]"><Pie data={pieChartData} options={{...chartOptions, plugins: { legend: { position: 'right' } }}}/></div></div>
+            </div>
+
+            <div className="bg-white rounded-lg mt-5 shadow-sm overflow-hidden border">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold text-sky-900">D&A Forecast Editor ({activeScenario})</h2>
+                  <div className="flex space-x-2">
+                    <button onClick={handleExport} className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center"><FiDownload className="mr-2" /> Export</button>
+                    <button onClick={handleSaveAll} disabled={!hasChanges} className={`px-4 py-2 text-sm rounded-lg flex items-center ${hasChanges ? "bg-sky-600 text-white hover:bg-sky-700" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}><FiSave className="mr-2" /> Save Forecast</button>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto max-h-[calc(100vh-250px)] relative">
+                  <table className="min-w-full divide-y divide-sky-100">
+                    <thead className="bg-sky-50 sticky top-0 z-10">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-sky-900 uppercase sticky left-0 bg-sky-50 z-20 min-w-[200px]">Asset Name / Category</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[130px]">Purchase Cost</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">Useful Life (Yrs)</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[200px]">Depreciation Method</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[150px]">Monthly Expense</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-sky-100">
+                      {assetData.map((item, index) => {
+                        const scenarioData = getScenarioDataItem(item, activeScenario);
+                        const rowBgClass = index % 2 === 0 ? "bg-white" : "bg-sky-50/70";
+                        const monthlyExpense = calculateMonthlyExpense(item.cost, scenarioData.life, scenarioData.method);
+                        return (
+                          <tr key={index} className={`${rowBgClass} hover:bg-sky-100/50`}>
+                            <td className={`px-4 py-3 text-sm font-medium text-sky-900 sticky left-0 z-[5] ${rowBgClass}`}>
+                                <div className="font-semibold">{item.assetName}</div><div className="text-xs text-sky-600">{item.category}</div>
+                            </td>
+                            <td className="px-2 py-1 text-center text-sm">${item.cost.toLocaleString()}</td>
+                            <td className="px-2 py-1"><input type="number" value={scenarioData.life} onChange={(e) => handleInputChange(index, 'life', e.target.value)} className="w-full p-1.5 border border-sky-300 rounded-md text-sm text-center bg-white"/></td>
+                            <td className="px-2 py-1">
+                                <select value={scenarioData.method} onChange={(e) => handleInputChange(index, 'method', e.target.value)} className="w-full p-1.5 border border-sky-300 rounded-md text-sm bg-white">{Object.values(DEPRECIATION_METHOD).map(d=><option key={d}>{d}</option>)}</select>
+                            </td>
+                            <td className="px-2 py-1 text-center text-sm font-bold text-sky-900">
+                                <div className="relative group">${monthlyExpense.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <FiInfo className="inline-block ml-1 text-gray-400" />
+                                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 w-max p-1.5 text-xs text-white bg-slate-700 rounded-md opacity-0 group-hover:opacity-100 z-30 pointer-events-none">{scenarioData.aiInsight}</span>
+                                </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div className="mb-6 mt-6 p-4 bg-sky-100/70 rounded-lg shadow-sm border">
+                <label className="block text-md font-semibold text-sky-800 mb-2">Assumptions for {activeScenario}:</label>
+                <textarea value={scenarioAssumptions[activeScenario] || ''} onChange={(e) => { setScenarioAssumptions(prev => ({...prev, [activeScenario]: e.target.value})); setHasChanges(true); }} rows="3" className="w-full p-2 border border-sky-300 rounded-lg text-sm bg-white" placeholder={`e.g., Depreciation methods, useful life rationale...`} />
+            </div>
+          </>
+        )}
         
-        {/* Sidebar */}
-        <div className="space-y-6">
-          <div className="bg-white p-5 rounded-xl shadow-sm border">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">5-Year Expense Forecast</h3>
-            <div className="h-64"><Bar data={forecastChartData} options={{ responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true, ticks: { callback: v => `$${(v/1000).toFixed(0)}k` } } }, plugins: { legend: { display: true, position: 'bottom' }} }} /></div>
+        {activeTab === 'import' && (
+          <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+            <h2 className="text-xl font-semibold text-sky-900 mb-4">Import Asset Data</h2>
+            <p className="text-sm text-gray-600 mb-4">Upload an Excel (.xlsx) or CSV (.csv) file with your asset data. This will update the forecast for the active scenario.</p>
+            <div className="border-2 border-dashed border-sky-300 rounded-lg p-8 text-center">
+              <FiUpload className="mx-auto text-4xl text-sky-500 mb-3" />
+              <label htmlFor="importFile" className="px-6 py-3 bg-blue-600 text-white text-md font-medium rounded-lg hover:bg-blue-700 cursor-pointer">Choose File to Import</label>
+              <input id="importFile" type="file" onChange={handleImport} accept=".xlsx,.xls,.csv" className="hidden"/>
+              <p className="text-xs text-gray-500 mt-3">File must contain 'Asset Name', 'Purchase Cost', 'Useful Life (Years)', and 'Depreciation Method'.</p>
+            </div>
           </div>
-          <div className="bg-purple-50 p-5 rounded-xl border border-purple-200">
-             <h3 className="text-lg font-semibold text-purple-800 mb-3 flex items-center"><BsStars className="mr-2"/>AI-Powered Insights</h3>
-             <AnimatePresence mode="wait">
-             <motion.div key={scenario} initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-10}} className="space-y-3 text-sm">
-                {scenario === 'base' && <div className="bg-white/70 p-3 rounded-lg"><p className="font-medium text-purple-900">Amortization Cliff</p><p className="text-gray-700">Your amortization expense will drop significantly after Y3 as intangible assets are fully amortized. Plan for renewals to avoid P&L volatility.</p></div>}
-                {scenario === 'growth' && <div className="bg-white/70 p-3 rounded-lg"><p className="font-medium text-purple-900">Higher Expense Base</p><p className="text-gray-700">The Growth scenario adds substantial depreciation and amortization, increasing your non-cash expenses. Ensure revenue forecasts justify this change.</p></div>}
-                {scenario === 'conservative' && <div className="bg-white/70 p-3 rounded-lg"><p className="font-medium text-purple-900">Predictable Outlook</p><p className="text-gray-700">This scenario offers a stable and predictable expense forecast, but defers investments that might be needed for future growth.</p></div>}
-             </motion.div>
-             </AnimatePresence>
+        )}
+
+        {activeTab === 'compare' && (
+          <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+            <h2 className="text-xl font-semibold text-sky-900 mb-6">Compare Financial Impact Scenarios</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-sky-200">
+                <thead className="bg-sky-100">
+                  <tr>
+                    <th className="px-5 py-3 text-left text-xs font-semibold text-sky-800 uppercase">Metric</th>
+                    {Object.values(SCENARIOS).map(name => <th key={name} className="px-5 py-3 text-left text-xs font-semibold text-sky-800 uppercase">{name}</th>)}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-sky-100">
+                  {['Total D&A Expense', 'Depreciation', 'Amortization', 'Assumptions'].map(metric => (
+                    <tr key={metric} className={metric === 'Assumptions' ? 'align-top' : ''}>
+                      <td className="px-5 py-4 whitespace-nowrap text-sm font-medium text-sky-900">{metric}</td>
+                      {Object.values(SCENARIOS).map(scenarioName => {
+                        const totals = calculateTotalsForScenario(assetData, scenarioName);
+                        let value, className = "text-sm text-sky-700";
+                        if (metric === 'Total D&A Expense') { value = `$${((totals.depreciation || 0) + (totals.amortization || 0)).toLocaleString()}`; className = "text-sm font-semibold text-sky-800"; }
+                        else if (metric === 'Depreciation') { value = `$${(totals.depreciation || 0).toLocaleString()}`; }
+                        else if (metric === 'Amortization') { value = `$${(totals.amortization || 0).toLocaleString()}`; }
+                        else if (metric === 'Assumptions') { value = scenarioAssumptions[scenarioName] || 'N/A'; className = "text-xs text-gray-600 whitespace-pre-wrap max-w-xs"; }
+                        return <td key={`${metric}-${scenarioName}`} className={`px-5 py-4 ${className}`}>{value}</td>;
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
+        )}
+
+        <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+          <h2 className="text-xl font-semibold text-sky-900 mb-4">Forecast Version History</h2>
+          {forecastVersions.length === 0 ? <p className="text-sm text-gray-500">No versions saved yet.</p> : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-sky-100">
+                <thead className="bg-sky-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">Timestamp</th>
+                    {Object.values(SCENARIOS).map(scen => <th key={scen} className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">{scen} Total Expense</th>)}
+                    <th className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-sky-100">
+                  {forecastVersions.map((version, index) => (
+                    <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-sky-50/70"}>
+                      <td className="px-4 py-3 text-sm text-sky-800">{new Date(version.timestamp).toLocaleString()}</td>
+                      {Object.values(SCENARIOS).map(scen => {
+                        const total = version.totalsByScenario?.[scen] || { depreciation: 0, amortization: 0 };
+                        const totalExpense = total.depreciation + total.amortization;
+                        return <td key={`${index}-${scen}`} className="px-4 py-3 text-sm font-semibold text-sky-800">${totalExpense.toLocaleString()}</td>
+                      })}
+                      <td className="px-4 py-3"><button onClick={() => handleRestoreVersion(version)} className="text-sm text-sky-700 hover:text-sky-900 hover:underline">Restore</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-export default DepreciationAmortizationForecast;
+export default DepreciationAmortizationForecasting;
