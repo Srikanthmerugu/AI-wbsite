@@ -1,174 +1,359 @@
-// src/pages/Budgeting/ScenarioBasedCapexModeling.jsx
-import React, { useState, useMemo, useEffect } from 'react';
-import { Line, Bar } from 'react-chartjs-2';
+import React, { useState, useRef, useEffect } from "react";
+import * as XLSX from 'xlsx';
 import {
-  Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler
-} from 'chart.js';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FiDollarSign, FiClock, FiDownload, FiBarChart2, FiTrendingUp, FiAlertCircle } from 'react-icons/fi';
-import { BsStars } from 'react-icons/bs';
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  Filler,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Bar, Line } from "react-chartjs-2";
+import { FiSave, FiUpload, FiDownload, FiPrinter, FiInfo } from "react-icons/fi";
+import { BsFilter } from 'react-icons/bs';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler);
+// Register ChartJS components
+ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Filler, Title, Tooltip, Legend);
 
-// --- Data Model ---
-const initialProjectData = {
-  base: [
-    { id: 1, name: 'Next-Gen Server Fleet Upgrade', cost: 750000, usefulLife: 5, purchaseDate: '2024-04-15', status: 'Planned' },
-    { id: 2, name: 'New York Office Expansion', cost: 2200000, usefulLife: 15, purchaseDate: '2024-07-01', status: 'Planned' },
-    { id: 3, name: 'CNC Milling Machine', cost: 180000, usefulLife: 10, purchaseDate: '2024-09-20', status: 'Planned' },
-  ],
-  growth: [
-    { id: 1, name: 'Next-Gen Server Fleet Upgrade', cost: 900000, usefulLife: 5, purchaseDate: '2024-02-10', status: 'Accelerated' },
-    { id: 2, name: 'New York Office Expansion', cost: 2400000, usefulLife: 15, purchaseDate: '2024-06-01', status: 'Accelerated' },
-    { id: 3, name: 'CNC Milling Machine', cost: 180000, usefulLife: 10, purchaseDate: '2024-08-15', status: 'Planned' },
-    { id: 4, name: 'West Coast Satellite Office', cost: 3500000, usefulLife: 20, purchaseDate: '2024-10-05', status: 'New' },
-  ],
-  conservative: [
-    { id: 1, name: 'Next-Gen Server Fleet Upgrade', cost: 700000, usefulLife: 5, purchaseDate: '2024-09-01', status: 'Delayed' },
-    { id: 2, name: 'New York Office Expansion', cost: 2200000, usefulLife: 15, purchaseDate: '2025-02-01', status: 'Deferred' },
-    { id: 3, name: 'CNC Milling Machine', cost: 0, usefulLife: 10, purchaseDate: '2024-09-20', status: 'Cancelled' },
-  ]
+const SCENARIOS = {
+  BASELINE: "Baseline",
+  ACCELERATED: "Accelerated Investment",
+  DELAYED: "Delayed Execution",
 };
 
-const getQuarter = (date) => `Q${Math.floor(new Date(date).getMonth() / 3) + 1}`;
+const RISK_LEVEL = {
+  HIGH: "High",
+  MED: "Medium",
+  LOW: "Low",
+};
 
-// --- Financial Impact Calculation Engine (No changes needed here) ---
-const calculateFinancialImpact = (projects) => {
-    const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
-    const impact = { cashFlow: { Q1: 0, Q2: 0, Q3: 0, Q4: 0 }, pnlImpact: { Q1: 0, Q2: 0, Q3: 0, Q4: 0 }, endingNBV: { Q1: 0, Q2: 0, Q3: 0, Q4: 0 }};
-    let cumulativeNBV = 0;
-    quarters.forEach((q, qIndex) => {
-        let pnlForQuarter = 0;
-        projects.forEach(p => {
-            const purchaseQuarterIndex = Math.floor(new Date(p.purchaseDate).getMonth() / 3);
-            if (new Date(p.purchaseDate).getFullYear() === 2024) {
-                 if (getQuarter(p.purchaseDate) === q) { impact.cashFlow[q] -= p.cost; cumulativeNBV += p.cost; }
-                if (purchaseQuarterIndex <= qIndex) { const quarterlyDepreciation = p.cost / p.usefulLife / 4; pnlForQuarter += quarterlyDepreciation; }
-            }
-        });
-        impact.pnlImpact[q] = pnlForQuarter;
-        cumulativeNBV -= pnlForQuarter;
-        impact.endingNBV[q] = cumulativeNBV;
+// Mock data for CAPEX modeling
+const initialCapexData = [
+  {
+    project: "New Factory Equipment", category: "Equipment", cost: 1500000,
+    [SCENARIOS.BASELINE]:    { plannedStart: "2025-06-01", aiAdjustment: "On Schedule", userOverride: "2025-06-01", impact: "Improves output by 15% starting Q3.", risk: RISK_LEVEL.LOW, aiInsight: "Timing aligns with production demand forecast." },
+    [SCENARIOS.ACCELERATED]: { plannedStart: "2025-06-01", aiAdjustment: "Accelerate to Q1", userOverride: "2025-03-01", impact: "Increases Q2 output, but higher upfront cash burn.", risk: RISK_LEVEL.MED, aiInsight: "Accelerating captures early market demand but strains cash." },
+    [SCENARIOS.DELAYED]:     { plannedStart: "2025-06-01", aiAdjustment: "Delay to Q4", userOverride: "2025-10-01", impact: "Preserves cash but risks production bottleneck in Q3.", risk: RISK_LEVEL.HIGH, aiInsight: "Delaying saves cash but may fail to meet Q4 peak demand." },
+  },
+  {
+    project: "HQ Office Expansion", category: "Facilities", cost: 3000000,
+    [SCENARIOS.BASELINE]:    { plannedStart: "2025-09-01", aiAdjustment: "On Schedule", userOverride: "2025-09-01", impact: "Supports planned 2026 headcount growth.", risk: RISK_LEVEL.LOW, aiInsight: "Standard expansion project." },
+    [SCENARIOS.ACCELERATED]: { plannedStart: "2025-09-01", aiAdjustment: "Accelerate to Q2", userOverride: "2025-05-01", impact: "Prepares for faster-than-expected hiring.", risk: RISK_LEVEL.MED, aiInsight: "Builds capacity ahead of need." },
+    [SCENARIOS.DELAYED]:     { plannedStart: "2025-09-01", aiAdjustment: "Delay to 2026", userOverride: "2026-01-01", impact: "Significant cash savings, but may cause overcrowding.", risk: RISK_LEVEL.MED, aiInsight: "Defers major cash outlay, assuming slower hiring." },
+  },
+  {
+    project: "GenAI R&D Initiative", category: "R&D", cost: 750000,
+    [SCENARIOS.BASELINE]:    { plannedStart: "2025-01-15", aiAdjustment: "On Schedule", userOverride: "2025-01-15", impact: "Maintains competitive edge in product.", risk: RISK_LEVEL.MED, aiInsight: "Strategic imperative to keep pace with market." },
+    [SCENARIOS.ACCELERATED]: { plannedStart: "2025-01-15", aiAdjustment: "On Schedule", userOverride: "2025-01-15", impact: "Cannot be accelerated further.", risk: RISK_LEVEL.MED, aiInsight: "Already on an aggressive timeline." },
+    [SCENARIOS.DELAYED]:     { plannedStart: "2025-01-15", aiAdjustment: "Delay to Q3", userOverride: "2025-07-01", impact: "Loses first-mover advantage.", risk: RISK_LEVEL.HIGH, aiInsight: "Delaying this project cedes a 6-month window to competitors." },
+  },
+];
+
+const ScenarioBasedCapexModeling = () => {
+  const [activeTab, setActiveTab] = useState("model");
+  const [period, setPeriod] = useState("12 Months");
+  const [hasChanges, setHasChanges] = useState(false);
+  
+  const [capexData, setCapexData] = useState(JSON.parse(JSON.stringify(initialCapexData)));
+  const [activeScenario, setActiveScenario] = useState(SCENARIOS.BASELINE);
+  const [scenarioAssumptions, setScenarioAssumptions] = useState({
+    [SCENARIOS.BASELINE]: "Assumes all projects proceed as per the original timeline. Cash flow planning is based on these dates.",
+    [SCENARIOS.ACCELERATED]: "Pulls forward all strategic projects to capture market opportunities sooner, accepting a higher near-term cash burn.",
+    [SCENARIOS.DELAYED]: "Pushes back all non-essential CapEx by at least one quarter to preserve cash, accepting potential operational risks.",
+  });
+
+  const [capexVersions, setCapexVersions] = useState([]);
+  const [capexTotals, setCapexTotals] = useState({});
+  const filtersRef = useRef(null);
+
+  const getScenarioDataItem = (item, scenarioKey) => {
+    return item[scenarioKey] || { plannedStart: "N/A", aiAdjustment: "N/A", userOverride: "N/A", impact: "N/A", risk: RISK_LEVEL.LOW, aiInsight: "N/A" };
+  };
+  
+  const calculateTotalsForScenario = (data, scenarioKey) => {
+    const totals = { totalCapex: 0, cashFlowImpact: 0, highRiskCount: 0, byCategory: {} };
+    if (!data || data.length === 0) return totals;
+    
+    data.forEach(item => {
+      const scenarioData = getScenarioDataItem(item, scenarioKey);
+      totals.totalCapex += item.cost;
+      if (scenarioData.risk === RISK_LEVEL.HIGH) totals.highRiskCount++;
+      
+      const baselineDate = new Date(getScenarioDataItem(item, SCENARIOS.BASELINE).plannedStart);
+      const scenarioDate = new Date(scenarioData.userOverride);
+      if(scenarioDate < baselineDate) totals.cashFlowImpact -= item.cost;
+      if(scenarioDate > baselineDate) totals.cashFlowImpact += item.cost;
+
+      if (!totals.byCategory[item.category]) totals.byCategory[item.category] = { cost: 0, count: 0 };
+      totals.byCategory[item.category].cost += item.cost;
+      totals.byCategory[item.category].count++;
     });
-    return impact;
-};
-
-// --- Reusable UI Components (Upgraded) ---
-const ImpactCard = ({ title, value, subValue, icon }) => (
-    <div className="bg-white p-5 rounded-xl shadow-sm border border-sky-100 flex items-center space-x-4">
-        <div className="p-3 rounded-full bg-sky-100 text-sky-600">{icon}</div>
-        <div>
-            <div className="text-sm font-medium text-sky-700">{title}</div>
-            <p className="text-2xl font-bold text-sky-900">{value}</p>
-            <p className="text-xs text-gray-500">{subValue}</p>
-        </div>
-    </div>
-);
-
-const StatusBadge = ({ status }) => {
-    const styles = {
-      'Planned': 'bg-gray-100 text-gray-800 ring-gray-500/10',
-      'Accelerated': 'bg-green-100 text-green-800 ring-green-600/20',
-      'Delayed': 'bg-yellow-100 text-yellow-800 ring-yellow-600/20',
-      'Deferred': 'bg-orange-100 text-orange-800 ring-orange-600/20',
-      'Cancelled': 'bg-red-100 text-red-800 ring-red-600/20',
-      'New': 'bg-blue-100 text-blue-800 ring-blue-600/20'
-    };
-    return <span className={`px-2.5 py-1 text-xs font-medium rounded-full ring-1 ring-inset ${styles[status]}`}>{status}</span>;
+    return totals;
   };
 
-export const ScenarioBasedCapexModeling = () => {
-  const [scenario, setScenario] = useState('base');
-  const [projects, setProjects] = useState(initialProjectData.base);
+  useEffect(() => {
+    setCapexTotals(calculateTotalsForScenario(capexData, activeScenario));
+  }, [capexData, activeScenario]);
 
-  useEffect(() => { setProjects(initialProjectData[scenario]); }, [scenario]);
-
-  const handleProjectChange = (id, field, value) => {
-    setProjects(prev => prev.map(p => (p.id === id ? { ...p, [field]: value } : p)));
+  const handleInputChange = (index, field, value) => {
+    setCapexData(prev => {
+      const newData = JSON.parse(JSON.stringify(prev));
+      newData[index][activeScenario][field] = value;
+      return newData;
+    });
+    setHasChanges(true);
+  };
+  
+  const handleSaveAll = () => {
+    const timestamp = new Date().toISOString();
+    const totalsByScenario = {};
+    Object.values(SCENARIOS).forEach(scen => {
+      totalsByScenario[scen] = calculateTotalsForScenario(capexData, scen);
+    });
+    setCapexVersions(prev => [...prev, { period, timestamp, data: JSON.parse(JSON.stringify(capexData)), totalsByScenario, assumptions: JSON.parse(JSON.stringify(scenarioAssumptions))}]);
+    setHasChanges(false);
+    alert("CAPEX timing model saved successfully!");
   };
 
-  const financialImpact = useMemo(() => calculateFinancialImpact(projects), [projects]);
-  const totalCapex = useMemo(() => projects.reduce((sum, p) => sum + Number(p.cost), 0), [projects]);
-  const peakCashOutflow = Math.min(0, ...Object.values(financialImpact.cashFlow));
-  const totalPnlImpact = Object.values(financialImpact.pnlImpact).reduce((sum, val) => sum + val, 0);
+  const handleExport = () => {
+    const dataForExport = capexData.map(item => {
+      const scenarioData = getScenarioDataItem(item, activeScenario);
+      return {
+        'Project': item.project, 'Category': item.category, 'Cost': item.cost,
+        'User Override Start Date': scenarioData.userOverride,
+        'Financial Impact': scenarioData.impact, 'Risk Level': scenarioData.risk
+      };
+    });
+    const worksheet = XLSX.utils.json_to_sheet(dataForExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, `CAPEX Timing`);
+    XLSX.writeFile(workbook, `CAPEX_Timing_Model_${activeScenario.replace(/\s+/g, '_')}.xlsx`);
+  };
 
-  const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } };
-  const chartLabels = ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024'];
+  const handleImport = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data);
+      const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+      
+      const dataMap = new Map(capexData.map(d => [d.project, JSON.parse(JSON.stringify(d))]));
+      jsonData.forEach(row => {
+        const project = row['Project'];
+        if (dataMap.has(project)) {
+          const itemToUpdate = dataMap.get(project);
+          const scenarioItem = getScenarioDataItem(itemToUpdate, activeScenario);
+          scenarioItem.userOverride = row['User Override Start Date'] ?? scenarioItem.userOverride;
+          dataMap.set(project, itemToUpdate);
+        }
+      });
+      setCapexData(Array.from(dataMap.values()));
+      setHasChanges(true);
+      alert(`Data for ${activeScenario} imported. Review changes.`);
+      e.target.value = '';
+    } catch (error) {
+      console.error("Error importing file:", error);
+      alert("Error importing file.");
+    }
+  };
+  
+  const handleRestoreVersion = (version) => {
+    setCapexData(JSON.parse(JSON.stringify(version.data)));
+    setScenarioAssumptions(JSON.parse(JSON.stringify(version.assumptions)));
+    setHasChanges(false);
+    alert(`Version from ${new Date(version.timestamp).toLocaleString()} restored.`);
+  };
 
+  const getRiskColor = (level) => {
+    if (level === RISK_LEVEL.HIGH) return "bg-red-100 text-red-800 border-red-300";
+    if (level === RISK_LEVEL.MED) return "bg-yellow-100 text-yellow-800 border-yellow-300";
+    return "bg-green-100 text-green-800 border-green-300";
+  };
+  
+  const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "top" } } };
+  const lineChartData = {
+      labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+      datasets: [
+          { label: 'Baseline Outflow', data: [750000, 1500000, 3000000, 0], borderColor: 'rgba(156, 163, 175, 1)', tension: 0.1},
+          { label: `${activeScenario} Outflow`, data: [2750000, 3000000, 0, 0], borderColor: 'rgba(59, 130, 246, 1)', tension: 0.1},
+      ]
+  };
+  
   return (
-    <div className="space-y-6 p-6 min-h-screen bg-sky-50/50">
-      {/* Header */}
-       <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-5 rounded-xl shadow-md">
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <div>
-            <h1 className="text-xl font-bold text-white">Scenario-Based CAPEX Modeler</h1>
-            <p className="text-sky-100 text-sm mt-1">Analyze the financial impact of accelerating or delaying investments.</p>
+    <div className="space-y-6 p-4 min-h-screen relative bg-sky-50">
+      <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
+        <div className="flex justify-between items-center">
+          <div><h1 className="text-lg font-bold text-white">Scenario-Based CAPEX Modeling</h1><p className="text-sky-100 text-xs">How does delaying or accelerating CAPEX affect finances?</p></div>
+          <div className="flex items-center space-x-4">
+             <div><label className="text-sm text-white font-medium mr-2">Forecast Period:</label><select value={period} onChange={(e) => setPeriod(e.target.value)} className="p-1.5 border bg-sky-50 text-sky-900 border-sky-200 rounded-md text-xs"><option>12 Months</option><option>24 Months</option></select></div>
+             <button onClick={() => window.print()} className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 transition-colors"><FiPrinter className="text-sky-50" /><span className="text-sky-50">Print</span></button>
           </div>
-          <div className="flex items-center space-x-3 mt-4 md:mt-0">
-            <select value={scenario} onChange={e => setScenario(e.target.value)} className="p-2 border border-sky-400 rounded-lg text-sm bg-white/20 text-white shadow-sm focus:ring-2 focus:ring-white">
-              <option className="text-black" value="base">Base Scenario</option>
-              <option className="text-black" value="growth">Growth Scenario</option>
-              <option className="text-black" value="conservative">Conservative Case</option>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3 border-b mt-5 py-3 border-gray-200 mb-6">
+        {[{id: 'model', label: 'Model Timing Scenarios'}, {id: 'import', label: 'Import Models'}, {id: 'compare', label: 'Compare Scenarios'}].map(tab => (
+          <button key={tab.id} className={`py-2 px-4 font-medium text-sm ${activeTab === tab.id ? 'text-sky-50 border-b-2 border-sky-600 bg-sky-800 rounded-t-lg' : 'text-sky-900 hover:text-sky-500 hover:bg-sky-100 rounded-t-lg'}`} onClick={() => setActiveTab(tab.id)}>{tab.label}</button>
+        ))}
+        <div className="ml-4">
+            <label className="text-sm font-medium text-sky-800 mr-2">Active Scenario:</label>
+            <select value={activeScenario} onChange={(e) => { if(hasChanges && !window.confirm("Unsaved changes. Switch anyway?")) return; setActiveScenario(e.target.value); setHasChanges(false); }} className="p-1.5 border border-sky-300 bg-white text-sky-900 rounded-md text-xs">
+                {Object.values(SCENARIOS).map(name => <option key={name} value={name}>{name}</option>)}
             </select>
-            <button className="flex items-center py-2 px-4 text-xs font-medium text-white bg-sky-700 rounded-lg border border-sky-600 hover:bg-sky-600">
-              <FiDownload className="mr-1.5" /> Export Analysis
-            </button>
-          </div>
         </div>
+        <div className="relative ml-auto" ref={filtersRef}><button className="py-2 px-3 text-gray-500 hover:text-blue-500 flex items-center text-sm"><BsFilter className="mr-1" /> Filters</button></div>
       </div>
       
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <ImpactCard title="Total CAPEX Spend" value={`$${(totalCapex/1000000).toFixed(1)}M`} subValue="Cash required for this scenario" icon={<FiDollarSign size={20}/>} />
-        <ImpactCard title="Peak Quarterly Cash Outflow" value={`$${(peakCashOutflow/1000000).toFixed(1)}M`} subValue="Maximum cash needed in a quarter" icon={<FiAlertCircle size={20}/>} />
-        <ImpactCard title="Total Year 1 P&L Impact" value={`$${(totalPnlImpact/1000).toFixed(0)}k`} subValue="Depreciation & Amortization" icon={<FiTrendingUp size={20}/>} />
-      </div>
+      <div>
+        {activeTab === 'model' && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Total CAPEX Planned</p><p className="text-2xl font-bold text-sky-900">${(capexTotals?.totalCapex || 0).toLocaleString()}</p></div>
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Cash Flow Impact this Q</p><p className={`text-2xl font-bold ${(capexTotals?.cashFlowImpact || 0) <= 0 ? 'text-red-600' : 'text-green-600'}`}>${(capexTotals?.cashFlowImpact || 0).toLocaleString()}</p></div>
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Operational Risk from Delay</p><p className="text-2xl font-bold text-red-600">{capexTotals.highRiskCount} High Risk Items</p></div>
+            </div>
 
-      {/* Project Modeling Cards */}
-      <div className="bg-white rounded-xl shadow-sm border p-5">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Live CAPEX Plan Modeler</h3>
-        <div className="space-y-5">
-            {projects.map(p => (
-                <div key={p.id} className="flex flex-wrap md:flex-nowrap gap-4 items-center border-b border-gray-200 pb-5">
-                    <div className="w-full md:w-1/4">
-                        <p className="font-semibold text-gray-900">{p.name}</p>
-                        <StatusBadge status={p.status} />
-                    </div>
-                     <div className="w-1/2 md:w-auto">
-                        <label className="text-xs text-gray-500">Cost ($)</label>
-                        <input type="number" value={p.cost} onChange={e => handleProjectChange(p.id, 'cost', Number(e.target.value))} className="w-full mt-1 p-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-sky-500 focus:border-sky-500" />
-                    </div>
-                     <div className="w-1/2 md:w-auto">
-                        <label className="text-xs text-gray-500">Purchase Date</label>
-                        <input type="date" value={p.purchaseDate} onChange={e => handleProjectChange(p.id, 'purchaseDate', e.target.value)} className="w-full mt-1 p-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-sky-500 focus:border-sky-500" />
-                    </div>
-                    <div className="w-full md:flex-grow bg-sky-50 p-3 rounded-lg border border-sky-200 text-xs text-sky-800 flex items-start">
-                        <BsStars className="text-sky-600 mr-2.5 mt-0.5 flex-shrink-0" size={16}/>
-                        <span>Delaying this to Q4 improves short-term cash flow by <span className="font-semibold">${(p.cost/1000).toFixed(0)}k</span> but defers potential ROI. Accelerating it does the reverse.</span>
-                    </div>
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="bg-white p-4 rounded-lg shadow-sm flex-1 border"><h2 className="text-lg font-semibold text-sky-900 mb-3">CAPEX Outflow Over Time</h2><div className="h-[250px]"><Line data={lineChartData} options={chartOptions}/></div></div>
+                <div className="bg-white p-4 rounded-lg shadow-sm flex-1 border"><h2 className="text-lg font-semibold text-sky-900 mb-3">Project Timing vs. Impact</h2><div className="h-[250px]">{/* Placeholder for second chart */}</div></div>
+            </div>
+
+            <div className="bg-white rounded-lg mt-5 shadow-sm overflow-hidden border">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold text-sky-900">CAPEX Timing Editor ({activeScenario})</h2>
+                  <div className="flex space-x-2">
+                    <button onClick={handleExport} className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center"><FiDownload className="mr-2" /> Export</button>
+                    <button onClick={handleSaveAll} disabled={!hasChanges} className={`px-4 py-2 text-sm rounded-lg flex items-center ${hasChanges ? "bg-sky-600 text-white hover:bg-sky-700" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}><FiSave className="mr-2" /> Save Plan</button>
+                  </div>
                 </div>
-            ))}
-        </div>
-      </div>
-      
-      {/* Financial Impact Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white p-5 rounded-xl shadow-sm border"><h3 className="text-md font-semibold text-gray-800 mb-4">Quarterly Cash Flow Impact</h3><div className="h-64"><Bar data={{ labels: chartLabels, datasets: [{ label: 'Cash Outflow', data: Object.values(financialImpact.cashFlow), backgroundColor: 'rgba(239, 68, 68, 0.8)' }]}} options={{...chartOptions, scales: { y: { ticks: { callback: v => `$${(v/1000).toFixed(0)}k`}}}}} /></div></div>
-        <div className="bg-white p-5 rounded-xl shadow-sm border"><h3 className="text-md font-semibold text-gray-800 mb-4">Quarterly P&L Impact (D&A)</h3><div className="h-64"><Bar data={{ labels: chartLabels, datasets: [{ label: 'P&L Expense', data: Object.values(financialImpact.pnlImpact), backgroundColor: 'rgba(139, 92, 246, 0.8)' }]}} options={{...chartOptions, scales: { y: { ticks: { callback: v => `$${(v/1000).toFixed(0)}k`}}}}} /></div></div>
-        <div className="bg-white p-5 rounded-xl shadow-sm border"><h3 className="text-md font-semibold text-gray-800 mb-4">Ending Net Book Value (NBV)</h3><div className="h-64"><Line data={{ labels: chartLabels, datasets: [{ label: 'NBV', data: Object.values(financialImpact.endingNBV), borderColor: 'rgba(16, 185, 129, 1)', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.2 }]}} options={{...chartOptions, scales: { y: { beginAtZero: true, ticks: { callback: v => `$${(v/1000000).toFixed(1)}M`}}}}} /></div></div>
-      </div>
 
-       {/* AI Summary Panel */}
-       <div className="bg-gradient-to-r from-purple-50 to-sky-50 p-5 rounded-xl border border-purple-200">
-             <h3 className="text-lg font-semibold text-purple-800 mb-3 flex items-center"><BsStars className="mr-2"/>AI Scenario Analysis</h3>
-             <AnimatePresence mode="wait">
-             <motion.div key={scenario} initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-10}} className="bg-white/50 p-4 rounded-lg text-sm text-purple-900 leading-relaxed">
-                {scenario === 'base' && 'The Base Scenario presents a balanced cash flow but concentrates spending in Q3. This is a moderate risk profile with steady P&L impact growth.'}
-                {scenario === 'growth' && 'The Growth Scenario significantly accelerates cash burn, creating a large deficit in Q2 and Q4. This aggressive strategy builds the asset base faster but requires robust financing to manage the steep increase in D&A expense.'}
-                {scenario === 'conservative' && 'The Conservative Case prioritizes cash preservation by deferring major projects. This minimizes 2024 cash outflow and P&L impact but risks falling behind on strategic initiatives and may incur higher costs later.'}
-             </motion.div>
-             </AnimatePresence>
+                <div className="overflow-x-auto max-h-[calc(100vh-250px)] relative">
+                  <table className="min-w-full divide-y divide-sky-100">
+                    <thead className="bg-sky-50 sticky top-0 z-10">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-sky-900 uppercase sticky left-0 bg-sky-50 z-20 min-w-[200px]">Project / Category</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">Cost</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[150px]">Planned Start</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[150px]">AI Adjustment</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[150px]">User Override</th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-sky-700 uppercase min-w-[250px]">Financial Impact</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[100px]">Risk Level</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-sky-100">
+                      {capexData.map((item, index) => {
+                        const scenarioData = getScenarioDataItem(item, activeScenario);
+                        const rowBgClass = index % 2 === 0 ? "bg-white" : "bg-sky-50/70";
+                        return (
+                          <tr key={index} className={`${rowBgClass} hover:bg-sky-100/50`}>
+                            <td className={`px-4 py-3 text-sm font-medium text-sky-900 sticky left-0 z-[5] ${rowBgClass}`}>
+                                <div className="font-semibold">{item.project}</div><div className="text-xs text-sky-600">{item.category}</div>
+                            </td>
+                            <td className="px-2 py-1 text-center text-sm">${item.cost.toLocaleString()}</td>
+                            <td className="px-2 py-1 text-center text-sm">{getScenarioDataItem(item, SCENARIOS.BASELINE).plannedStart}</td>
+                            <td className="px-2 py-1 text-center text-sm">
+                                <div className="relative group">{scenarioData.aiAdjustment} <FiInfo className="inline-block ml-1 text-gray-400" />
+                                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 w-max p-1.5 text-xs text-white bg-slate-700 rounded-md opacity-0 group-hover:opacity-100 z-30 pointer-events-none">{scenarioData.aiInsight}</span>
+                                </div>
+                            </td>
+                            <td className="px-2 py-1"><input type="date" value={scenarioData.userOverride} onChange={(e) => handleInputChange(index, 'userOverride', e.target.value)} className="w-full p-1.5 border border-sky-300 rounded-md text-sm text-center bg-white"/></td>
+                            <td className="px-4 py-3 text-sm text-left text-red-600">{scenarioData.impact}</td>
+                            <td className="px-2 py-1 text-center"><span className={`text-xs font-bold px-2 py-1 rounded-full border ${getRiskColor(scenarioData.risk)}`}>{scenarioData.risk}</span></td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div className="mb-6 mt-6 p-4 bg-sky-100/70 rounded-lg shadow-sm border">
+                <label className="block text-md font-semibold text-sky-800 mb-2">Timing Assumptions for {activeScenario}:</label>
+                <textarea value={scenarioAssumptions[activeScenario] || ''} onChange={(e) => { setScenarioAssumptions(prev => ({...prev, [activeScenario]: e.target.value})); setHasChanges(true); }} rows="3" className="w-full p-2 border border-sky-300 rounded-lg text-sm bg-white" placeholder={`e.g., Timing strategies, market conditions, project dependencies...`} />
+            </div>
+          </>
+        )}
+        
+        {activeTab === 'import' && (
+          <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+            <h2 className="text-xl font-semibold text-sky-900 mb-4">Import Timing Models</h2>
+            <p className="text-sm text-gray-600 mb-4">Upload an Excel (.xlsx) or CSV (.csv) file with your CAPEX project dates. Match by 'Project'.</p>
+            <div className="border-2 border-dashed border-sky-300 rounded-lg p-8 text-center">
+              <FiUpload className="mx-auto text-4xl text-sky-500 mb-3" />
+              <label htmlFor="importFile" className="px-6 py-3 bg-blue-600 text-white text-md font-medium rounded-lg hover:bg-blue-700 cursor-pointer">Choose File to Import</label>
+              <input id="importFile" type="file" onChange={handleImport} accept=".xlsx,.xls,.csv" className="hidden"/>
+              <p className="text-xs text-gray-500 mt-3">File must contain 'Project' and 'User Override Start Date' columns.</p>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'compare' && (
+          <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+            <h2 className="text-xl font-semibold text-sky-900 mb-6">Compare Timing Scenarios</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-sky-200">
+                <thead className="bg-sky-100">
+                  <tr>
+                    <th className="px-5 py-3 text-left text-xs font-semibold text-sky-800 uppercase">Metric</th>
+                    {Object.values(SCENARIOS).map(name => <th key={name} className="px-5 py-3 text-left text-xs font-semibold text-sky-800 uppercase">{name}</th>)}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-sky-100">
+                  {['Total CAPEX', 'Cash Flow Impact (Q1)', 'High-Risk Delays', 'Assumptions'].map(metric => (
+                    <tr key={metric} className={metric === 'Assumptions' ? 'align-top' : ''}>
+                      <td className="px-5 py-4 whitespace-nowrap text-sm font-medium text-sky-900">{metric}</td>
+                      {Object.values(SCENARIOS).map(scenarioName => {
+                        const totals = calculateTotalsForScenario(capexData, scenarioName);
+                        let value, className = "text-sm text-sky-700";
+                        if (metric === 'Total CAPEX') { value = `$${(totals.totalCapex || 0).toLocaleString()}`; className = "text-sm font-semibold text-sky-800"; }
+                        else if (metric === 'Cash Flow Impact (Q1)') { value = `$${(totals.cashFlowImpact || 0).toLocaleString()}`; className = `text-sm font-semibold ${(totals.cashFlowImpact || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`; }
+                        else if (metric === 'High-Risk Delays') { value = `${totals.highRiskCount} items`; className = "text-sm font-semibold text-red-600"; }
+                        else if (metric === 'Assumptions') { value = scenarioAssumptions[scenarioName] || 'N/A'; className = "text-xs text-gray-600 whitespace-pre-wrap max-w-xs"; }
+                        return <td key={`${metric}-${scenarioName}`} className={`px-5 py-4 ${className}`}>{value}</td>;
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+          <h2 className="text-xl font-semibold text-sky-900 mb-4">Model Version History</h2>
+          {capexVersions.length === 0 ? <p className="text-sm text-gray-500">No versions saved yet.</p> : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-sky-100">
+                <thead className="bg-sky-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">Timestamp</th>
+                    {Object.values(SCENARIOS).map(scen => <th key={scen} className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">{scen} Total CAPEX</th>)}
+                    <th className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-sky-100">
+                  {capexVersions.map((version, index) => (
+                    <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-sky-50/70"}>
+                      <td className="px-4 py-3 text-sm text-sky-800">{new Date(version.timestamp).toLocaleString()}</td>
+                      {Object.values(SCENARIOS).map(scen => {
+                        const total = version.totalsByScenario?.[scen] || { totalCapex: 0 };
+                        return <td key={`${index}-${scen}`} className="px-4 py-3 text-sm font-semibold text-sky-800">${total.totalCapex.toLocaleString()}</td>
+                      })}
+                      <td className="px-4 py-3"><button onClick={() => handleRestoreVersion(version)} className="text-sm text-sky-700 hover:text-sky-900 hover:underline">Restore</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
+      </div>
     </div>
   );
 };

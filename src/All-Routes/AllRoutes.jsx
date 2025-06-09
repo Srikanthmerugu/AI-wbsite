@@ -101,6 +101,23 @@ import CustomerAcquisitionRetentionBudgeting from '../pages/Budgeting/RevenueBas
 import SubscriptionRevenueBudgeting from '../pages/Budgeting/RevenueBased-Budgeting/SubscriptionRevenue';
 import ScenarioBasedCapexModeling from '../pages/Budgeting/CAPEX-Budgeting/ScenarioBasedCapex';
 import HeadcountPlanning from '../pages/Budgeting/WorkforcePayroll-Budgeting/HeadcountPlanning';
+import SalaryCompensationBudgeting from '../pages/Budgeting/WorkforcePayroll-Budgeting/SalaryCompensation';
+import AttritionReplacementCostProjections from '../pages/Budgeting/WorkforcePayroll-Budgeting/AttritionReplacement';
+import WorkforceEfficiencyAnalysis from '../pages/Budgeting/WorkforcePayroll-Budgeting/orkforceEfficiency';
+import JustificationBasedBudgeting from '../pages/Budgeting/ZeroBased-Budgeting/JustificationBased';
+import CostControlWasteReduction from '../pages/Budgeting/ZeroBased-Budgeting/CostControlWasteReduction';
+import DepartmentZBBImplementation from '../pages/Budgeting/ZeroBased-Budgeting/DepartmentZBBImplementation';
+import SpendingEfficiencyRecommendations from '../pages/Budgeting/ZeroBased-Budgeting/SpendingEfficiency';
+import ContinuousBudgetUpdates from '../pages/Budgeting/Rolling&Flexible-Budgeting/ContinuousBudgetUpdates';
+import ScenarioBasedRollingForecasts from '../pages/Budgeting/Rolling&Flexible-Budgeting/ScenarioBasedRollingForecasts';
+import EmergencyContingencyBudgeting from '../pages/Budgeting/Rolling&Flexible-Budgeting/EmergencyContigency';
+import AutomatedVarianceAlerts from '../pages/Budgeting/Rolling&Flexible-Budgeting/AutomatedVarianceAlerts';
+import RevenueVsBudgetExpansion from '../pages/Budgeting/ScenarioModelling/RevenueVsBudgetExpansion';
+import CostCuttingScenarioTesting from '../pages/Budgeting/ScenarioModelling/CostCuttingScenarioTesting';
+import MarketEconimicConditionSimulations from '../pages/Budgeting/ZeroBased-Budgeting/InvestmentTradeOffs';
+import InvestmentTradeOffs from '../pages/Budgeting/ZeroBased-Budgeting/InvestmentTradeOffs';
+import MarketEconomicSimulations from '../pages/Budgeting/ZeroBased-Budgeting/MarketEconomicSimulations';
+import AICostOptimizationSuggestions from '../pages/Budgeting/Operational-Budgeting/AICostOptimization';
 
 
 
@@ -109,7 +126,6 @@ function AllRoutes() {
   return (
     <Router>
             <ScrollToTop />
-      
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
@@ -170,12 +186,27 @@ function AllRoutes() {
               <Route path="/revenue-budgeting" element={<RevenueBudgeting />} />
               <Route path="/department-budgeting" element={<DepartmentBudgeting />} />
               {/* <Route path="/department-budgeting" element={<AICostOptimization />} /> */}
-              <Route path="/aI-cost-optimization" element={<AICostOptimization />} />
+              <Route path="/aI-cost-optimization" element={<AICostOptimizationSuggestions />} />
               <Route path="/budget-vs-actuals" element={<BudgetVsActuals />} />
               <Route path="/revenue-driven-expense" element={<RevenueDrivenExpenseAllocation />} />
               <Route path="/sale-growth-budget" element={<SalesGrowthBudgetAdjustments />} />
               <Route path="/customer-acquisition-retention" element={<CustomerAcquisitionRetentionBudgeting />} />
               <Route path="/subscription-recurring-revenue" element={<SubscriptionRevenueBudgeting />} />
+              <Route path="/salary-compensation" element={<SalaryCompensationBudgeting />} />
+              <Route path="/attrition-replacement" element={<AttritionReplacementCostProjections />} />
+              <Route path="/workforce-efficiency" element={<WorkforceEfficiencyAnalysis />} />
+              <Route path="/justification-based" element={<JustificationBasedBudgeting />} />
+              <Route path="/costControl-wasteReduction" element={<CostControlWasteReduction />} />
+              <Route path="/department-ZBB-implementation" element={<DepartmentZBBImplementation />} />
+              <Route path="/spending-efficiency-recommendations" element={<SpendingEfficiencyRecommendations />} />
+              <Route path="/continuous-budget-updates" element={<ContinuousBudgetUpdates />} />
+              <Route path="/scenarioBased-rollingForecasts" element={<ScenarioBasedRollingForecasts />} />
+              <Route path="/emergency-contigency" element={<EmergencyContingencyBudgeting />} />
+              <Route path="/automated-variance-alerts" element={<AutomatedVarianceAlerts />} />
+              <Route path="/revenue-budget-expansion" element={<RevenueVsBudgetExpansion />} />
+              <Route path="/costCutting-scenario-testing" element={<CostCuttingScenarioTesting />} />
+              <Route path="/investment-tradeOffs" element={<InvestmentTradeOffs/>} />
+              <Route path="/market-economic-simulations" element={<MarketEconomicSimulations/>} />
               <Route path="/p&l-Dashboard" element={<PLDashboard />} />
               <Route path="/capital-investment-planning" element={<CapitalInvestmentPlanning />} />
               <Route path="/budget-roi-allocation" element={<ROIAllocation />} />
