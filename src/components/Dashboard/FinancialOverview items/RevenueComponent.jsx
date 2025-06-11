@@ -141,13 +141,13 @@ const RevenueComponent = () => {
     scales: {
       y: {
         beginAtZero: true,
-        ticks: { 
+        ticks: {
           callback: (value) => `$${value / 1000}k`,
           color: '#075985', // text-sky-700
         },
-        title: { 
-          display: true, 
-          text: 'Revenue ($)', 
+        title: {
+          display: true,
+          text: 'Revenue ($)',
           color: '#075985', // text-sky-700
         },
       },
@@ -252,16 +252,16 @@ const RevenueComponent = () => {
       initial="hidden"
       animate="visible"
     >
-       <button
-                 onClick={() => navigate('/financial-overview')}
-                 className="flex items-center justify-between text-sky-800 mb-2"
-               >
-                 <FaHome className="mr-2" /> Dashboard |<span className='ml-2 text-gray-400'>Revenue Analytics</span>
-               </button>
-           <div className="flex bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm justify-between items-center mb-6">
-        
+      <button
+        onClick={() => navigate('/financial-overview')}
+        className="flex items-center justify-between text-sky-800 mb-2"
+      >
+        <FaHome className="mr-2" /> Dashboard |<span className='ml-2 text-gray-400'>Revenue Analytics</span>
+      </button>
+      <div className="flex bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm justify-between items-center mb-6">
+
         <div className="flex items-center space-x-4">
-          
+
           <h2 className="text-2xl font-bold text-sky-50">Revenue Analytics</h2>
         </div>
         <div className="flex space-x-4 items-center">

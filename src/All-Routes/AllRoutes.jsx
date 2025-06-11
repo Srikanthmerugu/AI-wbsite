@@ -101,6 +101,8 @@ import CustomerAcquisitionRetentionBudgeting from '../pages/Budgeting/RevenueBas
 import SubscriptionRevenueBudgeting from '../pages/Budgeting/RevenueBased-Budgeting/SubscriptionRevenue';
 import ScenarioBasedCapexModeling from '../pages/Budgeting/CAPEX-Budgeting/ScenarioBasedCapex';
 import HeadcountPlanning from '../pages/Budgeting/WorkforcePayroll-Budgeting/HeadcountPlanning';
+import Setup2FA from '../context/setup-2fa';
+import Verify2FA from '../context/verify-2fa';
 
 
 
@@ -116,6 +118,8 @@ function AllRoutes() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
           <Route path="/register-page" element={<RegisterPage />} />
+           <Route path="/setup-2fa/:token" element={<Setup2FA />} />
+          <Route path="/verify-2fa" element={<Verify2FA />} />
           
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
@@ -225,6 +229,11 @@ function AllRoutes() {
 
               {/* GLUploadScreen */}
             <Route path="/gl-upload-screen" element={<GLUploadScreen />} />
+
+
+
+              
+
 
 
             </Route>

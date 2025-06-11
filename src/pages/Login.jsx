@@ -23,7 +23,7 @@ const LoginPage = () => {
       return;
     }
 
-    await login(email, password);
+    await login(email, password, rememberMe);
   };
 
   return (
@@ -158,18 +158,6 @@ const LoginPage = () => {
             </button>
           </div>
         </form>
-
-        {/* <div className="mt-6 text-center">
-          <p className="text-sm text-sky-600">
-            Don't have an account?{' '}
-            <Link 
-              to="/register-page" 
-              className="font-light text-blue-700 hover:text-blue-600"
-            >
-              Register
-            </Link>
-          </p>
-        </div> */}
       </motion.div>
     </div>
   );
