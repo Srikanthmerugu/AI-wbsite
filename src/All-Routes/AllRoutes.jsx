@@ -21,7 +21,6 @@ import CAPEXForecastScreen from '../pages/ForecastingOverview/CAPEXForecastScree
 
 import { AuthProvider } from '../context/AuthContext';
 import FixedVariableExpense from '../pages/Budgeting/Operational-Budgeting/FixedVariableExpense';
-import { RevenueBudgeting } from '../pages/Budgeting/RevenueBased-Budgeting/RevenuebasedBudgeting';
 import  DepartmentBudgeting  from '../pages/Budgeting/Operational-Budgeting/DepartmentBudgeting';
 import AICostOptimization from '../pages/Budgeting/Operational-Budgeting/AICostOptimization';
 import BudgetVsActuals from '../pages/Budgeting/Operational-Budgeting/BudgetVsActuals';
@@ -95,6 +94,7 @@ import CompensationBenefits from '../pages/Performance Analytics/HR and Workforc
 import GLUploadScreen from '../pages/Gl-Data-upload-screen/GLDataUploadScreen';
 import ScrollToTop from '../ScrollToTop';
 import OperationalBudgeting from '../pages/Budgeting/Operational-Budgeting/OperationalBudgeting';
+import RevenueBasedBudgeting from '../pages/Budgeting/RevenueBased-Budgeting/RevenuebasedBudgeting';
 import RevenueDrivenExpenseAllocation from '../pages/Budgeting/RevenueBased-Budgeting/RevenueDrivenExpense';
 import SalesGrowthBudgetAdjustments from '../pages/Budgeting/RevenueBased-Budgeting/SaleGrowthBudget';
 import CustomerAcquisitionRetentionBudgeting from '../pages/Budgeting/RevenueBased-Budgeting/CustomerAcquisitionRetention';
@@ -114,10 +114,15 @@ import EmergencyContingencyBudgeting from '../pages/Budgeting/Rolling&Flexible-B
 import AutomatedVarianceAlerts from '../pages/Budgeting/Rolling&Flexible-Budgeting/AutomatedVarianceAlerts';
 import RevenueVsBudgetExpansion from '../pages/Budgeting/ScenarioModelling/RevenueVsBudgetExpansion';
 import CostCuttingScenarioTesting from '../pages/Budgeting/ScenarioModelling/CostCuttingScenarioTesting';
-import MarketEconimicConditionSimulations from '../pages/Budgeting/ZeroBased-Budgeting/InvestmentTradeOffs';
-import InvestmentTradeOffs from '../pages/Budgeting/ZeroBased-Budgeting/InvestmentTradeOffs';
-import MarketEconomicSimulations from '../pages/Budgeting/ZeroBased-Budgeting/MarketEconomicSimulations';
+import MarketEconimicConditionSimulations from '../pages/Budgeting/ScenarioModelling/InvestmentTradeOffs';
+import InvestmentTradeOffs from '../pages/Budgeting/ScenarioModelling/InvestmentTradeOffs';
+import MarketEconomicSimulations from '../pages/Budgeting/ScenarioModelling/MarketEconomicSimulations';
 import AICostOptimizationSuggestions from '../pages/Budgeting/Operational-Budgeting/AICostOptimization';
+import CapexBudgeting from '../pages/Budgeting/CAPEX-Budgeting/CapexBudgeting';
+import WorkforceBudgeting from '../pages/Budgeting/WorkforcePayroll-Budgeting/WorkforceBudgeting';
+import ZeroBasedBudgeting from '../pages/Budgeting/ZeroBased-Budgeting/ZeroBasedBudgeting';
+import RollingBudgeting from '../pages/Budgeting/Rolling&Flexible-Budgeting/RollingBudgeting';
+import ScenarioModelingBudgeting from '../pages/Budgeting/ScenarioModelling/ScenarioModellingBudgeting';
 
 
 
@@ -183,7 +188,12 @@ function AllRoutes() {
               <Route path="/headcount-payroll" element={<HeadcountPayroll />} />
               <Route path="/operational-budgeting" element={<OperationalBudgeting />} />
               <Route path="/fixed-variable-expense" element={<FixedVariableExpense />} />
-              <Route path="/revenue-budgeting" element={<RevenueBudgeting />} />
+              <Route path="/capex-budgeting" element={<CapexBudgeting />} />
+              <Route path="/revenue-based-budgeting" element={<RevenueBasedBudgeting />} />
+              <Route path="/workforce-budgeting" element={<WorkforceBudgeting />} />
+              <Route path="/zeroBased-budgeting" element={<ZeroBasedBudgeting />} />
+              <Route path="/rolling-budgeting" element={<RollingBudgeting />} />
+              <Route path="/scenario-modelling-budgeting" element={<ScenarioModelingBudgeting />} />
               <Route path="/department-budgeting" element={<DepartmentBudgeting />} />
               {/* <Route path="/department-budgeting" element={<AICostOptimization />} /> */}
               <Route path="/aI-cost-optimization" element={<AICostOptimizationSuggestions />} />

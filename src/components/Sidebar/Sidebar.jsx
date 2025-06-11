@@ -134,7 +134,7 @@ const MENUITEMS = [
             ],
           },
           {
-            path: "/revenue-budgeting",
+            path: "/revenue-based-budgeting",
             type: "link",
             title: "Revenue-Based Budgeting ",
             icon: { name: "FiFile" },
@@ -146,7 +146,7 @@ const MENUITEMS = [
             ],
           },
           {
-            path: "#",
+            path: "/capex-budgeting",
             type: "link",
             title: "Capital Expenditure (CAPEX) Budgeting  ",
             icon: { name: "FiFile" },
@@ -158,7 +158,7 @@ const MENUITEMS = [
             ],
           },
           {
-            path: "#",
+            path: "/workforce-budgeting",
             type: "link",
             title: "Workforce & Payroll Budgeting",
             icon: { name: "FiFile" },
@@ -170,7 +170,7 @@ const MENUITEMS = [
             ],
           },
           {
-            path: "#",
+            path: "/zeroBased-Budgeting",
             type: "link",
             title: "Zero-Based Budgeting ",
             icon: { name: "FiFile" },
@@ -182,7 +182,7 @@ const MENUITEMS = [
             ],
           },
           {
-            path: "#",
+            path: "rolling-budgeting",
             type: "link",
             title: "Rolling & Flexible Budgeting ",
             icon: { name: "FiFile" },
@@ -194,7 +194,7 @@ const MENUITEMS = [
             ],
           },
           {
-            path: "#",
+            path: "/scenario-modelling-budgeting",
             type: "link",
             title: "Scenario Modeling & What-If Analysis ",
             icon: { name: "FiFile" },
