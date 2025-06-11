@@ -9,15 +9,9 @@ import { API_BASE_URL } from '../config/config';
 
 const Setup2FA = () => {
   const { token } = useParams();
-  console.log("line 11 , 2FA Setup Token:", token); // Debugging line to check token
   const navigate = useNavigate();
-const params = useParams();
-console.log(' line 14 , Route Params:', params); // Should show { token: "abc123" }
-  // Context
-  const { userEmail, complete2FASetup } = useContext(AuthContext);
+  const { userEmail, complete2FASetup, loading: contextLoading } = useContext(AuthContext);
   
-
-
   // State
   const [qrCodeData, setQrCodeData] = useState('');
   const [backupCodes, setBackupCodes] = useState([]);
@@ -25,29 +19,41 @@ console.log(' line 14 , Route Params:', params); // Should show { token: "abc123
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+  const [setupData, setSetupData] = useState(null);
 
   // Fetch QR code and backup codes
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/v1/company/user/auth/2fa/setup/${token}`);
-        if (!res.ok) throw new Error('Failed to fetch');
+        const response = await fetch(`${API_BASE_URL}/api/v1/company/user/auth/2fa/setup/${token}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch 2FA setup data');
+        }
 
-        const json = await res.json();
-        setQrCodeData(json.qr_code_base64);
-        console.log("line 36 , QR Code Data:", json); // Debugging line to check QR code data
-        setBackupCodes(json.backup_codes || []);
+        const data = await response.json();
+        setSetupData(data);
+        setQrCodeData(data.qr_code_url || '');
+        setBackupCodes(data.backup_codes || []);
       } catch (err) {
         console.error(err);
-        setError(err.message || 'Something went wrong');
+        setError(err.message || 'Failed to load 2FA setup data');
+        toast.error(err.message || 'Failed to load 2FA setup data');
       } finally {
         setLoading(false);
       }
     };
 
-    if (token) fetchData();
-  }, [token]);
+    if (token) {
+      fetchData();
+    } else {
+      navigate('/login');
+    }
+  }, [token, navigate]);
 
   // Handle copy backup codes
   const handleCopyCodes = () => {
@@ -61,29 +67,47 @@ console.log(' line 14 , Route Params:', params); // Should show { token: "abc123
   // Submit verification code
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // if (!verificationCode || verificationCode.length !== 6) {
-    //   toast.error('Please enter a valid 6-digit verification code');
-    //   return;
-    // }
-    const user_id = localStorage.getItem('user_id');
-    console.log("line 69 , User ID:", user_id); // Debugging line to check user ID
-    const response = await fetch(`${API_BASE_URL}/api/v1/company/user/auth/2fa/verify/${user_id}/${verificationCode}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    if (!verificationCode || verificationCode.length !== 6) {
+      toast.error('Please enter a valid 6-digit verification code');
+      return;
+    }
 
     try {
-      await complete2FASetup(verificationCode);
-      toast.success('2FA setup completed!');
-      navigate('/dashboard'); // redirect to dashboard or success page
+      const success = await complete2FASetup(verificationCode);
+      if (success) {
+        toast.success('2FA setup completed successfully!');
+      }
     } catch (error) {
-      toast.error(error.message || '2FA verification failed');
+      toast.error(error.message || 'Failed to complete 2FA setup');
     }
   };
 
-  
+  if (loading || contextLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-700">Loading 2FA Setup...</h2>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-red-600">Error</h2>
+          <p className="mt-2 text-gray-600">{error}</p>
+          <button
+            onClick={() => navigate('/login')}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Back to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -100,8 +124,6 @@ console.log(' line 14 , Route Params:', params); // Should show { token: "abc123
           )}
         </div>
 
-        {error && <p className="text-red-500 text-center">{error}</p>}
-
         <div className="mt-8 space-y-6">
           <div className="text-center">
             <h3 className="text-lg font-medium text-gray-900">Step 1: Scan QR Code</h3>
@@ -109,41 +131,34 @@ console.log(' line 14 , Route Params:', params); // Should show { token: "abc123
               Open your authenticator app (Google Authenticator, Authy, etc.) and scan this QR code
             </p>
 
-            {loading ? (
-              <div className="mt-4 h-48 flex items-center justify-center bg-gray-100 rounded-lg">
-                <p className="text-gray-500">Loading QR code...</p>
-              </div>
-            ) : qrCodeData ? (
+            {qrCodeData ? (
               <div className="mt-4 flex justify-center">
                 <div className="p-4 bg-white rounded-lg border border-gray-200">
-                  {/* <QRCode 
+                  <QRCode 
                     value={qrCodeData}
                     size={200}
                     level="H"
                     bgColor="#ffffff"
                     fgColor="#000000"
-                  /> */}
-
-                   <img
-        src={`data:image/png;base64,${qrCodeData}`}
-        alt="Base64 Display"
-        className="rounded-lg shadow-lg w-64 h-64 object-contain"
-      />
+                  />
                 </div>
               </div>
             ) : (
               <p className="text-red-500 mt-4">QR code not available</p>
             )}
 
-            <p className="mt-4 text-sm text-gray-500">
-              Can’t scan the code? Enter this secret manually:
-            </p>
-            {/* <div className="mt-2 px-4 py-2 bg-gray-100 rounded-md font-mono text-sm break-all">
-              {qrCodeData || 'Loading secret...'}
-            </div> */}
+            {setupData?.secret_key && (
+              <>
+                <p className="mt-4 text-sm text-gray-500">
+                  Can't scan the code? Enter this secret manually:
+                </p>
+                <div className="mt-2 px-4 py-2 bg-gray-100 rounded-md font-mono text-sm break-all">
+                  {setupData.secret_key}
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Step 2: Enter Code */}
           <div className="mt-8">
             <h3 className="text-lg font-medium text-gray-900">Step 2: Enter Verification Code</h3>
             <p className="mt-1 text-sm text-gray-500">
@@ -169,23 +184,22 @@ console.log(' line 14 , Route Params:', params); // Should show { token: "abc123
                   }}
                   className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-center font-mono text-xl tracking-widest"
                   placeholder="123456"
-                  disabled={loading}
+                  disabled={contextLoading}
                 />
               </div>
 
               <div>
                 <button
                   type="submit"
-                  disabled={loading}
-                  className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={contextLoading}
+                  className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${contextLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  {loading ? 'Verifying...' : 'Verify & Complete Setup'}
+                  {contextLoading ? 'Verifying...' : 'Verify & Complete Setup'}
                 </button>
               </div>
             </form>
           </div>
 
-          {/* Backup Codes */}
           {backupCodes.length > 0 && (
             <div className="mt-8">
               <h3 className="text-lg font-medium text-gray-900">Backup Codes</h3>
@@ -223,7 +237,6 @@ console.log(' line 14 , Route Params:', params); // Should show { token: "abc123
             </div>
           )}
 
-          {/* Back to Login */}
           <div className="mt-6 text-center">
             <button
               onClick={() => navigate('/login')}

@@ -51,7 +51,8 @@ const SystemDataPreferences = ({ token }) => {
       });
       if (!response.ok) throw new Error('Failed to fetch GL entries');
       const data = await response.json();
-      setGlEntries(data.data || []);
+      // setGlEntries(data.data || []);
+      console.log('Fetched GL Entries 55:', data.data);
     } catch (error) {
       toast.error(error.message);
     } finally {

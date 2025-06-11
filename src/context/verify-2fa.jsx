@@ -1,5 +1,5 @@
 // src/pages/Verify2FA.js
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -9,6 +9,13 @@ const Verify2FA = () => {
   const { twoFALoginToken, userEmail, verify2FALogin, loading } = useContext(AuthContext);
   const [code, setCode] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if we have a 2FA token, if not redirect to login
+    if (!twoFALoginToken) {
+      navigate('/login');
+    }
+  }, [twoFALoginToken, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,11 +30,6 @@ const Verify2FA = () => {
       toast.error(error.message || '2FA verification failed');
     }
   };
-
-  if (!twoFALoginToken) {
-    navigate('/login');
-    return null;
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
