@@ -1,194 +1,342 @@
-import React, { useState, useMemo } from 'react';
-import { BsGraphUp, BsShieldCheck, BsSliders, BsStars, BsTable, BsGear, BsInfoCircle, BsBullseye, BsHeart, BsArrowRepeat } from "react-icons/bs";
-import { Doughnut, Scatter } from 'react-chartjs-2';
+import React, { useState, useRef, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+
+import * as XLSX from 'xlsx';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   BarElement,
-  LineElement,
   PointElement,
+  LineElement,
   ArcElement,
   Title,
   Tooltip,
   Legend,
-  Filler
-} from 'chart.js';
+} from "chart.js";
+import { Bar, Line, Pie } from "react-chartjs-2";
+import { FiSave, FiUpload, FiDownload, FiPrinter, FiInfo, FiChevronRight } from "react-icons/fi";
+import { BsFilter } from 'react-icons/bs';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend, Filler);
+// Register ChartJS components
+ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, ArcElement, Title, Tooltip, Legend);
 
-// --- Professional Currency Formatter (Indian Standard) ---
-const formatCurrency = (value) => {
-  if (Math.abs(value) >= 10000000) return `₹${(value / 10000000).toFixed(2)} Cr`;
-  if (Math.abs(value) >= 100000) return `₹${(value / 100000).toFixed(2)} L`;
-  return `₹${value.toLocaleString('en-IN')}`;
+const SCENARIOS = {
+  BASELINE: "Baseline (Balanced)",
+  GROWTH_FOCUSED: "Growth Focused (Acquisition)",
+  RETENTION_FOCUSED: "Retention Focused (Profitability)",
 };
 
-// --- MOCK DATA & INITIAL STATE ---
-const initialCampaignData = [
-  { id: 'c1', name: "LinkedIn ABM", type: "Acquisition", channel: "LinkedIn", budget: 400000, costPerOutcome: 8200, roi: 3.4, recommendation: "Maintain budget. High LTV prospects." },
-  { id: 'c2', name: "Google Search Ads", type: "Acquisition", channel: "Google", budget: 750000, costPerOutcome: 6100, roi: 4.1, recommendation: "Increase by 10%. High conversion rate." },
-  { id: 'c3', name: "Startup FB Ads", type: "Acquisition", channel: "Facebook", budget: 300000, costPerOutcome: 9500, roi: 1.5, recommendation: "Reduce or shift budget. Low LTV/CAC." },
-  { id: 'c4', name: "Loyalty Email Series", type: "Retention", channel: "Email", budget: 150000, costPerOutcome: 1200, roi: 8.2, recommendation: "High ROI. Consider expanding program." },
-  { id: 'c5', name: "Enterprise Renewals Team", type: "Retention", channel: "Direct", budget: 500000, costPerOutcome: 3500, roi: 12.5, recommendation: "Fully fund. Critical for NRR." },
-  { id: 'c6', name: "SMB Success Webinars", type: "Retention", channel: "Webinar", budget: 200000, costPerOutcome: 2800, roi: 5.5, recommendation: "Effective for reducing churn in SMB segment." },
-];
-const segmentData = [
-    { name: 'SMB', churn: 15.2, avgRevenue: 32000, acquisitionCost: 6100, retentionCost: 2300 },
-    { name: 'Mid-market', churn: 8.9, avgRevenue: 95000, acquisitionCost: 7200, retentionCost: 3100 },
-    { name: 'Enterprise', churn: 4.8, avgRevenue: 360000, acquisitionCost: 12000, retentionCost: 5500 },
-];
-const totalGrowthBudget = 10000000;
-const aiSuggestedSplit = 65; // 65% Acquisition
+const CUSTOMER_SEGMENT = {
+  NEW: "New",
+  EXISTING: "Existing",
+};
 
-// --- Reusable Components ---
-const KpiCard = ({ title, value, icon }) => (
-    <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
-      <div className="flex justify-between items-center text-slate-500">
-        <p className="font-medium text-sm truncate">{title}</p>
-        <div className="text-xl">{icon}</div>
-      </div>
-      <p className="text-2xl font-bold text-slate-800 mt-1">{value}</p>
-    </div>
-);
+// Mock data for customer budgeting
+const initialBudgetData = [
+  {
+    activity: "Paid Ads (Google/Meta)", segment: CUSTOMER_SEGMENT.NEW,
+    [SCENARIOS.BASELINE]:        { allocationPercent: 40, aiSpend: 200000, userOverride: 200000, roi: 3.5, aiInsight: "Standard allocation to top-of-funnel acquisition channels." },
+    [SCENARIOS.GROWTH_FOCUSED]:  { allocationPercent: 50, aiSpend: 300000, userOverride: 300000, roi: 3.2, aiInsight: "Increased spend to maximize reach and new customer volume." },
+    [SCENARIOS.RETENTION_FOCUSED]:{ allocationPercent: 20, aiSpend: 100000, userOverride: 100000, roi: 4.0, aiInsight: "Reduced spend to most efficient campaigns to fund retention." },
+  },
+  {
+    activity: "Customer Onboarding Program", segment: CUSTOMER_SEGMENT.EXISTING,
+    [SCENARIOS.BASELINE]:        { allocationPercent: 10, aiSpend: 50000, userOverride: 50000, roi: 5.0, aiInsight: "Standard budget for onboarding resources and success managers." },
+    [SCENARIOS.GROWTH_FOCUSED]:  { allocationPercent: 5, aiSpend: 30000, userOverride: 30000, roi: 4.5, aiInsight: "Reduced investment to reallocate funds to acquisition." },
+    [SCENARIOS.RETENTION_FOCUSED]:{ allocationPercent: 20, aiSpend: 120000, userOverride: 120000, roi: 6.5, aiInsight: "Heavy investment to reduce churn and increase first-year LTV." },
+  },
+  {
+    activity: "Loyalty & Rewards Program", segment: CUSTOMER_SEGMENT.EXISTING,
+    [SCENARIOS.BASELINE]:        { allocationPercent: 15, aiSpend: 75000, userOverride: 75000, roi: 4.2, aiInsight: "Maintains current program benefits and engagement." },
+    [SCENARIOS.GROWTH_FOCUSED]:  { allocationPercent: 10, aiSpend: 60000, userOverride: 60000, roi: 4.0, aiInsight: "Reduced program scope to fund top-of-funnel." },
+    [SCENARIOS.RETENTION_FOCUSED]:{ allocationPercent: 25, aiSpend: 150000, userOverride: 150000, roi: 5.5, aiInsight: "Enhanced rewards to increase repeat purchase rate and LTV." },
+  },
+  {
+    activity: "Content & SEO", segment: CUSTOMER_SEGMENT.NEW,
+    [SCENARIOS.BASELINE]:        { allocationPercent: 20, aiSpend: 100000, userOverride: 100000, roi: 4.8, aiInsight: "Consistent investment in organic acquisition." },
+    [SCENARIOS.GROWTH_FOCUSED]:  { allocationPercent: 20, aiSpend: 120000, userOverride: 120000, roi: 4.8, aiInsight: "Maintaining organic efforts alongside paid growth." },
+    [SCENARIOS.RETENTION_FOCUSED]:{ allocationPercent: 15, aiSpend: 90000, userOverride: 90000, roi: 5.0, aiInsight: "Slight reduction to fund customer-focused content." },
+  },
+];
 
-const CustomerAcquisitionRetentionBudgeting = () => {
-  const [acquisitionSplit, setAcquisitionSplit] = useState(65); // Acquisition %
+const CustomerAcquisitionRetention = () => {
+  const [activeTab, setActiveTab] = useState("plan");
+  const [period, setPeriod] = useState("Q1 2025");
+  const [hasChanges, setHasChanges] = useState(false);
   
-  const retentionMatrixData = useMemo(() => ({
-    datasets: [{
-        label: 'Retention Campaigns',
-        data: initialCampaignData.filter(c => c.type === 'Retention').map(c => ({ x: c.costPerOutcome, y: c.roi, label: c.name })),
-        backgroundColor: '#3b82f6',
-        pointRadius: 8,
-        pointHoverRadius: 12
-    }]
-  }), []);
+  const [budgetData, setBudgetData] = useState(JSON.parse(JSON.stringify(initialBudgetData)));
+  const [activeScenario, setActiveScenario] = useState(SCENARIOS.BASELINE);
+  const [scenarioAssumptions, setScenarioAssumptions] = useState({
+    [SCENARIOS.BASELINE]: "A balanced 60/40 split between customer acquisition (CAC) and retention efforts. Assumes a stable LTV:CAC ratio of 4:1.",
+    [SCENARIOS.GROWTH_FOCUSED]: "An aggressive 80/20 split favoring acquisition. Aims to maximize new user growth, accepting a temporary drop in LTV:CAC to 3:1.",
+    [SCENARIOS.RETENTION_FOCUSED]: "A profit-focused 40/60 split favoring retention. Aims to maximize LTV and profitability, targeting an LTV:CAC ratio of 5:1 or higher.",
+  });
 
-  const { kpis, budgetSplit, campaigns } = useMemo(() => {
-    const acquisitionBudget = totalGrowthBudget * (acquisitionSplit / 100);
-    const retentionBudget = totalGrowthBudget * (100 - acquisitionSplit) / 100;
-    
-    const acqBaseTotal = initialCampaignData.filter(c => c.type === 'Acquisition').reduce((sum, c) => sum + c.budget, 0);
-    const retBaseTotal = initialCampaignData.filter(c => c.type === 'Retention').reduce((sum, c) => sum + c.budget, 0);
+  const [budgetVersions, setBudgetVersions] = useState([]);
+  const [budgetTotals, setBudgetTotals] = useState({});
+  const filtersRef = useRef(null);
+  
+  const MOCK_LTV = 1200; // Mock Customer Lifetime Value for ratio calculation
 
-    const updatedCampaigns = initialCampaignData.map(c => {
-        let newBudget = c.budget;
-        if (c.type === 'Acquisition' && acqBaseTotal > 0) {
-            newBudget = acquisitionBudget * (c.budget / acqBaseTotal);
-        } else if (c.type === 'Retention' && retBaseTotal > 0) {
-            newBudget = retentionBudget * (c.budget / retBaseTotal);
+  const getScenarioDataItem = (item, scenarioKey) => {
+    return item[scenarioKey] || { allocationPercent: 0, aiSpend: 0, userOverride: 0, roi: 0, aiInsight: "N/A" };
+  };
+  
+  const calculateTotalsForScenario = (data, scenarioKey) => {
+    const totals = { cacSpend: 0, retentionSpend: 0, totalSpend: 0, newCustomers: 0 };
+    if (!data || data.length === 0) return totals;
+
+    data.forEach(item => {
+      const scenarioData = getScenarioDataItem(item, scenarioKey);
+      const finalSpend = scenarioData.userOverride;
+      
+      if(item.segment === CUSTOMER_SEGMENT.NEW) {
+        totals.cacSpend += finalSpend;
+        if(item.activity.includes("Ads")) {
+            totals.newCustomers += finalSpend / 200; // Mock CAC of $200
         }
-        return { ...c, newBudget };
+      } else {
+        totals.retentionSpend += finalSpend;
+      }
     });
-
-    const acqCampaigns = updatedCampaigns.filter(c => c.type === 'Acquisition');
-    const avgCAC = acqCampaigns.length > 0
-        ? acqCampaigns.reduce((sum, c) => sum + c.costPerOutcome, 0) / acqCampaigns.length
-        : 0;
-
-    return {
-        kpis: {
-            avgCAC: formatCurrency(avgCAC),
-            ltvCacRatio: '3.4x',
-            churnRate: '7.8%',
-            aiSuggestedSplit: `${aiSuggestedSplit}% / ${100-aiSuggestedSplit}%`
-        },
-        budgetSplit: { acquisition: acquisitionBudget, retention: retentionBudget },
-        campaigns: updatedCampaigns,
-    };
-  }, [acquisitionSplit]);
-
-  const budgetSplitChartData = {
-    labels: ['Acquisition', 'Retention'],
-    datasets: [{ data: [budgetSplit.acquisition, budgetSplit.retention], backgroundColor: ['#0ea5e9', '#6366f1'], borderColor: '#fff', borderWidth: 4 }],
+    totals.totalSpend = totals.cacSpend + totals.retentionSpend;
+    return totals;
   };
 
+  useEffect(() => {
+    setBudgetTotals(calculateTotalsForScenario(budgetData, activeScenario));
+  }, [budgetData, activeScenario]);
+
+  const handleInputChange = (index, field, value) => {
+    setBudgetData(prev => {
+      const newData = JSON.parse(JSON.stringify(prev));
+      newData[index][activeScenario][field] = parseFloat(value) || 0;
+      return newData;
+    });
+    setHasChanges(true);
+  };
+  
+  const handleSaveAll = () => { /* ... Save logic ... */ };
+  const handleExport = () => { /* ... Export logic ... */ };
+  const handleImport = async (e) => { /* ... Import logic ... */ };
+  const handleRestoreVersion = (version) => { /* ... Restore logic ... */ };
+  
+  const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "top" } } };
+  const barChartData = {
+    labels: ['Acquisition', 'Retention'],
+    datasets: [{ label: 'Budget Allocation', data: [budgetTotals.cacSpend || 0, budgetTotals.retentionSpend || 0], backgroundColor: ['rgba(59, 130, 246, 0.7)', 'rgba(16, 185, 129, 0.7)'] }],
+  };
+  const pieChartData = {
+    labels: ['New Customer Spend', 'Existing Customer Spend'],
+    datasets: [{ data: [budgetTotals.cacSpend || 0, budgetTotals.retentionSpend || 0], backgroundColor: ['#3b82f6', '#10b981'], hoverOffset: 4 }],
+  };
+  
+  const ltvToCac = budgetTotals.newCustomers > 0 ? (MOCK_LTV / (budgetTotals.cacSpend / budgetTotals.newCustomers)).toFixed(1) : 0;
+  
   return (
-    <div className="p-6 bg-slate-50 min-h-screen font-sans">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">Customer Acquisition & Retention Budgeting</h1>
-        <p className="text-slate-500">Intelligently balance spend across the customer lifecycle for maximum ROI.</p>
+    <div className="space-y-6 p-4 min-h-screen relative bg-sky-50">
+      {/* Breadcrumb Navigation */}
+      <nav className="flex mb-4" aria-label="Breadcrumb">
+        <ol className="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
+          <li className="inline-flex items-center">
+            <Link
+              to="/"
+              className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+              <svg
+                className="w-3 h-3 me-2.5"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                viewBox="0 0 20 20">
+                <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z" />
+              </svg>
+              Home
+            </Link>
+          </li>
+          <li>
+            <div className="flex items-center">
+              <FiChevronRight className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" />
+              <Link
+                to="/capex-budgeting"
+                className="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2">
+               Revenue Based Budgeting
+              </Link>
+            </div>
+          </li>
+          <li aria-current="page">
+            <div className="flex items-center">
+              <FiChevronRight className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" />
+              <span className="ms-1 text-sm font-medium text-gray-500 md:ms-2">
+                Customer Acquisition Retention
+              </span>
+            </div>
+          </li>
+        </ol>
+      </nav>
+      
+      <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
+        <div className="flex justify-between items-center">
+          <div><h1 className="text-lg font-bold text-white">Customer Acquisition & Retention Budgeting</h1><p className="text-sky-100 text-xs">Optimize spending on new vs. existing customers.</p></div>
+          <div className="flex items-center space-x-4">
+             <div><label className="text-sm text-white font-medium mr-2">Forecast Period:</label><select value={period} onChange={(e) => setPeriod(e.target.value)} className="p-1.5 border bg-sky-50 text-sky-900 border-sky-200 rounded-md text-xs"><option>Q1 2025</option><option>Q2 2025</option></select></div>
+             <button onClick={() => window.print()} className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 transition-colors"><FiPrinter className="text-sky-50" /><span className="text-sky-50">Print</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3 border-b mt-5 py-3 border-gray-200 mb-6">
+        {[{id: 'plan', label: 'Plan Budget'}, {id: 'import', label: 'Import Data'}, {id: 'compare', label: 'Compare Scenarios'}].map(tab => (
+          <button key={tab.id} className={`py-2 px-4 font-medium text-sm ${activeTab === tab.id ? 'text-sky-50 border-b-2 border-sky-600 bg-sky-800 rounded-t-lg' : 'text-sky-900 hover:text-sky-500 hover:bg-sky-100 rounded-t-lg'}`} onClick={() => setActiveTab(tab.id)}>{tab.label}</button>
+        ))}
+        <div className="ml-4">
+            <label className="text-sm font-medium text-sky-800 mr-2">Active Scenario:</label>
+            <select value={activeScenario} onChange={(e) => { if(hasChanges && !window.confirm("Unsaved changes. Switch anyway?")) return; setActiveScenario(e.target.value); setHasChanges(false); }} className="p-1.5 border border-sky-300 bg-white text-sky-900 rounded-md text-xs">
+                {Object.values(SCENARIOS).map(name => <option key={name} value={name}>{name}</option>)}
+            </select>
+        </div>
+        <div className="relative ml-auto" ref={filtersRef}><button className="py-2 px-3 text-gray-500 hover:text-blue-500 flex items-center text-sm"><BsFilter className="mr-1" /> Filters</button></div>
       </div>
       
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <KpiCard title="Avg. CAC (Last 12M)" value={kpis.avgCAC} icon={<BsBullseye className="text-red-500"/>} />
-        <KpiCard title="LTV/CAC Ratio" value={kpis.ltvCacRatio} icon={<BsGraphUp className="text-green-500"/>} />
-        <KpiCard title="Churn Rate" value={kpis.churnRate} icon={<BsArrowRepeat className="text-amber-500"/>} />
-        <KpiCard title="AI Suggested Split (Acq/Ret)" value={kpis.aiSuggestedSplit} icon={<BsStars className="text-indigo-500"/>} />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="lg:col-span-1 bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-800 mb-2">Budget Split Simulator</h3>
-            <p className="text-sm text-slate-500 mb-4">Drag the slider to model the impact of shifting budget between Acquisition and Retention.</p>
-            <div className="h-48 mb-4">
-                <Doughnut data={budgetSplitChartData} options={{ responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { display: false } } }} />
+      <div>
+        {activeTab === 'plan' && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Total CAC Spend</p><p className="text-2xl font-bold text-sky-900">${(budgetTotals?.cacSpend || 0).toLocaleString()}</p></div>
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Total Retention Spend</p><p className="text-2xl font-bold text-sky-900">${(budgetTotals?.retentionSpend || 0).toLocaleString()}</p></div>
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">LTV to CAC Ratio</p><p className="text-2xl font-bold text-green-600">{ltvToCac}:1</p></div>
             </div>
-             <div className="space-y-2">
-                <div className="flex justify-between items-center text-sm">
-                    <span className="font-semibold text-sky-700">Acquisition</span>
-                    <span className="font-bold text-slate-800">{formatCurrency(budgetSplit.acquisition)}</span>
-                </div>
-                <input type="range" min="10" max="90" step="1" value={acquisitionSplit} onChange={e => setAcquisitionSplit(parseFloat(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"/>
-                <div className="flex justify-between items-center text-sm">
-                    <span className="font-semibold text-indigo-600">Retention</span>
-                    <span className="font-bold text-slate-800">{formatCurrency(budgetSplit.retention)}</span>
-                </div>
-            </div>
-        </div>
 
-        <div className="lg:col-span-2 bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex flex-col">
-            <h3 className="text-lg font-semibold text-slate-800 mb-2">Retention Efficiency Matrix</h3>
-            <p className="text-sm text-slate-500 mb-4">Identify high and low ROI retention efforts to optimize spend. (This chart is static for analysis)</p>
-            {/* --- THE FIX IS HERE --- */}
-            <div className="relative flex-grow h-80">
-                 <Scatter options={{responsive: true, maintainAspectRatio: false, scales: { x: { title: { display: true, text: 'Cost per Retention' }}, y: { title: { display: true, text: 'Campaign ROI' }}}, plugins:{tooltip:{callbacks:{label: (ctx) => `${ctx.raw.label}: (${formatCurrency(ctx.raw.x)}, ${ctx.raw.y}x ROI)`}}}}} data={retentionMatrixData} />
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="bg-white p-4 rounded-lg shadow-sm flex-1 border"><h2 className="text-lg font-semibold text-sky-900 mb-3">Acquisition vs. Retention Spend</h2><div className="h-[250px]"><Bar data={barChartData} options={chartOptions}/></div></div>
+                <div className="bg-white p-4 rounded-lg shadow-sm flex-1 border"><h2 className="text-lg font-semibold text-sky-900 mb-3">Budget Split by Segment</h2><div className="h-[250px]"><Pie data={pieChartData} options={{...chartOptions, plugins: { legend: { position: 'right' } }}}/></div></div>
             </div>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
-        <div className="xl:col-span-2 bg-white rounded-lg shadow-sm border border-slate-200">
-            <h2 className="text-xl font-semibold text-slate-800 p-4 border-b border-slate-200 flex items-center gap-2"><BsTable /> Granular Campaign Budget</h2>
-            <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                    <thead className="text-xs text-slate-500 uppercase bg-slate-50"><tr><th className="px-4 py-2 text-left">Campaign Name</th><th className="px-4 py-2 text-left">Type</th><th className="px-4 py-2 text-right">Budget</th><th className="px-4 py-2 text-right">Cost/Outcome</th><th className="px-4 py-2 text-right">ROI</th><th className="px-4 py-2 text-left">AI Recommendation</th></tr></thead>
-                    <tbody>
-                    {campaigns.map(c => (
-                        <tr key={c.id} className="border-b border-slate-100 hover:bg-slate-50">
-                            <td className="px-4 py-3 font-medium text-slate-800">{c.name}</td>
-                            <td className="px-4 py-3"><span className={`px-2 py-1 text-xs font-semibold rounded-full ${c.type === 'Acquisition' ? 'bg-sky-100 text-sky-800' : 'bg-indigo-100 text-indigo-800'}`}>{c.type}</span></td>
-                            <td className="px-4 py-3 text-right font-mono font-bold text-slate-800">{formatCurrency(c.newBudget)}</td>
-                            <td className="px-4 py-3 text-right font-mono text-slate-600">{formatCurrency(c.costPerOutcome)}</td>
-                            <td className="px-4 py-3 text-right font-mono font-semibold text-green-600">{c.roi.toFixed(1)}x</td>
-                            <td className="px-4 py-3 text-xs text-slate-600">{c.recommendation}</td>
-                        </tr>
-                    ))}
+            <div className="bg-white rounded-lg mt-5 shadow-sm overflow-hidden border">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4"><h2 className="text-xl font-semibold text-sky-900">Customer Budget Editor ({activeScenario})</h2>{/* ... buttons ... */}</div>
+                <div className="overflow-x-auto max-h-[calc(100vh-250px)] relative">
+                  <table className="min-w-full divide-y divide-sky-100">
+                    <thead className="bg-sky-50 sticky top-0 z-10">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-sky-900 uppercase sticky left-0 bg-sky-50 z-20 min-w-[200px]">Activity / Expense</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[150px]">Customer Segment</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">AI Suggested Spend</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">User Override</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">Final Budget</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[100px]">Est. ROI</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-sky-100">
+                      {budgetData.map((item, index) => {
+                        const scenarioData = getScenarioDataItem(item, activeScenario);
+                        const rowBgClass = index % 2 === 0 ? "bg-white" : "bg-sky-50/70";
+                        return (
+                          <tr key={index} className={`${rowBgClass} hover:bg-sky-100/50`}>
+                            <td className={`px-4 py-3 text-sm font-semibold text-sky-900 sticky left-0 z-[5] ${rowBgClass}`}>{item.activity}</td>
+                            <td className="px-2 py-1 text-center text-sm"><span className={`px-2 py-1 rounded-full text-xs font-medium ${item.segment === CUSTOMER_SEGMENT.NEW ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>{item.segment}</span></td>
+                            <td className="px-2 py-1 text-center text-sm">
+                                <div className="relative group">${scenarioData.aiSpend.toLocaleString()} <FiInfo className="inline-block ml-1 text-gray-400" />
+                                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 w-max p-1.5 text-xs text-white bg-slate-700 rounded-md opacity-0 group-hover:opacity-100 z-30 pointer-events-none">{scenarioData.aiInsight}</span>
+                                </div>
+                            </td>
+                            <td className="px-2 py-1"><input type="number" value={scenarioData.userOverride} onChange={(e) => handleInputChange(index, 'userOverride', e.target.value)} className="w-full p-1.5 border border-sky-300 rounded-md text-sm text-center bg-white"/></td>
+                            <td className="px-2 py-1 text-center text-sm font-bold text-sky-900">${scenarioData.userOverride.toLocaleString()}</td>
+                            <td className="px-2 py-1 text-center text-sm font-bold text-green-600">{scenarioData.roi}x</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
-                </table>
+                  </table>
+                </div>
+              </div>
             </div>
-        </div>
-        <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-800 mb-2">Budget by Customer Segment</h3>
-            <p className="text-sm text-slate-500 mb-4">Analyze how key metrics differ across customer types to refine targeting.</p>
-            <table className="w-full text-sm">
-                <thead className="text-xs text-slate-500 uppercase bg-slate-50"><tr><th className="px-3 py-2 text-left">Segment</th><th className="px-3 py-2 text-right">CAC</th><th className="px-3 py-2 text-right">Retention Cost</th><th className="px-3 py-2 text-right">Churn %</th></tr></thead>
-                <tbody>
-                    {segmentData.map(s => (
-                        <tr key={s.name} className="border-b border-slate-100">
-                            <td className="px-3 py-2 font-medium text-slate-700">{s.name}</td>
-                            <td className="px-3 py-2 text-right font-mono">{formatCurrency(s.acquisitionCost)}</td>
-                            <td className="px-3 py-2 text-right font-mono">{formatCurrency(s.retentionCost)}</td>
-                            <td className="px-3 py-2 text-right font-mono text-amber-600">{s.churn.toFixed(1)}%</td>
-                        </tr>
-                    ))}
+            <div className="mb-6 mt-6 p-4 bg-sky-100/70 rounded-lg shadow-sm border">
+                <label className="block text-md font-semibold text-sky-800 mb-2">Acquisition/Retention Strategy for {activeScenario}:</label>
+                <textarea value={scenarioAssumptions[activeScenario] || ''} onChange={(e) => { setScenarioAssumptions(prev => ({...prev, [activeScenario]: e.target.value})); setHasChanges(true); }} rows="3" className="w-full p-2 border border-sky-300 rounded-lg text-sm bg-white" placeholder={`e.g., ROI thresholds, CRM insights...`} />
+            </div>
+          </>
+        )}
+        
+        {activeTab === 'import' && (
+          <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+            <h2 className="text-xl font-semibold text-sky-900 mb-4">Import CAC / Retention Data</h2>
+            <p className="text-sm text-gray-600 mb-4">Upload an Excel (.xlsx) or CSV (.csv) file with your campaign and segment-level budget data. Match by 'Activity'.</p>
+            <div className="border-2 border-dashed border-sky-300 rounded-lg p-8 text-center">
+              <FiUpload className="mx-auto text-4xl text-sky-500 mb-3" />
+              <label htmlFor="importFile" className="px-6 py-3 bg-blue-600 text-white text-md font-medium rounded-lg hover:bg-blue-700 cursor-pointer">Choose File to Import</label>
+              <input id="importFile" type="file" onChange={handleImport} accept=".xlsx,.xls,.csv" className="hidden"/>
+              <p className="text-xs text-gray-500 mt-3">File must contain 'Activity', 'Segment', and 'User Override' columns.</p>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'compare' && (
+          <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+            <h2 className="text-xl font-semibold text-sky-900 mb-6">Compare Customer Budget Scenarios</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-sky-200">
+                <thead className="bg-sky-100">
+                  <tr>
+                    <th className="px-5 py-3 text-left text-xs font-semibold text-sky-800 uppercase">Metric</th>
+                    {Object.values(SCENARIOS).map(name => <th key={name} className="px-5 py-3 text-left text-xs font-semibold text-sky-800 uppercase">{name}</th>)}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-sky-100">
+                  {['Total Budget', 'CAC Spend', 'Retention Spend', 'LTV:CAC Ratio', 'Assumptions'].map(metric => (
+                    <tr key={metric} className={metric === 'Assumptions' ? 'align-top' : ''}>
+                      <td className="px-5 py-4 whitespace-nowrap text-sm font-medium text-sky-900">{metric}</td>
+                      {Object.values(SCENARIOS).map(scenarioName => {
+                        const totals = calculateTotalsForScenario(budgetData, scenarioName);
+                        const cac = totals.newCustomers > 0 ? (totals.cacSpend / totals.newCustomers) : 0;
+                        const ltvCacRatio = cac > 0 ? (MOCK_LTV / cac).toFixed(1) : 0;
+                        let value, className = "text-sm text-sky-700";
+                        if (metric === 'Total Budget') { value = `$${(totals.totalSpend || 0).toLocaleString()}`; className = "text-sm font-semibold text-sky-800"; }
+                        else if (metric === 'CAC Spend') { value = `$${(totals.cacSpend || 0).toLocaleString()}`; }
+                        else if (metric === 'Retention Spend') { value = `$${(totals.retentionSpend || 0).toLocaleString()}`; }
+                        else if (metric === 'LTV:CAC Ratio') { value = `${ltvCacRatio}:1`; className = "text-sm font-semibold text-green-600"; }
+                        else if (metric === 'Assumptions') { value = scenarioAssumptions[scenarioName] || 'N/A'; className = "text-xs text-gray-600 whitespace-pre-wrap max-w-xs"; }
+                        return <td key={`${metric}-${scenarioName}`} className={`px-5 py-4 ${className}`}>{value}</td>;
+                      })}
+                    </tr>
+                  ))}
                 </tbody>
-            </table>
+              </table>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+          <h2 className="text-xl font-semibold text-sky-900 mb-4">Budget Version History</h2>
+          {budgetVersions.length === 0 ? <p className="text-sm text-gray-500">No versions saved yet.</p> : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-sky-100">
+                <thead className="bg-sky-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">Timestamp</th>
+                    {Object.values(SCENARIOS).map(scen => <th key={scen} className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">{scen} Total Spend</th>)}
+                    <th className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-sky-100">
+                  {budgetVersions.map((version, index) => (
+                    <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-sky-50/70"}>
+                      <td className="px-4 py-3 text-sm text-sky-800">{new Date(version.timestamp).toLocaleString()}</td>
+                      {Object.values(SCENARIOS).map(scen => {
+                        const total = version.totalsByScenario?.[scen] || { totalSpend: 0 };
+                        return <td key={`${index}-${scen}`} className="px-4 py-3 text-sm font-semibold text-sky-800">${total.totalSpend.toLocaleString()}</td>
+                      })}
+                      <td className="px-4 py-3"><button onClick={() => handleRestoreVersion(version)} className="text-sm text-sky-700 hover:text-sky-900 hover:underline">Restore</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-export default CustomerAcquisitionRetentionBudgeting;
+export default CustomerAcquisitionRetention;

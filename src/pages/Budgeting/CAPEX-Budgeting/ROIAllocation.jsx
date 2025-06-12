@@ -1,226 +1,432 @@
-// src/pages/Budgeting/ROIBasedCapexAllocation/ROIBasedCapexAllocation.jsx
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import * as XLSX from 'xlsx';
 import {
   Chart as ChartJS,
+  CategoryScale,
   LinearScale,
+  BarElement,
   PointElement,
+  BubbleController,
+  Title,
   Tooltip,
   Legend,
+  ArcElement
 } from "chart.js";
-import { Bubble } from "react-chartjs-2";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  FiDollarSign,
-  FiTrendingUp,
-  FiTarget,
-  FiFilter,
-  FiDownload,
-  FiInfo,
-  FiCheck,
-  FiX
-} from "react-icons/fi";
-import { BsStars } from "react-icons/bs";
-import { Tooltip as ReactTooltip } from "react-tooltip";
+import { Bar, Bubble, Pie } from "react-chartjs-2";
+import { FiSave, FiUpload, FiDownload, FiPrinter, FiInfo, FiChevronRight } from "react-icons/fi";
+import { BsFilter } from 'react-icons/bs';
 
-ChartJS.register(LinearScale, PointElement, Tooltip, Legend);
+// Register ChartJS components
+ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, BubbleController, ArcElement, Title, Tooltip, Legend);
 
-// --- Data Model reflecting financial rigor ---
-// FIX 1: Added 'growth' and 'conservative' scenarios to the data object.
-const initialProjectsData = {
-  base: {
-    availableCapital: 5000000,
-    projects: [
-      { id: 1, name: 'Automated Warehouse Logistics System', cost: 1200000, annualReturn: 350000, usefulLife: 7, status: 'Funded', aiConfidence: 90, aiInsight: "High confidence based on 12 similar logistics rollouts in the industry. ROI is stable." },
-      { id: 2, name: 'CRM Platform Overhaul (Project Salesforce)', cost: 850000, annualReturn: 280000, usefulLife: 5, status: 'Funded', aiConfidence: 85, aiInsight: "Adoption rate is the key variable. AI models 20% variance in return based on training effectiveness." },
-      { id: 3, name: 'R&D Initiative: Graphene Batteries', cost: 2500000, annualReturn: 600000, usefulLife: 10, status: 'Funded', aiConfidence: 65, aiInsight: "High-risk, high-reward. Payback period is long, but breakthrough potential is significant. Market data is sparse." },
-      { id: 4, name: 'Employee Wellness & Training Platform', cost: 400000, annualReturn: 90000, usefulLife: 3, status: 'Proposed', aiConfidence: 75, aiInsight: "ROI based on projected reduction in employee turnover. Data shows a strong correlation." },
-      { id: 5, name: 'Manufacturing Line Upgrade - Plant B', cost: 1800000, annualReturn: 400000, usefulLife: 10, status: 'Proposed', aiConfidence: 95, aiInsight: "Proven technology with predictable efficiency gains. Very low risk profile." },
-      { id: 6, name: 'Company-wide Laptop Refresh', cost: 750000, annualReturn: 150000, usefulLife: 4, status: 'Deferred', aiConfidence: 80, aiInsight: "Return based on productivity gains. Can be deferred if budget is constrained." },
-    ]
+const SCENARIOS = {
+  BASELINE: "Baseline",
+  HIGH_ROI_FOCUS: "High-ROI Focus",
+  BALANCED_INVESTMENT: "Balanced Investment",
+};
+
+const DECISION = {
+  APPROVE: "Approve",
+  DEFER: "Defer",
+  REJECT: "Reject",
+};
+
+const CATEGORY = {
+  IT: "IT",
+  INFRA: "Infrastructure",
+  RD: "R&D",
+};
+
+// Mock data for ROI-based CAPEX
+const initialCapexData = [
+  {
+    project: "Warehouse Automation", category: CATEGORY.INFRA, cost: 1200000,
+    [SCENARIOS.BASELINE]:        { roi: 25, payback: 48, aiScore: 85, aiAllocation: 1200000, userOverride: 1200000, decision: DECISION.APPROVE, aiInsight: "High ROI and efficiency gains. Meets all criteria." },
+    [SCENARIOS.HIGH_ROI_FOCUS]:  { roi: 25, payback: 48, aiScore: 85, aiAllocation: 1200000, userOverride: 1200000, decision: DECISION.APPROVE, aiInsight: "Strong ROI, fits high-return strategy." },
+    [SCENARIOS.BALANCED_INVESTMENT]:{ roi: 25, payback: 48, aiScore: 85, aiAllocation: 1200000, userOverride: 1200000, decision: DECISION.APPROVE, aiInsight: "Key project for operational efficiency." },
   },
-  growth: {
-    availableCapital: 7500000,
-    projects: [
-      // All base projects are funded in growth scenario
-      { id: 1, name: 'Automated Warehouse Logistics System', cost: 1200000, annualReturn: 350000, usefulLife: 7, status: 'Funded', aiConfidence: 90, aiInsight: "High confidence based on 12 similar logistics rollouts in the industry. ROI is stable." },
-      { id: 2, name: 'CRM Platform Overhaul (Project Salesforce)', cost: 850000, annualReturn: 280000, usefulLife: 5, status: 'Funded', aiConfidence: 85, aiInsight: "Adoption rate is the key variable. AI models 20% variance in return based on training effectiveness." },
-      { id: 3, name: 'R&D Initiative: Graphene Batteries', cost: 2500000, annualReturn: 600000, usefulLife: 10, status: 'Funded', aiConfidence: 65, aiInsight: "High-risk, high-reward. Payback period is long, but breakthrough potential is significant. Market data is sparse." },
-      { id: 4, name: 'Employee Wellness & Training Platform', cost: 400000, annualReturn: 90000, usefulLife: 3, status: 'Funded', aiConfidence: 75, aiInsight: "ROI based on projected reduction in employee turnover. Data shows a strong correlation." },
-      { id: 5, name: 'Manufacturing Line Upgrade - Plant B', cost: 1800000, annualReturn: 400000, usefulLife: 10, status: 'Funded', aiConfidence: 95, aiInsight: "Proven technology with predictable efficiency gains. Very low risk profile." },
-      { id: 7, name: 'New EU Sales Office', cost: 1500000, annualReturn: 450000, usefulLife: 10, status: 'Proposed', aiConfidence: 70, aiInsight: "Market entry risk is high, but TAM is significant."}
-    ]
+  {
+    project: "New Data Center", category: CATEGORY.IT, cost: 2000000,
+    [SCENARIOS.BASELINE]:        { roi: 18, payback: 60, aiScore: 70, aiAllocation: 2000000, userOverride: 2000000, decision: DECISION.APPROVE, aiInsight: "Necessary for scaling, moderate ROI." },
+    [SCENARIOS.HIGH_ROI_FOCUS]:  { roi: 18, payback: 60, aiScore: 70, aiAllocation: 0, userOverride: 0, decision: DECISION.DEFER, aiInsight: "ROI below the 20% threshold for this aggressive scenario." },
+    [SCENARIOS.BALANCED_INVESTMENT]:{ roi: 18, payback: 60, aiScore: 70, aiAllocation: 2000000, userOverride: 2000000, decision: DECISION.APPROVE, aiInsight: "Fundamental for stability, approved despite moderate ROI." },
   },
-  conservative: {
-    availableCapital: 3000000,
-    projects: [
-        { id: 1, name: 'Automated Warehouse Logistics System', cost: 1200000, annualReturn: 350000, usefulLife: 7, status: 'Funded', aiConfidence: 90, aiInsight: "High confidence based on 12 similar logistics rollouts in the industry. ROI is stable." },
-        { id: 2, name: 'CRM Platform Overhaul (Project Salesforce)', cost: 850000, annualReturn: 280000, usefulLife: 5, status: 'Funded', aiConfidence: 85, aiInsight: "Adoption rate is the key variable. AI models 20% variance in return based on training effectiveness." },
-        { id: 3, name: 'R&D Initiative: Graphene Batteries', cost: 2500000, annualReturn: 600000, usefulLife: 10, status: 'Deferred', aiConfidence: 65, aiInsight: "High-risk, high-reward. Payback period is long, but breakthrough potential is significant. Market data is sparse." },
-        { id: 5, name: 'Manufacturing Line Upgrade - Plant B', cost: 1800000, annualReturn: 400000, usefulLife: 10, status: 'Proposed', aiConfidence: 95, aiInsight: "Proven technology with predictable efficiency gains. Very low risk profile." },
-        { id: 6, name: 'Company-wide Laptop Refresh', cost: 750000, annualReturn: 150000, usefulLife: 4, status: 'Deferred', aiConfidence: 80, aiInsight: "Return based on productivity gains. Can be deferred if budget is constrained." },
-    ]
-  }
-};
-
-
-// --- Financial Calculation Utilities ---
-const calculateMetrics = (project) => {
-  const roi = (project.annualReturn / project.cost) * 100;
-  const paybackPeriod = project.cost / project.annualReturn;
-  const discountRate = 0.08;
-  const npv = Array.from({ length: project.usefulLife }).reduce((acc, _, i) => {
-    return acc + (project.annualReturn / Math.pow(1 + discountRate, i + 1));
-  }, 0) - project.cost;
-  return { ...project, roi, paybackPeriod, npv };
-};
-
-const ConfidenceMeter = ({ value }) => {
-    const getBarColor = () => {
-        if (value >= 85) return "bg-green-500";
-        if (value >= 70) return "bg-yellow-500";
-        return "bg-red-500";
-    };
-    return (
-        <div className="w-full bg-gray-200 rounded-full h-1.5" data-tooltip-id="details-tooltip" data-tooltip-content={`AI Confidence: ${value}%`}>
-            <div className={`${getBarColor()} h-1.5 rounded-full`} style={{ width: `${value}%` }}></div>
-        </div>
-    );
-};
-
+  {
+    project: "AI Research Initiative", category: CATEGORY.RD, cost: 800000,
+    [SCENARIOS.BASELINE]:        { roi: 45, payback: 36, aiScore: 95, aiAllocation: 800000, userOverride: 800000, decision: DECISION.APPROVE, aiInsight: "High potential for future product lines." },
+    [SCENARIOS.HIGH_ROI_FOCUS]:  { roi: 45, payback: 36, aiScore: 95, aiAllocation: 800000, userOverride: 800000, decision: DECISION.APPROVE, aiInsight: "Top priority due to very high ROI." },
+    [SCENARIOS.BALANCED_INVESTMENT]:{ roi: 45, payback: 36, aiScore: 95, aiAllocation: 600000, userOverride: 600000, decision: DECISION.ADJUST, aiInsight: "Phased investment to balance with other needs." },
+  },
+];
 
 const ROIBasedCapexAllocation = () => {
-  const [scenario, setScenario] = useState("base");
+  const [activeTab, setActiveTab] = useState("prioritize");
+  const [period, setPeriod] = useState("Q1 2025");
+  const [hasChanges, setHasChanges] = useState(false);
   
-  // FIX 2: Initialize projects state, but it will be updated by useEffect.
-  const [projects, setProjects] = useState([]);
+  const [capexData, setCapexData] = useState(JSON.parse(JSON.stringify(initialCapexData)));
+  const [activeScenario, setActiveScenario] = useState(SCENARIOS.BASELINE);
+  const [scenarioAssumptions, setScenarioAssumptions] = useState({
+    [SCENARIOS.BASELINE]: "Standard ROI-based prioritization. Projects with ROI > 15% are considered. All core infrastructure projects are approved.",
+    [SCENARIOS.HIGH_ROI_FOCUS]: "Aggressive focus on high returns. Only projects with ROI > 20% are approved, regardless of category. Aims to maximize financial returns.",
+    [SCENARIOS.BALANCED_INVESTMENT]: "A portfolio approach. Ensures a mix of investments across IT, R&D, and Infrastructure, even if some have lower ROIs, to mitigate risk.",
+  });
+
+  const [capexVersions, setCapexVersions] = useState([]);
+  const [capexTotals, setCapexTotals] = useState({});
+  const filtersRef = useRef(null);
+
+  const getScenarioDataItem = (item, scenarioKey) => {
+    return item[scenarioKey] || { roi: 0, payback: 0, aiScore: 0, aiAllocation: 0, userOverride: 0, decision: DECISION.REJECT, aiInsight: "N/A" };
+  };
   
-  // FIX 3: Use useEffect to update projects when the scenario changes.
+  const calculateTotalsForScenario = (data, scenarioKey) => {
+    const totals = { totalAllocation: 0, weightedRoi: 0, approvedCount: 0, totalRequested: 0, byCategory: {}, byRoiBand: { Low: 0, Medium: 0, High: 0 } };
+    if (!data || data.length === 0) return totals;
+
+    let totalRoiWeight = 0;
+
+    data.forEach(item => {
+      const scenarioData = getScenarioDataItem(item, scenarioKey);
+      const finalAllocation = scenarioData.userOverride;
+      
+      if (scenarioData.decision !== DECISION.REJECT) {
+        totals.totalAllocation += finalAllocation;
+        totals.weightedRoi += scenarioData.roi * finalAllocation;
+        totalRoiWeight += finalAllocation;
+        totals.approvedCount++;
+
+        if (scenarioData.roi < 20) totals.byRoiBand.Low += finalAllocation;
+        else if (scenarioData.roi < 30) totals.byRoiBand.Medium += finalAllocation;
+        else totals.byRoiBand.High += finalAllocation;
+      }
+      
+      totals.byCategory[item.category] = (totals.byCategory[item.category] || 0) + finalAllocation;
+    });
+    
+    totals.weightedRoi = totalRoiWeight > 0 ? totals.weightedRoi / totalRoiWeight : 0;
+    
+    return totals;
+  };
+
   useEffect(() => {
-    // Provide a fallback to prevent errors if a scenario is ever missing
-    const currentScenarioData = initialProjectsData[scenario] || { projects: [] };
-    setProjects(currentScenarioData.projects.map(calculateMetrics));
-  }, [scenario]); // This hook re-runs whenever 'scenario' changes
+    setCapexTotals(calculateTotalsForScenario(capexData, activeScenario));
+  }, [capexData, activeScenario]);
 
-  // Use a fallback here as well for robustness
-  const { availableCapital } = initialProjectsData[scenario] || { availableCapital: 0 };
-
-  const sortedProjects = useMemo(() => {
-    return [...projects].sort((a, b) => b.roi - a.roi);
-  }, [projects]);
-  
-  const fundedProjects = useMemo(() => projects.filter(p => p.status === 'Funded'), [projects]);
-  const allocatedCapital = useMemo(() => fundedProjects.reduce((sum, p) => sum + p.cost, 0), [fundedProjects]);
-  const remainingCapital = useMemo(() => availableCapital - allocatedCapital, [availableCapital, allocatedCapital]);
-
-  const blendedROI = useMemo(() => {
-    if (allocatedCapital === 0) return 0;
-    const totalAnnualReturn = fundedProjects.reduce((sum, p) => sum + p.annualReturn, 0);
-    return (totalAnnualReturn / allocatedCapital) * 100;
-  }, [fundedProjects, allocatedCapital]);
-
-  const handleStatusChange = (id, newStatus) => {
-    setProjects(prevProjects => prevProjects.map(p => p.id === id ? { ...p, status: newStatus } : p));
+  const handleInputChange = (index, field, value) => {
+    setCapexData(prev => {
+      const newData = JSON.parse(JSON.stringify(prev));
+      const scenarioItem = newData[index][activeScenario];
+      
+      if(field === 'decision'){
+        scenarioItem.decision = value;
+        if(value === DECISION.REJECT) scenarioItem.userOverride = 0;
+        if(value === DECISION.APPROVE) scenarioItem.userOverride = scenarioItem.aiAllocation;
+      } else {
+        scenarioItem[field] = parseFloat(value) || 0;
+      }
+      return newData;
+    });
+    setHasChanges(true);
   };
   
-  const chartData = {
-    datasets: projects.map(p => ({
-      label: p.name,
-      data: [{ x: p.cost, y: p.roi, r: Math.sqrt(p.npv > 0 ? p.npv : 0) / 1000 }], // Bubble size by NPV
-      backgroundColor: p.status === 'Funded' ? 'rgba(59, 130, 246, 0.7)' : p.status === 'Proposed' ? 'rgba(234, 179, 8, 0.7)' : 'rgba(239, 68, 68, 0.7)',
-      borderColor: p.status === 'Funded' ? 'rgba(59, 130, 246, 1)' : p.status === 'Proposed' ? 'rgba(234, 179, 8, 1)' : 'rgba(239, 68, 68, 1)',
-    })),
+  const handleSaveAll = () => {
+    const timestamp = new Date().toISOString();
+    const totalsByScenario = {};
+    Object.values(SCENARIOS).forEach(scen => {
+      totalsByScenario[scen] = calculateTotalsForScenario(capexData, scen);
+    });
+    setCapexVersions(prev => [...prev, { period, timestamp, data: JSON.parse(JSON.stringify(capexData)), totalsByScenario, assumptions: JSON.parse(JSON.stringify(scenarioAssumptions))}]);
+    setHasChanges(false);
+    alert("CAPEX plan version saved successfully!");
   };
 
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: { x: { title: { display: true, text: 'One-Time Cost ($)' }, ticks: { callback: value => `$${(value/1000000).toFixed(1)}M` } }, y: { title: { display: true, text: 'Projected ROI (%)' }, ticks: { callback: value => `${value.toFixed(0)}%` } } },
-    plugins: { legend: { display: false }, tooltip: { callbacks: { label: (context) => {
-      const project = projects.find(p => p.name === context.dataset.label);
-      if (!project) return '';
-      return `${project.name}: ROI ${project.roi.toFixed(1)}%, Cost $${project.cost.toLocaleString()}`;
-    }}}}
+  const handleExport = () => {
+    const dataForExport = capexData.map(item => {
+      const scenarioData = getScenarioDataItem(item, activeScenario);
+      return {
+        'Project': item.project, 'Category': item.category,
+        'Cost': item.cost, 'ROI (%)': scenarioData.roi,
+        'Payback (Months)': scenarioData.payback, 'Decision': scenarioData.decision,
+        'Final Allocation': scenarioData.userOverride,
+      };
+    });
+    const worksheet = XLSX.utils.json_to_sheet(dataForExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, `CAPEX Plan`);
+    XLSX.writeFile(workbook, `CAPEX_Plan_${activeScenario.replace(/\s+/g, '_')}.xlsx`);
   };
 
+  const handleImport = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data);
+      const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+      
+      const dataMap = new Map(capexData.map(d => [d.project, JSON.parse(JSON.stringify(d))]));
+      jsonData.forEach(row => {
+        const project = row['Project'];
+        if (dataMap.has(project)) {
+          const itemToUpdate = dataMap.get(project);
+          const scenarioItem = getScenarioDataItem(itemToUpdate, activeScenario);
+          scenarioItem.userOverride = row['Final Allocation'] ?? scenarioItem.userOverride;
+          scenarioItem.decision = row['Decision'] ?? scenarioItem.decision;
+          dataMap.set(project, itemToUpdate);
+        }
+      });
+      setCapexData(Array.from(dataMap.values()));
+      setHasChanges(true);
+      alert(`Data for ${activeScenario} imported. Review changes.`);
+      e.target.value = '';
+    } catch (error) {
+      console.error("Error importing file:", error);
+      alert("Error importing file.");
+    }
+  };
+  
+  const handleRestoreVersion = (version) => {
+    setCapexData(JSON.parse(JSON.stringify(version.data)));
+    setScenarioAssumptions(JSON.parse(JSON.stringify(version.assumptions)));
+    setHasChanges(false);
+    alert(`Version from ${new Date(version.timestamp).toLocaleString()} restored.`);
+  };
+  
+  const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "top" } } };
+  const barChartData = {
+    labels: Object.keys(capexTotals.byRoiBand || {}),
+    datasets: [{ label: 'Allocation by ROI Band', data: Object.values(capexTotals.byRoiBand || {}), backgroundColor: ['rgba(239, 68, 68, 0.7)', 'rgba(249, 115, 22, 0.7)', 'rgba(16, 185, 129, 0.7)'] }],
+  };
+  const pieChartData = {
+    labels: Object.keys(capexTotals.byCategory || {}),
+    datasets: [{ data: Object.values(capexTotals.byCategory || {}), backgroundColor: ['#3b82f6', '#10b981', '#f97316'], hoverOffset: 4 }],
+  };
+  const bubbleChartData = {
+      datasets: capexData.map(item => {
+          const scenarioData = getScenarioDataItem(item, activeScenario);
+          return {
+              label: item.project,
+              data: [{
+                  x: scenarioData.roi,
+                  y: scenarioData.payback,
+                  r: (scenarioData.userOverride / 100000)
+              }],
+              backgroundColor: `rgba(${Math.random()*255},${Math.random()*255},${Math.random()*255},0.7)`
+          }
+      })
+  };
+  
   return (
-    <div className="space-y-6 p-6 min-h-screen bg-gray-50">
-      {/* --- Page Header & Controls --- */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">ROI-Based Capital Allocation</h1>
-          <p className="text-sm text-gray-500 mt-1">Prioritize capital projects to maximize portfolio return.</p>
-        </div>
-        <div className="flex items-center space-x-4 mt-3 md:mt-0">
-          <select value={scenario} onChange={e => setScenario(e.target.value)} className="p-2 border border-gray-300 rounded-lg text-sm bg-white shadow-sm">
-            <option value="base">Base Scenario</option>
-            <option value="growth">Growth Scenario</option>
-            <option value="conservative">Conservative Case</option>
-          </select>
-          <button className="flex items-center text-gray-600 hover:text-sky-700"><FiDownload className="mr-1.5" /> Export View</button>
+    <div className="space-y-6 p-4 min-h-screen relative bg-sky-50">
+      {/* Breadcrumb Navigation */}
+      <nav className="flex mb-4" aria-label="Breadcrumb">
+        <ol className="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
+          <li className="inline-flex items-center">
+            <Link
+              to="/"
+              className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+              <svg
+                className="w-3 h-3 me-2.5"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                viewBox="0 0 20 20">
+                <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z" />
+              </svg>
+              Home
+            </Link>
+          </li>
+          <li>
+            <div className="flex items-center">
+              <FiChevronRight className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" />
+              <Link
+                to="/capex-budgeting"
+                className="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2">
+                CAPEX Budgeting
+              </Link>
+            </div>
+          </li>
+          <li aria-current="page">
+            <div className="flex items-center">
+              <FiChevronRight className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" />
+              <span className="ms-1 text-sm font-medium text-gray-500 md:ms-2">
+                ROI Allocation
+              </span>
+            </div>
+          </li>
+        </ol>
+      </nav>
+      
+      <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
+        <div className="flex justify-between items-center">
+          <div><h1 className="text-lg font-bold text-white">ROI-Based CAPEX Allocation</h1><p className="text-sky-100 text-xs">Prioritize capital projects based on expected returns.</p></div>
+          <div className="flex items-center space-x-4">
+             <div><label className="text-sm text-white font-medium mr-2">Forecast Period:</label><select value={period} onChange={(e) => setPeriod(e.target.value)} className="p-1.5 border bg-sky-50 text-sky-900 border-sky-200 rounded-md text-xs"><option>Q1 2025</option><option>Q2 2025</option></select></div>
+             <button onClick={() => window.print()} className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 transition-colors"><FiPrinter className="text-sky-50" /><span className="text-sky-50">Print</span></button>
+          </div>
         </div>
       </div>
 
-      {/* --- Financial Summary KPIs --- */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-white p-5 rounded-xl shadow-sm border"><div className="flex items-center text-sm font-semibold text-gray-700 mb-2"><FiTarget className="mr-2 text-blue-500"/>Available Capital</div><p className="text-3xl font-bold text-gray-800">${availableCapital.toLocaleString()}</p></div>
-        <div className="bg-white p-5 rounded-xl shadow-sm border"><div className="flex items-center text-sm font-semibold text-gray-700 mb-2"><FiDollarSign className="mr-2 text-green-500"/>Allocated Capital</div><p className="text-3xl font-bold text-green-700">${allocatedCapital.toLocaleString()}</p></div>
-        <div className="bg-white p-5 rounded-xl shadow-sm border"><div className="flex items-center text-sm font-semibold text-gray-700 mb-2"><FiTrendingUp className="mr-2 text-purple-500"/>Blended Portfolio ROI</div><p className="text-3xl font-bold text-purple-700">{blendedROI.toFixed(1)}%</p></div>
-        <div className="bg-white p-5 rounded-xl shadow-sm border"><div className="flex items-center text-sm font-semibold text-gray-700 mb-2"><FiInfo className="mr-2 text-yellow-500"/>Remaining Capital</div><p className={`text-3xl font-bold ${remainingCapital < 0 ? 'text-red-600' : 'text-yellow-700'}`}>${remainingCapital.toLocaleString()}</p></div>
+      <div className="flex items-center gap-3 border-b mt-5 py-3 border-gray-200 mb-6">
+        {[{id: 'prioritize', label: 'Prioritize CAPEX'}, {id: 'import', label: 'Import Projects'}, {id: 'compare', label: 'Compare Scenarios'}].map(tab => (
+          <button key={tab.id} className={`py-2 px-4 font-medium text-sm ${activeTab === tab.id ? 'text-sky-50 border-b-2 border-sky-600 bg-sky-800 rounded-t-lg' : 'text-sky-900 hover:text-sky-500 hover:bg-sky-100 rounded-t-lg'}`} onClick={() => setActiveTab(tab.id)}>{tab.label}</button>
+        ))}
+        <div className="ml-4">
+            <label className="text-sm font-medium text-sky-800 mr-2">Active Scenario:</label>
+            <select value={activeScenario} onChange={(e) => { if(hasChanges && !window.confirm("Unsaved changes. Switch anyway?")) return; setActiveScenario(e.target.value); setHasChanges(false); }} className="p-1.5 border border-sky-300 bg-white text-sky-900 rounded-md text-xs">
+                {Object.values(SCENARIOS).map(name => <option key={name} value={name}>{name}</option>)}
+            </select>
+        </div>
+        <div className="relative ml-auto" ref={filtersRef}><button className="py-2 px-3 text-gray-500 hover:text-blue-500 flex items-center text-sm"><BsFilter className="mr-1" /> Filters</button></div>
       </div>
       
-      {/* --- Main Content: Chart and Table --- */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Left Side: Project Prioritization List */}
-        <div className="lg:col-span-3 bg-white rounded-xl shadow-sm border overflow-hidden">
-          <h3 className="p-4 text-lg font-semibold text-gray-800 border-b">Project Ranking by ROI</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Project</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">ROI</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Cost</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase w-28">AI Confidence</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Action</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {sortedProjects.map(p => (
-                  <tr key={p.id} className={p.status === 'Funded' ? 'bg-green-50/50' : p.status === 'Deferred' ? 'bg-red-50/50' : 'hover:bg-gray-50'}>
-                    <td className="px-4 py-4"><div className="font-medium text-sm text-gray-900">{p.name}</div><div className="text-xs text-gray-500">Payback: {p.paybackPeriod.toFixed(1)} yrs / NPV: ${p.npv.toLocaleString(undefined, {maximumFractionDigits:0})}</div></td>
-                    <td className="px-4 py-4 text-right font-semibold text-sm text-green-600">{p.roi.toFixed(1)}%</td>
-                    <td className="px-4 py-4 text-right text-sm font-mono">${p.cost.toLocaleString()}</td>
-                    <td className="px-4 py-4"><ConfidenceMeter value={p.aiConfidence} /></td>
-                    <td className="px-4 py-4 text-center">
-                        <div className="flex items-center justify-center space-x-2">
-                          <button onClick={() => handleStatusChange(p.id, 'Funded')} className={`p-1.5 rounded-full ${p.status === 'Funded' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500 hover:bg-green-200'}`} data-tooltip-id="details-tooltip" data-tooltip-content="Fund Project"><FiCheck/></button>
-                          <button onClick={() => handleStatusChange(p.id, 'Deferred')} className={`p-1.5 rounded-full ${p.status === 'Deferred' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-500 hover:bg-red-200'}`} data-tooltip-id="details-tooltip" data-tooltip-content="Defer Project"><FiX/></button>
-                        </div>
-                    </td>
+      <div>
+        {activeTab === 'prioritize' && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Total CAPEX Allocation</p><p className="text-2xl font-bold text-sky-900">${(capexTotals?.totalAllocation || 0).toLocaleString()}</p></div>
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Weighted Average ROI</p><p className="text-2xl font-bold text-green-600">{(capexTotals?.weightedRoi || 0).toFixed(1)}%</p></div>
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Approved Projects</p><p className="text-2xl font-bold text-sky-900">{capexTotals.approvedCount} / {capexData.length}</p></div>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="bg-white p-4 rounded-lg shadow-sm flex-1 border"><h2 className="text-lg font-semibold text-sky-900 mb-3">Allocation by ROI Band</h2><div className="h-[250px]"><Bar data={barChartData} options={chartOptions}/></div></div>
+                <div className="bg-white p-4 rounded-lg shadow-sm flex-1 border"><h2 className="text-lg font-semibold text-sky-900 mb-3">ROI vs. Payback vs. Size</h2><div className="h-[250px]"><Bubble data={bubbleChartData} options={{...chartOptions, plugins: { ...chartOptions.plugins, tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ROI ${ctx.raw.x}%, Payback ${ctx.raw.y} mos` }}}}}/></div></div>
+            </div>
+
+            <div className="bg-white rounded-lg mt-5 shadow-sm overflow-hidden border">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold text-sky-900">ROI Prioritization Editor ({activeScenario})</h2>
+                  <div className="flex space-x-2">
+                    <button onClick={handleExport} className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center"><FiDownload className="mr-2" /> Export</button>
+                    <button onClick={handleSaveAll} disabled={!hasChanges} className={`px-4 py-2 text-sm rounded-lg flex items-center ${hasChanges ? "bg-sky-600 text-white hover:bg-sky-700" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}><FiSave className="mr-2" /> Save Plan</button>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto max-h-[calc(100vh-250px)] relative">
+                  <table className="min-w-full divide-y divide-sky-100">
+                    <thead className="bg-sky-50 sticky top-0 z-10">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-sky-900 uppercase sticky left-0 bg-sky-50 z-20 min-w-[200px]">Project</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[130px]">Cost</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[100px]">ROI (%)</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[100px]">Payback (Mos)</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[150px]">AI Recommended</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[130px]">User Override</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[130px]">Decision</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-sky-100">
+                      {capexData.map((item, index) => {
+                        const scenarioData = getScenarioDataItem(item, activeScenario);
+                        const rowBgClass = index % 2 === 0 ? "bg-white" : "bg-sky-50/70";
+                        return (
+                          <tr key={index} className={`${rowBgClass} hover:bg-sky-100/50`}>
+                            <td className={`px-4 py-3 text-sm font-medium text-sky-900 sticky left-0 z-[5] ${rowBgClass}`}>
+                                <div className="font-semibold">{item.project}</div><div className="text-xs text-sky-600">{item.category}</div>
+                            </td>
+                            <td className="px-2 py-1 text-center text-sm">${item.cost.toLocaleString()}</td>
+                            <td className="px-2 py-1 text-center text-sm font-bold text-green-600">{scenarioData.roi}%</td>
+                            <td className="px-2 py-1 text-center text-sm">{scenarioData.payback}</td>
+                            <td className="px-2 py-1 text-center text-sm">
+                                <div className="relative group">${scenarioData.aiAllocation.toLocaleString()} <FiInfo className="inline-block ml-1 text-gray-400" />
+                                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 w-max p-1.5 text-xs text-white bg-slate-700 rounded-md opacity-0 group-hover:opacity-100 z-30 pointer-events-none">{scenarioData.aiInsight}</span>
+                                </div>
+                            </td>
+                            <td className="px-2 py-1"><input type="number" step="10000" value={scenarioData.userOverride} onChange={(e) => handleInputChange(index, 'userOverride', e.target.value)} className="w-full p-1.5 border border-sky-300 rounded-md text-sm text-center bg-white"/></td>
+                            <td className="px-2 py-1"><select value={scenarioData.decision} onChange={(e) => handleInputChange(index, 'decision', e.target.value)} className="w-full p-1.5 border border-sky-300 rounded-md text-sm bg-white">{Object.values(DECISION).map(d=><option key={d}>{d}</option>)}</select></td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div className="mb-6 mt-6 p-4 bg-sky-100/70 rounded-lg shadow-sm border">
+                <label className="block text-md font-semibold text-sky-800 mb-2">ROI Assumptions for {activeScenario}:</label>
+                <textarea value={scenarioAssumptions[activeScenario] || ''} onChange={(e) => { setScenarioAssumptions(prev => ({...prev, [activeScenario]: e.target.value})); setHasChanges(true); }} rows="3" className="w-full p-2 border border-sky-300 rounded-lg text-sm bg-white" placeholder={`e.g., ROI thresholds, risk profiles...`} />
+            </div>
+          </>
+        )}
+        
+        {activeTab === 'import' && (
+          <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+            <h2 className="text-xl font-semibold text-sky-900 mb-4">Import Project ROI Data</h2>
+            <p className="text-sm text-gray-600 mb-4">Upload an Excel (.xlsx) or CSV (.csv) file with your project data. Match by 'Project'.</p>
+            <div className="border-2 border-dashed border-sky-300 rounded-lg p-8 text-center">
+              <FiUpload className="mx-auto text-4xl text-sky-500 mb-3" />
+              <label htmlFor="importFile" className="px-6 py-3 bg-blue-600 text-white text-md font-medium rounded-lg hover:bg-blue-700 cursor-pointer">Choose File to Import</label>
+              <input id="importFile" type="file" onChange={handleImport} accept=".xlsx,.xls,.csv" className="hidden"/>
+              <p className="text-xs text-gray-500 mt-3">File must contain 'Project', 'User Override', and 'Decision' columns.</p>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'compare' && (
+          <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+            <h2 className="text-xl font-semibold text-sky-900 mb-6">Compare Investment Scenarios</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-sky-200">
+                <thead className="bg-sky-100">
+                  <tr>
+                    <th className="px-5 py-3 text-left text-xs font-semibold text-sky-800 uppercase">Metric</th>
+                    {Object.values(SCENARIOS).map(name => <th key={name} className="px-5 py-3 text-left text-xs font-semibold text-sky-800 uppercase">{name}</th>)}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-sky-100">
+                  {['Total Allocation', 'Approved Projects', 'Weighted ROI', 'Assumptions'].map(metric => (
+                    <tr key={metric} className={metric === 'Assumptions' ? 'align-top' : ''}>
+                      <td className="px-5 py-4 whitespace-nowrap text-sm font-medium text-sky-900">{metric}</td>
+                      {Object.values(SCENARIOS).map(scenarioName => {
+                        const totals = calculateTotalsForScenario(capexData, scenarioName);
+                        let value, className = "text-sm text-sky-700";
+                        if (metric === 'Total Allocation') { value = `$${(totals.totalAllocation || 0).toLocaleString()}`; className = "text-sm font-semibold text-sky-800"; }
+                        else if (metric === 'Approved Projects') { value = `${totals.approvedCount} Projects`; }
+                        else if (metric === 'Weighted ROI') { value = `${(totals.weightedRoi || 0).toFixed(1)}%`; className = "text-sm font-semibold text-green-600"; }
+                        else if (metric === 'Assumptions') { value = scenarioAssumptions[scenarioName] || 'N/A'; className = "text-xs text-gray-600 whitespace-pre-wrap max-w-xs"; }
+                        return <td key={`${metric}-${scenarioName}`} className={`px-5 py-4 ${className}`}>{value}</td>;
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Right Side: Visual Portfolio Analysis */}
-        <div className="lg:col-span-2 bg-white p-4 rounded-xl shadow-sm border">
-          <h3 className="text-lg font-semibold text-gray-800 mb-1">Portfolio Visualization</h3>
-          <p className="text-xs text-gray-500 mb-4">Size of bubble indicates Net Present Value (NPV). Colors indicate status (Blue: Funded, Yellow: Proposed, Red: Deferred).</p>
-          <div className="h-96">
-            <Bubble data={chartData} options={chartOptions} />
-          </div>
-           <div className="mt-4 bg-purple-50 p-4 rounded-lg border border-purple-200">
-                <h4 className="font-semibold text-sm text-purple-800 flex items-center mb-2"><BsStars className="mr-2"/>AI Strategic Insight</h4>
-                <p className="text-xs text-purple-900">
-                    Your current 'Funded' portfolio has a strong blended ROI of {blendedROI.toFixed(1)}%. Consider swapping the 'R&D Initiative' for the 'Manufacturing Line Upgrade' to increase short-term payback and reduce overall risk, while maintaining a similar capital outlay.
-                </p>
-           </div>
+        <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+          <h2 className="text-xl font-semibold text-sky-900 mb-4">Plan Version History</h2>
+          {capexVersions.length === 0 ? <p className="text-sm text-gray-500">No versions saved yet.</p> : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-sky-100">
+                <thead className="bg-sky-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">Timestamp</th>
+                    {Object.values(SCENARIOS).map(scen => <th key={scen} className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">{scen} Total Allocation</th>)}
+                    <th className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-sky-100">
+                  {capexVersions.map((version, index) => (
+                    <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-sky-50/70"}>
+                      <td className="px-4 py-3 text-sm text-sky-800">{new Date(version.timestamp).toLocaleString()}</td>
+                      {Object.values(SCENARIOS).map(scen => {
+                        const total = version.totalsByScenario?.[scen] || { totalBudget: 0 };
+                        return <td key={`${index}-${scen}`} className="px-4 py-3 text-sm font-semibold text-sky-800">${total.totalBudget.toLocaleString()}</td>
+                      })}
+                      <td className="px-4 py-3"><button onClick={() => handleRestoreVersion(version)} className="text-sm text-sky-700 hover:text-sky-900 hover:underline">Restore</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
-      
-      <ReactTooltip id="details-tooltip" place="top" effect="solid" />
     </div>
   );
 };

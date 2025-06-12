@@ -1,367 +1,408 @@
-import React, { useState, useMemo } from 'react';
-import { BsStars, BsLightning, BsCheckCircle, BsClock, BsFilter, BsDownload, BsX, BsChatDots, BsPerson, BsFlag } from 'react-icons/bs';
-import { Bar, Doughnut } from 'react-chartjs-2';
-import { Link } from "react-router-dom";
+import React, { useState, useRef, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import * as XLSX from 'xlsx';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   BarElement,
+  PointElement,
+  LineElement,
   ArcElement,
   Title,
   Tooltip,
   Legend,
-} from 'chart.js';
-import {
-  FiChevronRight
-} from "react-icons/fi";
+} from "chart.js";
+import { Bar, Line, Pie } from "react-chartjs-2";
+import { FiSave, FiUpload, FiDownload, FiPrinter, FiInfo, FiChevronRight } from "react-icons/fi";
+import { BsFilter } from 'react-icons/bs';
 
-// Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
+// Register ChartJS components
+ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, ArcElement, Title, Tooltip, Legend);
 
-
-// --- Suggestion Detail Modal Component ---
-const SuggestionDetailModal = ({ suggestion, onClose, onUpdate }) => {
-  const [currentSuggestion, setCurrentSuggestion] = useState(suggestion);
-  const [newComment, setNewComment] = useState("");
-
-  const handleStatusChange = (newStatus) => {
-    setCurrentSuggestion({ ...currentSuggestion, status: newStatus });
-  };
-  
-  const handleAssigneeChange = (newAssignee) => {
-    setCurrentSuggestion({ ...currentSuggestion, assignee: newAssignee });
-  };
-
-  const handleAddComment = () => {
-    if (newComment.trim() === "") return;
-    const comment = {
-      user: "Finance Analyst", // In a real app, this would be the logged-in user
-      text: newComment,
-      timestamp: new Date().toISOString(),
-    };
-    setCurrentSuggestion({
-      ...currentSuggestion,
-      comments: [...currentSuggestion.comments, comment],
-    });
-    setNewComment("");
-  };
-
-  const handleSaveChanges = () => {
-    onUpdate(currentSuggestion);
-    onClose();
-  };
-
-  const statusOptions = ['pending', 'approved', 'in-progress', 'implemented', 'rejected'];
-  const teamOptions = ['Unassigned', 'IT Dept', 'Finance Team', 'Operations', 'Procurement'];
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl transform transition-all">
-        <div className="p-5 border-b border-gray-200 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-sky-900">{currentSuggestion.title}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><BsX size={24} /></button>
-        </div>
-        <div className="p-6 max-h-[70vh] overflow-y-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
-              <div className="bg-green-50 p-3 rounded-lg">
-                  <div className="text-xs text-green-700">Potential Savings</div>
-                  <div className="text-xl font-bold text-green-800">${currentSuggestion.savings.toLocaleString()}</div>
-              </div>
-              <div className="bg-amber-50 p-3 rounded-lg">
-                  <div className="text-xs text-amber-700">Implementation Effort</div>
-                  <div className="text-xl font-bold text-amber-800">{currentSuggestion.effort}</div>
-              </div>
-              <div className="bg-sky-50 p-3 rounded-lg">
-                  <div className="text-xs text-sky-700">Operational Impact</div>
-                  <div className="text-xl font-bold text-sky-800">{currentSuggestion.impact}</div>
-              </div>
-          </div>
-
-          <div className="mb-6">
-            <h4 className="font-semibold text-sky-800 mb-2 flex items-center gap-2"><BsStars className="text-sky-500" /> AI-Driven Analysis</h4>
-            <p className="text-gray-600 bg-gray-50 p-3 rounded-md border">{currentSuggestion.details}</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-sky-800 mb-2 flex items-center gap-2"><BsFlag /> Status</label>
-              <select value={currentSuggestion.status} onChange={(e) => handleStatusChange(e.target.value)} className="w-full p-2 border border-gray-300 rounded-md bg-white">
-                {statusOptions.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-sky-800 mb-2 flex items-center gap-2"><BsPerson /> Assign To</label>
-              <select value={currentSuggestion.assignee} onChange={(e) => handleAssigneeChange(e.target.value)} className="w-full p-2 border border-gray-300 rounded-md bg-white">
-                {teamOptions.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-sky-800 mb-3 flex items-center gap-2"><BsChatDots /> Collaboration Log</h4>
-            <div className="space-y-3 mb-4">
-              {currentSuggestion.comments.map((comment, index) => (
-                <div key={index} className="text-sm bg-sky-50 p-2 rounded-md">
-                  <p className="text-gray-700">{comment.text}</p>
-                  <p className="text-xs text-gray-500 mt-1">- {comment.user} on {new Date(comment.timestamp).toLocaleDateString()}</p>
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <input type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="Add a comment..." className="flex-grow p-2 border border-gray-300 rounded-md" />
-              <button onClick={handleAddComment} className="bg-sky-600 text-white px-4 py-2 rounded-md hover:bg-sky-700">Post</button>
-            </div>
-          </div>
-        </div>
-        <div className="p-5 bg-gray-50 border-t rounded-b-xl flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border rounded-md hover:bg-gray-100">Cancel</button>
-          <button onClick={handleSaveChanges} className="px-4 py-2 text-sm font-medium text-white bg-sky-800 rounded-md hover:bg-sky-900">Save Changes</button>
-        </div>
-      </div>
-    </div>
-  );
+const SCENARIOS = {
+  BASELINE: "Baseline",
+  AI_OPTIMIZED: "AI-Optimized",
+  AGGRESSIVE_SAVINGS: "Aggressive Savings",
 };
 
+const USER_DECISION = {
+  ACCEPT: "Accept",
+  ADJUST: "Adjust",
+  REJECT: "Reject",
+};
 
-export const AICostOptimization = () => {
-  const [activeTab, setActiveTab] = useState('all');
-  const [selectedCategory, setSelectedCategory] = useState('All Categories');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedSuggestion, setSelectedSuggestion] = useState(null);
+const AI_CONFIDENCE = {
+  HIGH: "High",
+  MED: "Medium",
+  LOW: "Low",
+};
 
-  // AI suggestions data with new fields
-  const initialSuggestions = [
-    {
-      id: 1, title: 'Cloud Service Consolidation', category: 'IT', savings: 18400, effort: 'Medium', impact: 'Low', status: 'pending', assignee: 'IT Dept',
-      details: 'Analysis shows 23% of cloud resources are underutilized across AWS and Azure subscriptions. Consolidating instances and leveraging reserved pricing models could yield an estimated $18.4k in annual savings with minimal disruption to services.',
-      comments: [],
-    },
-    {
-      id: 2, title: 'Vendor Contract Renegotiation', category: 'Procurement', savings: 32500, effort: 'Low', impact: 'None', status: 'approved', assignee: 'Procurement',
-      details: 'Current pricing for office supplies is 12% above the market benchmark identified through AI analysis of industry purchasing data. AI has identified 3 alternative vendors offering equivalent quality at lower rates.',
-      comments: [{user: 'Finance Controller', text: 'Approved. Please proceed with vendor outreach.', timestamp: new Date().toISOString()}],
-    },
-    {
-      id: 3, title: 'Energy Efficiency Program', category: 'Facilities', savings: 15700, effort: 'High', impact: 'Positive', status: 'implemented', assignee: 'Facilities',
-      details: 'Implementing smart lighting and IoT-enabled HVAC controls in office spaces could reduce energy consumption by an estimated 18%. The project has a 2-year payback period and qualifies for green energy tax credits.',
-      comments: [{user: 'Project Manager', text: 'Project completed on 05/15. Monitoring savings now.', timestamp: new Date().toISOString()}],
-    },
-    {
-      id: 4, title: 'Travel Policy Adjustment', category: 'Operations', savings: 28600, effort: 'Low', impact: 'Medium', status: 'pending', assignee: 'Unassigned',
-      details: 'Historical expense report analysis shows 45% of domestic travel is for internal-only team meetings. Mandating virtual meetings for these events could significantly reduce T&E costs without affecting client-facing activities.',
-      comments: [],
-    },
-    {
-      id: 5, title: 'Software License Optimization', category: 'IT', savings: 42200, effort: 'Medium', impact: 'None', status: 'in-progress', assignee: 'IT Dept',
-      details: 'Usage data from our top 10 SaaS vendors indicates that 32% of paid licenses are either completely unused or underutilized (less than 10% of features accessed). Reclaiming these licenses or moving users to lower-cost tiers could save an estimated $42.2k annually.',
-      comments: [{user: 'IT Manager', text: 'Audit is underway. Initial findings confirm the AI analysis.', timestamp: new Date().toISOString()}],
-    },
-  ];
+// Mock data for cost optimization
+const initialOptimizationData = [
+  {
+    expenseCategory: "SaaS Subscriptions", department: "IT", currentAllocation: 85000,
+    [SCENARIOS.BASELINE]:        { aiReduction: 15000, userDecision: USER_DECISION.ACCEPT, userAdjustment: 15000, impact: "Low. Consolidate redundant tools.", confidence: AI_CONFIDENCE.HIGH, aiInsight: "Usage data shows overlap between Tool A & B. 80% of users only use Tool A." },
+    [SCENARIOS.AI_OPTIMIZED]:    { aiReduction: 15000, userDecision: USER_DECISION.ACCEPT, userAdjustment: 15000, impact: "Low. Consolidate redundant tools.", confidence: AI_CONFIDENCE.HIGH, aiInsight: "Usage data shows overlap between Tool A & B. 80% of users only use Tool A." },
+    [SCENARIOS.AGGRESSIVE_SAVINGS]:{ aiReduction: 25000, userDecision: USER_DECISION.ADJUST, userAdjustment: 20000, impact: "Medium. Requires migrating all teams to a single, cheaper alternative.", confidence: AI_CONFIDENCE.MED, aiInsight: "A more aggressive plan involves migrating all users to a lower-cost platform." },
+  },
+  {
+    expenseCategory: "Digital Ad Spend", department: "Marketing", currentAllocation: 120000,
+    [SCENARIOS.BASELINE]:        { aiReduction: 10000, userDecision: USER_DECISION.REJECT, userAdjustment: 0, impact: "None. Rejecting to maintain lead volume.", confidence: AI_CONFIDENCE.MED, aiInsight: "Suggest reallocating 10% from low-performing Display ads to high-performing Search ads." },
+    [SCENARIOS.AI_OPTIMIZED]:    { aiReduction: 10000, userDecision: USER_DECISION.ACCEPT, userAdjustment: 10000, impact: "Neutral. Reallocation should maintain lead volume.", confidence: AI_CONFIDENCE.MED, aiInsight: "Suggest reallocating 10% from low-performing Display ads to high-performing Search ads." },
+    [SCENARIOS.AGGRESSIVE_SAVINGS]:{ aiReduction: 30000, userDecision: USER_DECISION.ADJUST, userAdjustment: 20000, impact: "High. -15% lead volume expected.", confidence: AI_CONFIDENCE.HIGH, aiInsight: "Cutting all but the top-performing campaign will significantly reduce spend but impact pipeline." },
+  },
+  {
+    expenseCategory: "Travel", department: "Sales", currentAllocation: 75000,
+    [SCENARIOS.BASELINE]:        { aiReduction: 5000, userDecision: USER_DECISION.ACCEPT, userAdjustment: 5000, impact: "Low. Shift some internal meetings to virtual.", confidence: AI_CONFIDENCE.HIGH, aiInsight: "Analysis of travel logs indicates 10% of trips are for internal meetings." },
+    [SCENARIOS.AI_OPTIMIZED]:    { aiReduction: 5000, userDecision: USER_DECISION.ACCEPT, userAdjustment: 5000, impact: "Low. Shift some internal meetings to virtual.", confidence: AI_CONFIDENCE.HIGH, aiInsight: "Analysis of travel logs indicates 10% of trips are for internal meetings." },
+    [SCENARIOS.AGGRESSIVE_SAVINGS]:{ aiReduction: 25000, userDecision: USER_DECISION.ACCEPT, userAdjustment: 25000, impact: "Medium. Limit travel to strategic accounts only.", confidence: AI_CONFIDENCE.MED, aiInsight: "Reduces travel budget by 33%, focusing only on top-tier client visits." },
+  },
+];
 
-  const [suggestions, setSuggestions] = useState(initialSuggestions);
+const AICostOptimizationSuggestions = () => {
+  const [activeTab, setActiveTab] = useState("recommendations");
+  const [period, setPeriod] = useState("Q1 2025");
+  const [hasChanges, setHasChanges] = useState(false);
+  
+  const [optimizationData, setOptimizationData] = useState(JSON.parse(JSON.stringify(initialOptimizationData)));
+  const [activeScenario, setActiveScenario] = useState(SCENARIOS.BASELINE);
+  const [scenarioAssumptions, setScenarioAssumptions] = useState({
+    [SCENARIOS.BASELINE]: "Standard review. User decisions override AI suggestions. No major operational changes assumed.",
+    [SCENARIOS.AI_OPTIMIZED]: "Assumes AI suggestions are accepted by default unless there's a strong business case to reject. Aims for max efficiency.",
+    [SCENARIOS.AGGRESSIVE_SAVINGS]: "Prioritizes cash preservation. Accepts all AI suggestions and seeks further manual reductions where possible, accepting higher operational risk.",
+  });
 
-  // Handlers for modal and data updates
-  const handleViewDetails = (suggestion) => {
-    setSelectedSuggestion(suggestion);
-    setIsModalOpen(true);
-  };
+  const [optimizationVersions, setOptimizationVersions] = useState([]);
+  const [optimizationTotals, setOptimizationTotals] = useState({});
+  const filtersRef = useRef(null);
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedSuggestion(null);
+  const getScenarioDataItem = (item, scenarioKey) => {
+    return item[scenarioKey] || { aiReduction: 0, userDecision: USER_DECISION.REJECT, userAdjustment: 0, impact: "N/A", confidence: AI_CONFIDENCE.LOW, aiInsight: "N/A" };
   };
   
-  const handleUpdateSuggestion = (updatedSuggestion) => {
-    setSuggestions(suggestions.map(s => s.id === updatedSuggestion.id ? updatedSuggestion : s));
-  };
-  
-  // Dynamic stats calculation using useMemo for performance
-  const summaryStats = useMemo(() => {
-    const totalPotential = suggestions.reduce((sum, s) => s.status !== 'rejected' ? sum + s.savings : sum, 0);
-    const quickWins = suggestions.reduce((sum, s) => s.effort === 'Low' && s.status !== 'rejected' ? sum + s.savings : sum, 0);
-    const implemented = suggestions.reduce((sum, s) => s.status === 'implemented' ? sum + s.savings : sum, 0);
-    return { totalPotential, quickWins, implemented };
-  }, [suggestions]);
+  const calculateTotalsForScenario = (data, scenarioKey) => {
+    const totals = { identified: 0, approved: 0, current: 0, byDepartment: {}, decisions: { Accept: 0, Adjust: 0, Reject: 0 } };
+    if (!data || data.length === 0) return totals;
 
-  // Filter suggestions for display
-  const filteredSuggestions = suggestions.filter((suggestion) => (
-    (activeTab === 'all' || suggestion.status === activeTab) &&
-    (selectedCategory === 'All Categories' || suggestion.category === selectedCategory)
-  ));
-  
-  // Data for charts
-  const savingsData = {
-    labels: ['IT', 'Procurement', 'Facilities', 'Operations'],
-    datasets: [{ data: [60600, 32500, 15700, 28600], backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'] }],
-  };
-  const effortData = {
-    labels: ['Low Effort', 'Medium Effort', 'High Effort'],
-    datasets: [{ data: [61100, 60600, 15700], backgroundColor: ['#4BC0C0', '#36A2EB', '#FFCE56'] }],
+    data.forEach(item => {
+      const scenarioData = getScenarioDataItem(item, scenarioKey);
+      totals.identified += scenarioData.aiReduction;
+      totals.current += item.currentAllocation;
+      
+      if (scenarioData.userDecision !== USER_DECISION.REJECT) {
+        totals.approved += scenarioData.userAdjustment;
+      }
+      
+      totals.decisions[scenarioData.userDecision]++;
+
+      if (!totals.byDepartment[item.department]) totals.byDepartment[item.department] = { savings: 0 };
+      if (scenarioData.userDecision !== USER_DECISION.REJECT) {
+        totals.byDepartment[item.department].savings += scenarioData.userAdjustment;
+      }
+    });
+    return totals;
   };
 
-  const getStatusPill = (status) => {
-    switch (status) {
-        case 'implemented': return 'bg-green-100 text-green-800';
-        case 'in-progress': return 'bg-blue-100 text-blue-800';
-        case 'approved': return 'bg-sky-100 text-sky-800';
-        case 'pending': return 'bg-amber-100 text-amber-800';
-        case 'rejected': return 'bg-red-100 text-red-800';
-        default: return 'bg-gray-100 text-gray-800';
+  useEffect(() => {
+    setOptimizationTotals(calculateTotalsForScenario(optimizationData, activeScenario));
+  }, [optimizationData, activeScenario]);
+
+  const handleInputChange = (index, field, value) => {
+    setOptimizationData(prev => {
+      const newData = JSON.parse(JSON.stringify(prev));
+      const scenarioItem = newData[index][activeScenario];
+      scenarioItem[field] = field === 'userAdjustment' ? (parseFloat(value) || 0) : value;
+      // Auto-adjust decision based on input
+      if (field === 'userAdjustment') {
+        if(parseFloat(value) === 0) scenarioItem.userDecision = USER_DECISION.REJECT;
+        else if(parseFloat(value) === scenarioItem.aiReduction) scenarioItem.userDecision = USER_DECISION.ACCEPT;
+        else scenarioItem.userDecision = USER_DECISION.ADJUST;
+      }
+      if (field === 'userDecision' && value === USER_DECISION.REJECT) scenarioItem.userAdjustment = 0;
+      if (field === 'userDecision' && value === USER_DECISION.ACCEPT) scenarioItem.userAdjustment = scenarioItem.aiReduction;
+      return newData;
+    });
+    setHasChanges(true);
+  };
+  
+  const handleSaveAll = () => {
+    const timestamp = new Date().toISOString();
+    const totalsByScenario = {};
+    Object.values(SCENARIOS).forEach(scen => {
+        totalsByScenario[scen] = calculateTotalsForScenario(optimizationData, scen);
+    });
+    setOptimizationVersions(prev => [...prev, { period, timestamp, data: JSON.parse(JSON.stringify(optimizationData)), totalsByScenario, assumptions: JSON.parse(JSON.stringify(scenarioAssumptions))}]);
+    setHasChanges(false);
+    alert("Optimization plan version saved successfully!");
+  };
+
+  const handleExport = () => {
+    const dataForExport = optimizationData.map(item => {
+      const scenarioData = getScenarioDataItem(item, activeScenario);
+      return {
+        'Expense Category': item.expenseCategory, 'Department': item.department,
+        'Current Allocation': item.currentAllocation, 'AI Suggested Reduction': scenarioData.aiReduction,
+        'User Decision': scenarioData.userDecision, 'Final Reduction': scenarioData.userAdjustment,
+        'Forecasted Impact': scenarioData.impact, 'AI Confidence': scenarioData.confidence,
+      };
+    });
+    const worksheet = XLSX.utils.json_to_sheet(dataForExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, `Cost Optimization`);
+    XLSX.writeFile(workbook, `Cost_Optimization_${activeScenario.replace(/\s+/g, '_')}.xlsx`);
+  };
+
+  const handleImport = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data);
+      const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+      
+      const dataMap = new Map(optimizationData.map(d => [`${d.department}-${d.expenseCategory}`, JSON.parse(JSON.stringify(d))]));
+      jsonData.forEach(row => {
+        const key = `${row['Department']}-${row['Expense Category']}`;
+        if (dataMap.has(key)) {
+          const itemToUpdate = dataMap.get(key);
+          const scenarioItem = getScenarioDataItem(itemToUpdate, activeScenario);
+          scenarioItem.userDecision = row['User Decision'] ?? scenarioItem.userDecision;
+          scenarioItem.userAdjustment = row['Final Reduction'] ?? scenarioItem.userAdjustment;
+          dataMap.set(key, itemToUpdate);
+        }
+      });
+      setOptimizationData(Array.from(dataMap.values()));
+      setHasChanges(true);
+      alert(`Data for ${activeScenario} imported. Review changes.`);
+      e.target.value = '';
+    } catch (error) {
+      console.error("Error importing file:", error);
+      alert("Error importing file.");
     }
-  }
+  };
+  
+  const handleRestoreVersion = (version) => {
+    setOptimizationData(JSON.parse(JSON.stringify(version.data)));
+    setScenarioAssumptions(JSON.parse(JSON.stringify(version.assumptions)));
+    setHasChanges(false);
+    alert(`Version from ${new Date(version.timestamp).toLocaleString()} restored.`);
+  };
 
+  const getConfidenceColor = (level) => {
+    if (level === AI_CONFIDENCE.HIGH) return "bg-green-100 text-green-800";
+    if (level === AI_CONFIDENCE.MED) return "bg-yellow-100 text-yellow-800";
+    return "bg-red-100 text-red-800";
+  };
+  
+  const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "top" } } };
+  const barChartData = {
+    labels: Object.keys(optimizationTotals.byDepartment || {}),
+    datasets: [{ label: 'Approved Savings by Department', data: Object.values(optimizationTotals.byDepartment || {}).map(d => d.savings), backgroundColor: 'rgba(16, 185, 129, 0.7)' }],
+  };
+  const pieChartData = {
+    labels: Object.keys(optimizationTotals.decisions || {}),
+    datasets: [{ data: Object.values(optimizationTotals.decisions || {}), backgroundColor: ['#10b981', '#f97316', '#ef4444'], hoverOffset: 4 }],
+  };
+  
   return (
     <div className="space-y-6 p-4 min-h-screen relative bg-sky-50">
       {/* Breadcrumb Navigation */}
-            <nav className="flex mb-4" aria-label="Breadcrumb">
-              <ol className="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
-                <li className="inline-flex items-center">
-                  <Link to="/" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
-                    <svg className="w-3 h-3 me-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z"/>
-                    </svg>
-                    Home
-                  </Link>
-                </li>
-                <li>
-                  <div className="flex items-center">
-                    <FiChevronRight className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" />
-                    <Link to="/operational-budgeting" className="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2">
-                      Operational Budgeting
-                    </Link>
-                  </div>
-                </li>
-                <li aria-current="page">
-                  <div className="flex items-center">
-                    <FiChevronRight className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" />
-                    <span className="ms-1 text-sm font-medium text-gray-500 md:ms-2">AI Cost Optimization</span>
-                  </div>
-                </li>
-              </ol>
-            </nav>
-      {isModalOpen && <SuggestionDetailModal suggestion={selectedSuggestion} onClose={handleCloseModal} onUpdate={handleUpdateSuggestion} />}
-
-      {/* Header */}
+                                <nav className="flex mb-4" aria-label="Breadcrumb">
+                                  <ol className="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
+                                    <li className="inline-flex items-center">
+                                      <Link to="/" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                                        <svg className="w-3 h-3 me-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                          <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z"/>
+                                        </svg>
+                                        Home
+                                      </Link>
+                                    </li>
+                                    <li>
+                                      <div className="flex items-center">
+                                        <FiChevronRight className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" />
+                                        <Link to="/operational-budgeting" className="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2">
+                                          Operational Budgeting
+                                        </Link>
+                                      </div>
+                                    </li>
+                                    <li aria-current="page">
+                                      <div className="flex items-center">
+                                        <FiChevronRight className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" />
+                                        <span className="ms-1 text-sm font-medium text-gray-500 md:ms-2">AI Cost Opimization</span>
+                                      </div>
+                                    </li>
+                                  </ol>
+                                </nav>
       <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
         <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-lg font-bold text-white">AI-Based Cost Optimization</h1>
-            <p className="text-sky-100 text-xs">Smart suggestions to reduce spending without operational impact</p>
-          </div>
-          <div className="flex space-x-2">
-            <select
-              className="py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200"
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-            >
-              <option>All Categories</option><option>IT</option><option>Procurement</option><option>Facilities</option><option>Operations</option>
-            </select>
-            <button className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
-                <BsFilter /> Advanced Filters
-            </button>
-            <button className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors duration-200">
-                <BsDownload /> Export Report
-            </button>
+          <div><h1 className="text-lg font-bold text-white">AI-Based Cost Optimization Suggestions</h1><p className="text-sky-100 text-xs">Identify areas to reduce spending without impacting operations.</p></div>
+          <div className="flex items-center space-x-4">
+             <div><label className="text-sm text-white font-medium mr-2">Forecast Period:</label><select value={period} onChange={(e) => setPeriod(e.target.value)} className="p-1.5 border bg-sky-50 text-sky-900 border-sky-200 rounded-md text-xs"><option>Q1 2025</option><option>Q2 2025</option></select></div>
+             <button onClick={() => window.print()} className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 transition-colors"><FiPrinter className="text-sky-50" /><span className="text-sky-50">Print</span></button>
           </div>
         </div>
+      </div>
+
+      <div className="flex items-center gap-3 border-b mt-5 py-3 border-gray-200 mb-6">
+        {[{id: 'recommendations', label: 'AI Recommendations'}, {id: 'import', label: 'Import Suggestions'}, {id: 'compare', label: 'Compare Scenarios'}].map(tab => (
+          <button key={tab.id} className={`py-2 px-4 font-medium text-sm ${activeTab === tab.id ? 'text-sky-50 border-b-2 border-sky-600 bg-sky-800 rounded-t-lg' : 'text-sky-900 hover:text-sky-500 hover:bg-sky-100 rounded-t-lg'}`} onClick={() => setActiveTab(tab.id)}>{tab.label}</button>
+        ))}
+        <div className="ml-4">
+            <label className="text-sm font-medium text-sky-800 mr-2">Active Scenario:</label>
+            <select value={activeScenario} onChange={(e) => { if(hasChanges && !window.confirm("Unsaved changes. Switch anyway?")) return; setActiveScenario(e.target.value); setHasChanges(false); }} className="p-1.5 border border-sky-300 bg-white text-sky-900 rounded-md text-xs">
+                {Object.values(SCENARIOS).map(name => <option key={name} value={name}>{name}</option>)}
+            </select>
+        </div>
+        <div className="relative ml-auto" ref={filtersRef}><button className="py-2 px-3 text-gray-500 hover:text-blue-500 flex items-center text-sm"><BsFilter className="mr-1" /> Filters</button></div>
       </div>
       
-      {/* Dynamic Stats summary */}
-      <div className="grid grid-cols-1 mt-5 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg border border-sky-100 shadow-sm">
-          <div className="text-sky-800 font-medium">Total Potential Savings</div>
-          <div className="text-2xl font-bold text-sky-900">${summaryStats.totalPotential.toLocaleString()}</div>
-          <div className="text-sm text-sky-600">Annual recurring</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg border border-sky-100 shadow-sm">
-          <div className="text-sky-800 font-medium">Quick Wins</div>
-          <div className="text-2xl font-bold text-green-600">${summaryStats.quickWins.toLocaleString()}</div>
-          <div className="text-sm text-sky-600">Low effort suggestions</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg border border-sky-100 shadow-sm">
-          <div className="text-sky-800 font-medium">Implemented Savings</div>
-          <div className="text-2xl font-bold text-sky-900">${summaryStats.implemented.toLocaleString()}</div>
-          <div className="text-sm text-sky-600">YTD realized</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg border border-sky-100 shadow-sm">
-          <div className="text-sky-800 font-medium">Avg. Implementation</div>
-          <div className="text-2xl font-bold text-sky-900">23 days</div>
-          <div className="text-sm text-sky-600">Time to savings</div>
-        </div>
-      </div>
+      <div>
+        {activeTab === 'recommendations' && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Total Optimization Identified</p><p className="text-2xl font-bold text-sky-900">${(optimizationTotals?.identified || 0).toLocaleString()}</p></div>
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Approved Reductions</p><p className="text-2xl font-bold text-green-600">${(optimizationTotals?.approved || 0).toLocaleString()}</p></div>
+              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Potential Savings % of Budget</p><p className="text-2xl font-bold text-green-600">{optimizationTotals.current > 0 ? ((optimizationTotals.approved / optimizationTotals.current) * 100).toFixed(1) : 0}%</p></div>
+            </div>
 
-      {/* Tabs */}
-      <div className="flex border-b border-sky-200 mb-6">
-        {['all', 'pending', 'approved', 'in-progress', 'implemented'].map((tab) => (
-          <button
-            key={tab}
-            className={`px-4 py-2 text-sm font-medium capitalize ${activeTab === tab ? 'text-sky-800 border-b-2 border-sky-500' : 'text-sky-600'}`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab.replace('-', ' ')}
-          </button>
-        ))}
-      </div>
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="bg-white p-4 rounded-lg shadow-sm flex-1 border"><h2 className="text-lg font-semibold text-sky-900 mb-3">Savings by Department</h2><div className="h-[250px]"><Bar data={barChartData} options={chartOptions}/></div></div>
+                <div className="bg-white p-4 rounded-lg shadow-sm flex-1 border"><h2 className="text-lg font-semibold text-sky-900 mb-3">Accepted vs. Rejected Suggestions</h2><div className="h-[250px]"><Pie data={pieChartData} options={{...chartOptions, plugins: { legend: { position: 'right' } }}}/></div></div>
+            </div>
 
-      {/* Main content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Suggestions list */}
-        <div className="lg:col-span-2 space-y-4">
-          {filteredSuggestions.length > 0 ? (
-            filteredSuggestions.map((suggestion) => (
-              <div key={suggestion.id} className="bg-white p-5 rounded-xl shadow-sm border border-sky-100 hover:border-sky-300 transition-colors">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="text-lg font-semibold text-sky-900">{suggestion.title}</h3>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusPill(suggestion.status)} capitalize`}>
-                    {suggestion.status.replace('-', ' ')}
-                  </span>
+            <div className="bg-white rounded-lg mt-5 shadow-sm overflow-hidden border">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold text-sky-900">Cost Optimization Editor ({activeScenario})</h2>
+                  <div className="flex space-x-2">
+                    <button onClick={handleExport} className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center"><FiDownload className="mr-2" /> Export</button>
+                    <button onClick={handleSaveAll} disabled={!hasChanges} className={`px-4 py-2 text-sm rounded-lg flex items-center ${hasChanges ? "bg-sky-600 text-white hover:bg-sky-700" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}><FiSave className="mr-2" /> Save Plan</button>
+                  </div>
                 </div>
-                <p className="text-sky-700 mb-4">{suggestion.details.substring(0, 150)}...</p>
-                <div className="flex flex-wrap justify-between items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold text-green-600">${suggestion.savings.toLocaleString()}</span>
-                    <span className="text-sm text-sky-600">annual savings</span>
-                  </div>
-                  <div className="flex gap-4">
-                     <div>
-                      <div className="text-xs text-sky-600">Effort</div>
-                      <div className={`text-sm font-medium ${suggestion.effort === 'Low' ? 'text-green-600' : suggestion.effort === 'Medium' ? 'text-amber-600' : 'text-red-600'}`}>{suggestion.effort}</div>
-                    </div>
-                     <div>
-                      <div className="text-xs text-sky-600">Impact</div>
-                      <div className={`text-sm font-medium ${suggestion.impact === 'None' ? 'text-green-600' : suggestion.impact === 'Low' ? 'text-amber-600' : 'text-red-600'}`}>{suggestion.impact}</div>
-                    </div>
-                  </div>
-                  <button onClick={() => handleViewDetails(suggestion)} className="text-sm bg-sky-600 hover:bg-sky-700 text-white font-semibold px-4 py-2 rounded-lg transition-colors">
-                    Review & Act
-                  </button>
+
+                <div className="overflow-x-auto max-h-[calc(100vh-250px)] relative">
+                  <table className="min-w-full divide-y divide-sky-100">
+                    <thead className="bg-sky-50 sticky top-0 z-10">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-sky-900 uppercase sticky left-0 bg-sky-50 z-20 min-w-[200px]">Expense / Department</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">Current Budget</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">AI Reduction</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">User Decision</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">Final Reduction</th>
+                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">Adjusted Budget</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-sky-100">
+                      {optimizationData.map((item, index) => {
+                        const scenarioData = getScenarioDataItem(item, activeScenario);
+                        const rowBgClass = index % 2 === 0 ? "bg-white" : "bg-sky-50/70";
+                        return (
+                          <tr key={index} className={`${rowBgClass} hover:bg-sky-100/50`}>
+                            <td className={`px-4 py-3 text-sm font-medium text-sky-900 sticky left-0 z-[5] ${rowBgClass}`}>
+                                <div className="font-semibold">{item.expenseCategory}</div><div className="text-xs text-sky-600">{item.department}</div>
+                            </td>
+                            <td className="px-2 py-1 text-center text-sm">${item.currentAllocation.toLocaleString()}</td>
+                            <td className="px-2 py-1 text-center text-sm">
+                                <div className="relative group">${scenarioData.aiReduction.toLocaleString()} <FiInfo className="inline-block ml-1 text-gray-400" />
+                                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 w-max p-1.5 text-xs text-white bg-slate-700 rounded-md opacity-0 group-hover:opacity-100 z-30 pointer-events-none">{scenarioData.aiInsight}</span>
+                                </div>
+                                <div className={`text-xs font-medium px-2 py-0.5 rounded-full inline-block mt-1 ${getConfidenceColor(scenarioData.confidence)}`}>{scenarioData.confidence}</div>
+                            </td>
+                            <td className="px-2 py-1"><select value={scenarioData.userDecision} onChange={(e) => handleInputChange(index, 'userDecision', e.target.value)} className="w-full p-1.5 border border-sky-300 rounded-md text-sm bg-white">{Object.values(USER_DECISION).map(t=><option key={t}>{t}</option>)}</select></td>
+                            <td className="px-2 py-1"><input type="number" value={scenarioData.userAdjustment} onChange={(e) => handleInputChange(index, 'userAdjustment', e.target.value)} disabled={scenarioData.userDecision === USER_DECISION.REJECT} className="w-full p-1.5 border border-sky-300 rounded-md text-sm text-center bg-white disabled:bg-gray-100"/></td>
+                            <td className="px-2 py-1 text-center text-sm font-bold text-sky-900">${(item.currentAllocation - scenarioData.userAdjustment).toLocaleString()}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            ))
-          ) : (
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-sky-100 text-center">
-              <div className="text-sky-400 mb-2"><BsStars size={32} className="mx-auto" /></div>
-              <h3 className="text-lg font-medium text-sky-800 mb-1">No suggestions match your filters</h3>
-              <p className="text-sky-600">Try adjusting your filters to see more cost optimization opportunities</p>
+            </div>
+            <div className="mb-6 mt-6 p-4 bg-sky-100/70 rounded-lg shadow-sm border">
+                <label className="block text-md font-semibold text-sky-800 mb-2">Optimization Assumptions for {activeScenario}:</label>
+                <textarea value={scenarioAssumptions[activeScenario] || ''} onChange={(e) => { setScenarioAssumptions(prev => ({...prev, [activeScenario]: e.target.value})); setHasChanges(true); }} rows="3" className="w-full p-2 border border-sky-300 rounded-lg text-sm bg-white" placeholder={`e.g., Operational constraints, review notes...`} />
+            </div>
+          </>
+        )}
+        
+        {activeTab === 'import' && (
+          <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+            <h2 className="text-xl font-semibold text-sky-900 mb-4">Import Suggested Savings</h2>
+            <p className="text-sm text-gray-600 mb-4">Upload an Excel (.xlsx) or CSV (.csv) file with optimization suggestions. Match by 'Department' and 'Expense Category'.</p>
+            <div className="border-2 border-dashed border-sky-300 rounded-lg p-8 text-center">
+              <FiUpload className="mx-auto text-4xl text-sky-500 mb-3" />
+              <label htmlFor="importFile" className="px-6 py-3 bg-blue-600 text-white text-md font-medium rounded-lg hover:bg-blue-700 cursor-pointer">Choose File to Import</label>
+              <input id="importFile" type="file" onChange={handleImport} accept=".xlsx,.xls,.csv" className="hidden"/>
+              <p className="text-xs text-gray-500 mt-3">File must contain 'Department', 'Expense Category', 'User Decision', and 'Final Reduction' columns.</p>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'compare' && (
+          <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+            <h2 className="text-xl font-semibold text-sky-900 mb-6">Compare Optimization Scenarios</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-sky-200">
+                <thead className="bg-sky-100">
+                  <tr>
+                    <th className="px-5 py-3 text-left text-xs font-semibold text-sky-800 uppercase">Metric</th>
+                    {Object.values(SCENARIOS).map(name => <th key={name} className="px-5 py-3 text-left text-xs font-semibold text-sky-800 uppercase">{name}</th>)}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-sky-100">
+                  {['Total Approved Savings', 'Total Identified by AI', 'Final Budget', 'Assumptions'].map(metric => (
+                    <tr key={metric} className={metric === 'Assumptions' ? 'align-top' : ''}>
+                      <td className="px-5 py-4 whitespace-nowrap text-sm font-medium text-sky-900">{metric}</td>
+                      {Object.values(SCENARIOS).map(scenarioName => {
+                        const totals = calculateTotalsForScenario(optimizationData, scenarioName);
+                        let value, className = "text-sm text-sky-700";
+                        if (metric === 'Total Approved Savings') { value = `$${(totals.approved || 0).toLocaleString()}`; className = "text-sm font-semibold text-green-600"; }
+                        else if (metric === 'Total Identified by AI') { value = `$${(totals.identified || 0).toLocaleString()}`; }
+                        else if (metric === 'Final Budget') { value = `$${(totals.current - totals.approved).toLocaleString()}`; }
+                        else if (metric === 'Assumptions') { value = scenarioAssumptions[scenarioName] || 'N/A'; className = "text-xs text-gray-600 whitespace-pre-wrap max-w-xs"; }
+                        return <td key={`${metric}-${scenarioName}`} className={`px-5 py-4 ${className}`}>{value}</td>;
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
+          <h2 className="text-xl font-semibold text-sky-900 mb-4">Optimization Plan Version History</h2>
+          {optimizationVersions.length === 0 ? <p className="text-sm text-gray-500">No versions saved yet.</p> : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-sky-100">
+                <thead className="bg-sky-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">Timestamp</th>
+                    {Object.values(SCENARIOS).map(scen => <th key={scen} className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">{scen} Savings</th>)}
+                    <th className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-sky-100">
+                  {optimizationVersions.map((version, index) => (
+                    <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-sky-50/70"}>
+                      <td className="px-4 py-3 text-sm text-sky-800">{new Date(version.timestamp).toLocaleString()}</td>
+                      {Object.values(SCENARIOS).map(scen => {
+                        const total = version.totalsByScenario?.[scen] || { approved: 0 };
+                        return <td key={`${index}-${scen}`} className="px-4 py-3 text-sm font-semibold text-green-600">${total.approved.toLocaleString()}</td>
+                      })}
+                      <td className="px-4 py-3"><button onClick={() => handleRestoreVersion(version)} className="text-sm text-sky-700 hover:text-sky-900 hover:underline">Restore</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-sky-100">
-            <h3 className="text-lg font-semibold text-sky-800 mb-4">Potential Savings by Category</h3>
-            <div className="h-64"><Bar data={savingsData} options={{ indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true, ticks: { callback: (value) => `$${value/1000}k` }}}, plugins: { legend: { display: false }}}} /></div>
-          </div>
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-sky-100">
-            <h3 className="text-lg font-semibold text-sky-800 mb-4">Savings by Implementation Effort</h3>
-            <div className="h-64"><Doughnut data={effortData} options={{ responsive: true, maintainAspectRatio: false, plugins: { tooltip: { callbacks: { label: (ctx) => `$${ctx.raw.toLocaleString()} potential savings`}}, legend: { position: 'bottom' }}}} /></div>
-          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default AICostOptimization;
+export default AICostOptimizationSuggestions;
