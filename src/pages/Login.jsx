@@ -59,7 +59,7 @@ const LoginPage = () => {
         className="relative right-15 z-10 w-full max-w-md bg-white bg-opacity-90 backdrop-blur-sm rounded-xl shadow-xl p-8"
       >
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-sky-900 mb-2">Welcome to FinSightAI</h1>
+          <h1 className="text-3xl font-bold text-sky-900 mb-2">Welcome to FPnAInsights</h1>
           <p className="text-sky-600">Sign in to your financial dashboard</p>
         </div>
 

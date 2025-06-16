@@ -106,7 +106,7 @@ const FinancialOverview = () => {
       cash_flow: {
         value: financialData.cash_flow,
         change: calculateChange(financialData.cash_flow, financialData.cash_flow * 1.05),
-        componentPath: "/revenue-component",
+        componentPath: "/cash-flow",
       },
       headcount: {
         value: sampleHeadcountData.value,
@@ -186,7 +186,7 @@ const FinancialOverview = () => {
       },
       profitAnalysis: {
         title: "Profit Analysis",
-        componentPath: "/revenue-component",
+        componentPath: "/profit-analysis",
         data: {
           labels: Object.keys(financialData.profit_analysis),
           datasets: [
@@ -214,7 +214,7 @@ const FinancialOverview = () => {
       },
       cashFlow: {
         title: "Cash Flow",
-        componentPath: "/revenue-component",
+        componentPath: "/cash-flow",
         data: {
           labels: Object.keys(financialData.revenue_trend),
           datasets: [
