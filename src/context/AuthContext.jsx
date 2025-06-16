@@ -131,13 +131,13 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (response.ok && data.access_token) {
-        localStorage.setItem('token', data.access_token);
+           localStorage.setItem('token', data.access_token);
         localStorage.setItem('currentUser', JSON.stringify(data));
-        localStorage.removeItem('twoFALoginToken');
         setToken(data.access_token);
         setIsAuthenticated(true);
         setCurrentUser(data);
-        setTwoFALoginToken(null);
+        // setUserEmail(email);
+        // setUserId(data.user_id || null);
         toast.success("Login successful");
         navigate('/');
         return true;

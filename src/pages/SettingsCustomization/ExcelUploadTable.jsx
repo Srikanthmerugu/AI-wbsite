@@ -157,7 +157,7 @@ const ExcelUploadTable = ({ token, onUploadSuccess }) => {
   return (
     <div className="flex-grow w-full mb-6">
       <label className="block mb-2 text-sm font-medium text-gray-700">Upload Excel File</label>
-      <div
+      {/* <div
         className={`flex items-center justify-center w-full h-48 border-2 border-dashed rounded-xl cursor-pointer ${isDragging ? 'border-sky-400 bg-sky-50' : 'border-sky-200 hover:border-sky-300 bg-sky-50 hover:bg-sky-100'}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -178,7 +178,7 @@ const ExcelUploadTable = ({ token, onUploadSuccess }) => {
           onChange={handleFilePickerChange}
           disabled={isLoading}
         />
-      </div>
+      </div> */}
 
       {fileName && (
         <div className="mt-4">

@@ -21,7 +21,14 @@ const FinancialHeader = ({ showFilters, setShowFilters }) => {
             <FiFilter className="mr-1" />
             Filters
           </button>
-          <WidgetSelector />
+          {/* <WidgetSelector /> */}
+          
+          <button
+            // onClick={() => window.print()}
+            className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white  bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-900 transition-colors duration-200">
+            {/* <FiDownload className="text-sky-50 hover:text-sky-900" /> */}
+            <span className="text-sky-50 hover:text-sky-900">+ Add Widget</span>
+          </button>
           <button
             onClick={() => window.print()}
             className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white  bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 hover:text-sky-900 transition-colors duration-200">

@@ -34,7 +34,8 @@ const SystemDataPreferences = ({ token }) => {
       });
       if (!response.ok) throw new Error('Failed to fetch GL master data');
       const data = await response.json();
-      setGlMasterData(data.master_gl_info || []);
+      // setGlMasterData(data.master_gl_info || []);
+      console.log(data, "data line 38")
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -70,6 +71,7 @@ const SystemDataPreferences = ({ token }) => {
       if (!response.ok) throw new Error('Failed to fetch integration history');
       const data = await response.json();
       setIntegrationHistory(data.records || []);
+      console.log(data.records , "line 73")
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -279,25 +281,25 @@ const SystemDataPreferences = ({ token }) => {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold text-[#004a80] mb-4">General Ledger Management</h2>
+      <h2 className="text-lg font-semibold text-[#004a80] mb-4">General Ledger Accounts Management</h2>
       <p className="text-gray-600 mb-6">Manage GL accounts, entries, and integration history.</p>
 
       {/* Tabs */}
       <div className="mb-6">
         <nav className="flex flex-wrap border-b border-gray-200">
-         
+          <button
+            onClick={() => { setActiveTab('create'); setCurrentPage(1); }}
+            className={`px-4 py-2 font-medium text-sm rounded-t-lg mr-2 ${activeTab === 'create' ? 'bg-[#004a80] text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+          >
+            Create GL Account
+          </button>
           <button
             onClick={() => { setActiveTab('view'); setCurrentPage(1); }}
             className={`px-4 py-2 font-medium text-sm rounded-t-lg mr-2 ${activeTab === 'view' ? 'bg-[#004a80] text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
           >
             View GL Accounts
           </button>
-           <button
-            onClick={() => { setActiveTab('create'); setCurrentPage(1); }}
-            className={`px-4 py-2 font-medium text-sm rounded-t-lg mr-2 ${activeTab === 'create' ? 'bg-[#004a80] text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
-          >
-            Create GL Account
-          </button>
+          
           <button
             onClick={() => { setActiveTab('entries'); setCurrentPage(1); }}
             className={`px-4 py-2 font-medium text-sm rounded-t-lg mr-2 ${activeTab === 'entries' ? 'bg-[#004a80] text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}

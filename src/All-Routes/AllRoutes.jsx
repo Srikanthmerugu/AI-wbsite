@@ -101,10 +101,7 @@ import CustomerAcquisitionRetentionBudgeting from '../pages/Budgeting/RevenueBas
 import SubscriptionRevenueBudgeting from '../pages/Budgeting/RevenueBased-Budgeting/SubscriptionRevenue';
 import ScenarioBasedCapexModeling from '../pages/Budgeting/CAPEX-Budgeting/ScenarioBasedCapex';
 import HeadcountPlanning from '../pages/Budgeting/WorkforcePayroll-Budgeting/HeadcountPlanning';
-<<<<<<< HEAD
-import Setup2FA from '../context/setup-2fa';
-import Verify2FA from '../context/verify-2fa';
-=======
+
 import SalaryCompensationBudgeting from '../pages/Budgeting/WorkforcePayroll-Budgeting/SalaryCompensation';
 import AttritionReplacementCostProjections from '../pages/Budgeting/WorkforcePayroll-Budgeting/AttritionReplacement';
 import WorkforceEfficiencyAnalysis from '../pages/Budgeting/WorkforcePayroll-Budgeting/orkforceEfficiency';
@@ -127,7 +124,10 @@ import WorkforceBudgeting from '../pages/Budgeting/WorkforcePayroll-Budgeting/Wo
 import ZeroBasedBudgeting from '../pages/Budgeting/ZeroBased-Budgeting/ZeroBasedBudgeting';
 import RollingBudgeting from '../pages/Budgeting/Rolling&Flexible-Budgeting/RollingBudgeting';
 import ScenarioModelingBudgeting from '../pages/Budgeting/ScenarioModelling/ScenarioModellingBudgeting';
->>>>>>> a17315b2b3e8ce7124e44c6dd59fd577f0ffbed0
+import Setup2FA from '../context/Setup2FA';
+import Verify2FA from '../context/Verify2FA';
+import CashFlow from '../components/Dashboard/FinancialOverview items/CashFlow';
+import ProfitAnalysis from '../components/Dashboard/FinancialOverview items/ProfitAnalysis';
 
 
 
@@ -273,6 +273,8 @@ function AllRoutes() {
 
               {/* GLUploadScreen */}
             <Route path="/gl-upload-screen" element={<GLUploadScreen />} />
+            <Route path="/cash-flow" element={<CashFlow />} />
+            <Route path="/profit-analysis" element={<ProfitAnalysis />} />
 
 
 
