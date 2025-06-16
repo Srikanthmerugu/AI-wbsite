@@ -203,8 +203,9 @@ export const AuthProvider = ({ children }) => {
       );
 
       const data = await response.json();
-
-      if (response.ok && data.access_token) {
+      // debugger
+      if (response.ok) {
+        // debugger
         localStorage.setItem('token', data.access_token);
         localStorage.setItem('currentUser', JSON.stringify(data));
         localStorage.removeItem('twoFASetupToken');
@@ -214,13 +215,14 @@ export const AuthProvider = ({ children }) => {
         setCurrentUser(data);
         setTwoFASetupToken(null);
         toast.success("2FA setup completed successfully!");
-        navigate('/');
         return true;
       } else {
         throw new Error(data.message || '2FA setup failed');
       }
     } catch (error) {
+      // debugger
       toast.error(error.message || 'Failed to complete 2FA setup');
+      // debugger
       return false;
     } finally {
       setLoading(false);
