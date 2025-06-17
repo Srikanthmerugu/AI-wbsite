@@ -323,7 +323,7 @@ import { API_BASE_URL } from '../config/config';
                 <FiArrowLeft className="mr-1" />
                 Return to login
               </button>
-              <span className="text-xs text-gray-400">Security Level: High</span>
+              <span className="text-xs text-gray-400">Security Level: <span className='text-red-500'>High</span></span>
             </div>
           </div>
         </motion.div>
