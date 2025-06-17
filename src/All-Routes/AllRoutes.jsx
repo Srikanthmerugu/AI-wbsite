@@ -123,6 +123,8 @@ import WorkforceBudgeting from '../pages/Budgeting/WorkforcePayroll-Budgeting/Wo
 import ZeroBasedBudgeting from '../pages/Budgeting/ZeroBased-Budgeting/ZeroBasedBudgeting';
 import RollingBudgeting from '../pages/Budgeting/Rolling&Flexible-Budgeting/RollingBudgeting';
 import ScenarioModelingBudgeting from '../pages/Budgeting/ScenarioModelling/ScenarioModellingBudgeting';
+import BudgetingHub from '../pages/Budgeting/BudgetingHub';
+import CorporateBudgetGuidelines from '../pages/Budgeting/CorporateBudgetGuidelines';
 
 
 
@@ -180,7 +182,8 @@ function AllRoutes() {
               <Route path="/CostSavingOpportunities" element={<CostSavingOpportunities />} />
 
 
-
+              <Route path="/budgeting-hub" element={<BudgetingHub />} />
+              <Route path="/corporate-budget-guidelines" element={<CorporateBudgetGuidelines/>} />
               <Route path="/company-management-table" element={<CompanyManagementTable />} />
               <Route path="/forecasting-overview" element={<ForecastingOverview />} />
               <Route path="/CAPEX-forecast-screen" element={<CAPEXForecastScreen />} />

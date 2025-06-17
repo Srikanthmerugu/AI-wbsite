@@ -1,398 +1,283 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import * as XLSX from 'xlsx';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import { Bar, Line, Pie } from "react-chartjs-2";
-import { FiSave, FiUpload, FiDownload, FiPrinter, FiInfo, FiChevronRight } from "react-icons/fi";
-import { BsFilter } from 'react-icons/bs';
+import React, { useState, useEffect } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { FiUsers, FiMonitor, FiBriefcase, FiDollarSign, FiInfo, FiChevronRight, FiEdit, FiAlertCircle, FiSave } from "react-icons/fi";
+import { Tooltip as ReactTooltip } from "react-tooltip";
 
-// Register ChartJS components
-ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, ArcElement, Title, Tooltip, Legend);
-
-const SCENARIOS = {
-  BASELINE: "Baseline",
-  STRETCH: "Stretch",
-  CONSERVATIVE: "Conservative",
+// --- Mock Data and Configuration ---
+// This simulates fetching data for a specific department based on a URL parameter.
+// In a real app, this would be an API call: `fetch('/api/budget/opex/${departmentName}')`
+const departmentDetailsData = {
+  marketing: {
+    name: "Marketing",
+    guideline: "Marketing budget to remain flat vs. last year; 10% increase only if tied to documented pipeline ROI. (FY25 Guidance v1)",
+    people: {
+      totalCost: 1250000,
+      headcount: 8,
+      aiInsight: "Cost includes a 4% standard merit increase. Headcount is flat YoY.",
+      lastYearCost: 1180000,
+    },
+    campaigns: [
+      { id: 1, name: "Q3 Social Media Blitz", driver_cost: 75000, driver_count: 1, notes: "Targeting new user acquisition.", aiBaseline: 70000 },
+      { id: 2, name: "Annual Conference Sponsorship", driver_cost: 120000, driver_count: 1, notes: "Platinum sponsorship package.", aiBaseline: 120000 },
+      { id: 3, name: "Content Creation (Blogs/Videos)", driver_cost: 15000, driver_count: 12, notes: "Monthly agency retainer.", aiBaseline: 15000 },
+    ],
+    software: [
+      { id: 1, name: "HubSpot Marketing Hub", driver_cost: 300, driver_count: 10, notes: "10 Marketing user seats.", aiBaseline: 3000 },
+      { id: 2, name: "Canva for Teams", driver_cost: 25, driver_count: 15, notes: "Includes design and marketing teams.", aiBaseline: 375 },
+      { id: 3, name: "SEMrush", driver_cost: 500, driver_count: 1, notes: "Advanced SEO toolkit subscription.", aiBaseline: 500 },
+    ],
+  },
+  sales: {
+    name: "Sales",
+    guideline: "No more than 15% YoY growth on T&E spend. Travel must align with the revenue plan. (FY25 Guidance v1)",
+    people: {
+      totalCost: 2100000, headcount: 15, aiInsight: "Includes 3 new Account Executive hires for H2.", lastYearCost: 1850000,
+    },
+    campaigns: [],
+    software: [
+        { id: 1, name: "Salesforce Sales Cloud", driver_cost: 150, driver_count: 20, notes: "20 Sales user seats.", aiBaseline: 3000 },
+        { id: 2, name: "ZoomInfo", driver_cost: 18000, driver_count: 1, notes: "Annual data subscription.", aiBaseline: 18000 },
+    ],
+  }
 };
 
-const EXPENSE_TYPE = {
-  RECURRING: "Recurring",
-  ONE_TIME: "One-Time",
-};
+const SCENARIOS = { BASELINE: "Baseline", STRETCH: "Stretch", CONSERVATIVE: "Conservative" };
 
-const AI_CONFIDENCE = {
-  HIGH: "High",
-  MED: "Medium",
-  LOW: "Low",
-};
-
-// Mock data for department budgets
-const initialDeptData = [
-  {
-    department: "Marketing", expenseCategory: "Campaigns",
-    [SCENARIOS.BASELINE]:    { m1: {ai: 50000, user: 50000}, m2: {ai: 50000, user: 50000}, m3: {ai: 55000, user: 55000}, type: EXPENSE_TYPE.RECURRING, confidence: AI_CONFIDENCE.HIGH, notes: "Standard Q1 lead gen.", aiInsight: "Based on historical Q1 spend." },
-    [SCENARIOS.STRETCH]:     { m1: {ai: 60000, user: 60000}, m2: {ai: 65000, user: 65000}, m3: {ai: 70000, user: 70000}, type: EXPENSE_TYPE.RECURRING, confidence: AI_CONFIDENCE.MED, notes: "Aggressive market expansion.", aiInsight: "Increased spend to capture market share." },
-    [SCENARIOS.CONSERVATIVE]:{ m1: {ai: 40000, user: 40000}, m2: {ai: 40000, user: 40000}, m3: {ai: 40000, user: 40000}, type: EXPENSE_TYPE.RECURRING, confidence: AI_CONFIDENCE.HIGH, notes: "Focus on high-ROI channels only.", aiInsight: "Reduces spend by cutting experimental channels." },
-  },
-  {
-    department: "IT", expenseCategory: "Cloud Tools",
-    [SCENARIOS.BASELINE]:    { m1: {ai: 25000, user: 25000}, m2: {ai: 25000, user: 25000}, m3: {ai: 25000, user: 25000}, type: EXPENSE_TYPE.RECURRING, confidence: AI_CONFIDENCE.HIGH, notes: "AWS, GCP, and monitoring tools.", aiInsight: "Stable usage pattern." },
-    [SCENARIOS.STRETCH]:     { m1: {ai: 30000, user: 30000}, m2: {ai: 30000, user: 30000}, m3: {ai: 30000, user: 30000}, type: EXPENSE_TYPE.RECURRING, confidence: AI_CONFIDENCE.MED, notes: "Increased server capacity for new product.", aiInsight: "Higher capacity for stretch goals." },
-    [SCENARIOS.CONSERVATIVE]:{ m1: {ai: 22000, user: 22000}, m2: {ai: 22000, user: 22000}, m3: {ai: 22000, user: 22000}, type: EXPENSE_TYPE.RECURRING, confidence: AI_CONFIDENCE.HIGH, notes: "Cost optimization via reserved instances.", aiInsight: "Potential for savings with reserved instances." },
-  },
-  {
-    department: "Sales", expenseCategory: "Travel & Entertainment",
-    [SCENARIOS.BASELINE]:    { m1: {ai: 15000, user: 15000}, m2: {ai: 15000, user: 15000}, m3: {ai: 20000, user: 20000}, type: EXPENSE_TYPE.ONE_TIME, confidence: AI_CONFIDENCE.MED, notes: "Includes Q1 industry conference.", aiInsight: "Travel costs aligned with prior years." },
-    [SCENARIOS.STRETCH]:     { m1: {ai: 20000, user: 20000}, m2: {ai: 20000, user: 20000}, m3: {ai: 25000, user: 25000}, type: EXPENSE_TYPE.ONE_TIME, confidence: AI_CONFIDENCE.MED, notes: "More client visits to push for stretch goals.", aiInsight: "Higher T&E to support aggressive targets." },
-    [SCENARIOS.CONSERVATIVE]:{ m1: {ai: 10000, user: 10000}, m2: {ai: 10000, user: 10000}, m3: {ai: 10000, user: 10000}, type: EXPENSE_TYPE.ONE_TIME, confidence: AI_CONFIDENCE.HIGH, notes: "Limit travel to only essential trips.", aiInsight: "Reduces discretionary travel spend." },
-  },
-];
+// --- Main Component ---
 
 const DepartmentLevelBudgeting = () => {
-  const [activeTab, setActiveTab] = useState("budgets");
-  const [period, setPeriod] = useState("Q1 2025");
-  const [hasChanges, setHasChanges] = useState(false);
-  
-  const [departmentData, setDepartmentData] = useState(JSON.parse(JSON.stringify(initialDeptData)));
-  const [activeScenario, setActiveScenario] = useState(SCENARIOS.BASELINE);
-  const [scenarioAssumptions, setScenarioAssumptions] = useState({
-    [SCENARIOS.BASELINE]: "Standard operating budget. Assumes linear growth and stable market conditions. Corporate guidelines followed.",
-    [SCENARIOS.STRETCH]: "Stretch budget for aggressive growth. Higher allocation to demand generation and sales capacity, accepting higher risk for higher potential reward.",
-    [SCENARIOS.CONSERVATIVE]: "Conservative budget focused on capital preservation. Reduced discretionary spending across all departments.",
-  });
+    const { departmentName = "marketing" } = useParams(); // Default to marketing for demo
+    const navigate = useNavigate();
 
-  const [budgetVersions, setBudgetVersions] = useState([]);
-  const [budgetTotals, setBudgetTotals] = useState({});
-  const filtersRef = useRef(null);
+    const [activeTab, setActiveTab] = useState("people");
+    const [departmentData, setDepartmentData] = useState(null);
+    const [activeScenario, setActiveScenario] = useState(SCENARIOS.BASELINE);
+    const [hasChanges, setHasChanges] = useState(false);
 
-  const getScenarioDataItem = (item, scenarioKey) => {
-    return item[scenarioKey] || { m1: {ai:0,user:0}, m2:{ai:0,user:0}, m3:{ai:0,user:0}, type: EXPENSE_TYPE.RECURRING, confidence: AI_CONFIDENCE.LOW, notes: "", aiInsight: "N/A" };
-  };
-  
-  const calculateTotalsForScenario = (data, scenarioKey) => {
-    const totals = { aiTotal: 0, userTotal: 0, byDepartment: {}, byType: { [EXPENSE_TYPE.RECURRING]: 0, [EXPENSE_TYPE.ONE_TIME]: 0 } };
-    if (!data || data.length === 0) return totals;
-
-    data.forEach(item => {
-      const scenarioData = getScenarioDataItem(item, scenarioKey);
-      const userQuarterly = (scenarioData.m1.user || 0) + (scenarioData.m2.user || 0) + (scenarioData.m3.user || 0);
-      const aiQuarterly = (scenarioData.m1.ai || 0) + (scenarioData.m2.ai || 0) + (scenarioData.m3.ai || 0);
-      
-      totals.userTotal += userQuarterly;
-      totals.aiTotal += aiQuarterly;
-      
-      totals.byDepartment[item.department] = (totals.byDepartment[item.department] || 0) + userQuarterly;
-      totals.byType[scenarioData.type] += userQuarterly;
-    });
-    return totals;
-  };
-
-  useEffect(() => {
-    setBudgetTotals(calculateTotalsForScenario(departmentData, activeScenario));
-  }, [departmentData, activeScenario]);
-
-  const handleInputChange = (index, field, value, month = null) => {
-    setDepartmentData(prev => {
-      const newData = JSON.parse(JSON.stringify(prev));
-      const scenarioItem = newData[index][activeScenario];
-      if (month) {
-        scenarioItem[month].user = parseFloat(value) || 0;
-      } else {
-        scenarioItem[field] = value;
-      }
-      return newData;
-    });
-    setHasChanges(true);
-  };
-  
-  const handleSaveAll = () => {
-    const timestamp = new Date().toISOString();
-    const totalsByScenario = {};
-    Object.values(SCENARIOS).forEach(scen => {
-      totalsByScenario[scen] = calculateTotalsForScenario(departmentData, scen);
-    });
-    setBudgetVersions(prev => [...prev, { period, timestamp, data: JSON.parse(JSON.stringify(departmentData)), totalsByScenario, assumptions: JSON.parse(JSON.stringify(scenarioAssumptions))}]);
-    setHasChanges(false);
-    alert("Department budget version saved successfully!");
-  };
-
-  const handleExport = () => {
-    const dataForExport = departmentData.map(item => {
-      const scenarioData = getScenarioDataItem(item, activeScenario);
-      return {
-        'Department': item.department, 'Expense Category': item.expenseCategory,
-        'M1 Budget': scenarioData.m1.user, 'M2 Budget': scenarioData.m2.user, 'M3 Budget': scenarioData.m3.user,
-        'Type': scenarioData.type, 'Notes': scenarioData.notes,
-      };
-    });
-    const worksheet = XLSX.utils.json_to_sheet(dataForExport);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, `Department Budget`);
-    XLSX.writeFile(workbook, `Department_Budget_${activeScenario.replace(/\s+/g, '_')}.xlsx`);
-  };
-
-  const handleImport = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    try {
-      const data = await file.arrayBuffer();
-      const workbook = XLSX.read(data);
-      const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-      
-      const dataMap = new Map(departmentData.map(d => [`${d.department}-${d.expenseCategory}`, JSON.parse(JSON.stringify(d))]));
-      jsonData.forEach(row => {
-        const key = `${row['Department']}-${row['Expense Category']}`;
-        if (dataMap.has(key)) {
-          const itemToUpdate = dataMap.get(key);
-          const scenarioItem = getScenarioDataItem(itemToUpdate, activeScenario);
-          scenarioItem.m1.user = row['M1 Budget'] ?? scenarioItem.m1.user;
-          scenarioItem.m2.user = row['M2 Budget'] ?? scenarioItem.m2.user;
-          scenarioItem.m3.user = row['M3 Budget'] ?? scenarioItem.m3.user;
-          scenarioItem.type = row['Type'] ?? scenarioItem.type;
-          scenarioItem.notes = row['Notes'] ?? scenarioItem.notes;
-          dataMap.set(key, itemToUpdate);
+    useEffect(() => {
+        // This simulates fetching data when the component mounts or the departmentName changes.
+        const data = departmentDetailsData[departmentName.toLowerCase()];
+        if (data) {
+            setDepartmentData(data);
+        } else {
+            console.error("Department not found:", departmentName);
+            // Optionally navigate to a 404 page
+            // navigate('/not-found'); 
         }
-      });
-      setDepartmentData(Array.from(dataMap.values()));
-      setHasChanges(true);
-      alert(`Data for ${activeScenario} imported. Review changes.`);
-      e.target.value = '';
-    } catch (error) {
-      console.error("Error importing file:", error);
-      alert("Error importing file.");
+    }, [departmentName]);
+
+    const handleInputChange = (category, index, field, value) => {
+        setDepartmentData(prev => {
+            const newCategoryData = [...prev[category]];
+            newCategoryData[index] = { ...newCategoryData[index], [field]: value };
+            return { ...prev, [category]: newCategoryData };
+        });
+        setHasChanges(true);
+    };
+
+    const calculateTotal = (items) => {
+        if (!items) return 0;
+        return items.reduce((acc, item) => acc + (parseFloat(item.driver_cost) || 0) * (parseFloat(item.driver_count) || 0), 0);
+    };
+
+    if (!departmentData) {
+        return <div className="p-8 text-center text-gray-500">Loading department data...</div>;
     }
-  };
-  
-  const handleRestoreVersion = (version) => {
-    setDepartmentData(JSON.parse(JSON.stringify(version.data)));
-    setScenarioAssumptions(JSON.parse(JSON.stringify(version.assumptions)));
-    setHasChanges(false);
-    alert(`Version from ${new Date(version.timestamp).toLocaleString()} restored.`);
-  };
 
-  const getConfidenceColor = (level) => {
-    if (level === AI_CONFIDENCE.HIGH) return "bg-green-100 text-green-800";
-    if (level === AI_CONFIDENCE.MED) return "bg-yellow-100 text-yellow-800";
-    return "bg-red-100 text-red-800";
-  };
+    const TABS = [
+        { id: "people", label: "People", icon: <FiUsers /> },
+        { id: "campaigns", label: "Campaigns & Ads", icon: <FiDollarSign /> },
+        { id: "software", label: "Software & Tools", icon: <FiMonitor /> },
+        { id: "general", label: "General Expenses", icon: <FiBriefcase /> },
+    ];
 
-  const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "top" } } };
-  const barChartData = {
-    labels: Object.keys(budgetTotals.byDepartment || {}),
-    datasets: [{ label: 'Budget by Department', data: Object.values(budgetTotals.byDepartment || {}), backgroundColor: ['#3b82f6', '#10b981', '#f97316', '#ef4444', '#8b5cf6'] }],
-  };
-  const pieChartData = {
-    labels: Object.keys(budgetTotals.byType || {}),
-    datasets: [{ data: Object.values(budgetTotals.byType || {}), backgroundColor: ['#3b82f6', '#f97316'], hoverOffset: 4 }],
-  };
-  
-  return (
-    <div className="space-y-6 p-4 min-h-screen relative bg-sky-50">
-      {/* Breadcrumb Navigation */}
-                    <nav className="flex mb-4" aria-label="Breadcrumb">
-                      <ol className="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
-                        <li className="inline-flex items-center">
-                          <Link to="/" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
-                            <svg className="w-3 h-3 me-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z"/>
-                            </svg>
-                            Home
-                          </Link>
-                        </li>
-                        <li>
-                          <div className="flex items-center">
-                            <FiChevronRight className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" />
-                            <Link to="/operational-budgeting" className="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2">
-                              Operational Budgeting
-                            </Link>
-                          </div>
-                        </li>
-                        <li aria-current="page">
-                          <div className="flex items-center">
-                            <FiChevronRight className="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" />
-                            <span className="ms-1 text-sm font-medium text-gray-500 md:ms-2">Department-Level Budgeting</span>
-                          </div>
-                        </li>
-                      </ol>
-                    </nav>
-      <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
-        <div className="flex justify-between items-center">
-          <div><h1 className="text-lg font-bold text-white">Department-Level Budgeting</h1><p className="text-sky-100 text-xs">Plan budgets for Marketing, Sales, Operations, HR, IT, R&D, etc.</p></div>
-          <div className="flex items-center space-x-4">
-             <div><label className="text-sm text-white font-medium mr-2">Forecast Period:</label><select value={period} onChange={(e) => setPeriod(e.target.value)} className="p-1.5 border bg-sky-50 text-sky-900 border-sky-200 rounded-md text-xs"><option>Q1 2025</option><option>Q2 2025</option></select></div>
-             <button onClick={() => window.print()} className="flex gap-2 items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-sky-700 transition-colors"><FiPrinter className="text-sky-50" /><span className="text-sky-50">Print</span></button>
-          </div>
+    // --- Reusable Sub-Components ---
+
+    const CorporateGuidelineBanner = ({ guideline }) => (
+        <div className="bg-sky-100 border-l-4 border-sky-500 text-sky-800 p-4 mb-6 rounded-r-lg" role="alert">
+            <div className="flex items-center">
+                <FiInfo className="mr-3 text-2xl flex-shrink-0" />
+                <div>
+                    <p className="font-bold">Corporate Budget Guideline</p>
+                    <p className="text-sm">{guideline}</p>
+                </div>
+            </div>
         </div>
-      </div>
+    );
+    
+    // --- Views for each tab ---
 
-      <div className="flex items-center gap-3 border-b mt-5 py-3 border-gray-200 mb-6">
-        {[{id: 'budgets', label: 'Department Budgets'}, {id: 'import', label: 'Import Plans'}, {id: 'compare', label: 'Compare Scenarios'}].map(tab => (
-          <button key={tab.id} className={`py-2 px-4 font-medium text-sm ${activeTab === tab.id ? 'text-sky-50 border-b-2 border-sky-600 bg-sky-800 rounded-t-lg' : 'text-sky-900 hover:text-sky-500 hover:bg-sky-100 rounded-t-lg'}`} onClick={() => setActiveTab(tab.id)}>{tab.label}</button>
-        ))}
-        <div className="ml-4">
-            <label className="text-sm font-medium text-sky-800 mr-2">Active Scenario:</label>
-            <select value={activeScenario} onChange={(e) => { if(hasChanges && !window.confirm("Unsaved changes. Switch anyway?")) return; setActiveScenario(e.target.value); setHasChanges(false); }} className="p-1.5 border border-sky-300 bg-white text-sky-900 rounded-md text-xs">
-                {Object.values(SCENARIOS).map(name => <option key={name} value={name}>{name}</option>)}
-            </select>
-        </div>
-        <div className="relative ml-auto" ref={filtersRef}><button className="py-2 px-3 text-gray-500 hover:text-blue-500 flex items-center text-sm"><BsFilter className="mr-1" /> Filters</button></div>
-      </div>
-      
-      <div>
-        {activeTab === 'budgets' && (
-          <>
+    const PeopleView = ({ data }) => (
+        <div className="p-6 bg-white rounded-lg shadow-sm border">
+            <h3 className="text-lg font-semibold text-sky-900 mb-2">People & Headcount Budget</h3>
+            <p className="text-sm text-gray-500 mb-4">Summary of all salary, bonus, and benefits costs for the {departmentData.name} department.</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Total Budget (User vs AI)</p><p className="text-2xl font-bold text-sky-900">${(budgetTotals?.userTotal || 0).toLocaleString()} <span className="text-lg font-medium text-gray-500">vs</span> ${(budgetTotals?.aiTotal || 0).toLocaleString()}</p></div>
-              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Variance from Guidelines</p><p className={`text-2xl font-bold text-red-600`}>+${(budgetTotals.userTotal - budgetTotals.aiTotal).toLocaleString()}</p></div>
-              <div className="p-4 bg-white rounded-lg shadow-sm border"><p className="text-xs font-medium text-sky-700">Pending Approvals</p><p className="text-2xl font-bold text-sky-900">3 Items</p></div>
-            </div>
-
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-                <div className="bg-white p-4 rounded-lg shadow-sm flex-1 border"><h2 className="text-lg font-semibold text-sky-900 mb-3">Spend by Department</h2><div className="h-[250px]"><Bar data={barChartData} options={chartOptions}/></div></div>
-                <div className="bg-white p-4 rounded-lg shadow-sm flex-1 border"><h2 className="text-lg font-semibold text-sky-900 mb-3">Recurring vs. One-Time</h2><div className="h-[250px]"><Pie data={pieChartData} options={{...chartOptions, plugins: { legend: { position: 'right' } }}}/></div></div>
-            </div>
-
-            <div className="bg-white rounded-lg mt-5 shadow-sm overflow-hidden border">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold text-sky-900">Department Budget Editor ({activeScenario})</h2>
-                  <div className="flex space-x-2">
-                    <button onClick={handleExport} className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center"><FiDownload className="mr-2" /> Export</button>
-                    <button onClick={handleSaveAll} disabled={!hasChanges} className={`px-4 py-2 text-sm rounded-lg flex items-center ${hasChanges ? "bg-sky-600 text-white hover:bg-sky-700" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}><FiSave className="mr-2" /> Save Budget</button>
-                  </div>
+                <div className="p-4 bg-sky-50 rounded-lg border border-sky-100">
+                    <p className="text-sm font-medium text-sky-700">Total Estimated Cost</p>
+                    <p className="text-2xl font-bold text-sky-900">${data.totalCost.toLocaleString()}</p>
                 </div>
-
-                <div className="overflow-x-auto max-h-[calc(100vh-250px)] relative">
-                  <table className="min-w-full divide-y divide-sky-100">
-                    <thead className="bg-sky-50 sticky top-0 z-10">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-sky-900 uppercase sticky left-0 bg-sky-50 z-20 min-w-[200px]">Department / Category</th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">Month 1</th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">Month 2</th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[120px]">Month 3</th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-sky-700 uppercase min-w-[150px]">Type</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-sky-700 uppercase min-w-[250px]">Notes / Justification</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-sky-100">
-                      {departmentData.map((item, index) => {
-                        const scenarioData = getScenarioDataItem(item, activeScenario);
-                        const rowBgClass = index % 2 === 0 ? "bg-white" : "bg-sky-50/70";
-                        return (
-                          <tr key={index} className={`${rowBgClass} hover:bg-sky-100/50`}>
-                            <td className={`px-4 py-3 text-sm font-medium text-sky-900 sticky left-0 z-[5] ${rowBgClass}`}>
-                                <div className="font-semibold">{item.department}</div><div className="text-xs text-sky-600">{item.expenseCategory}</div>
-                            </td>
-                            {['m1', 'm2', 'm3'].map(month => (
-                                <td key={month} className="px-2 py-1">
-                                    <div className="text-xs text-gray-500 text-center relative group">AI: ${scenarioData[month].ai.toLocaleString()} <FiInfo className="inline-block ml-1 text-gray-400" /><span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 w-max p-1.5 text-xs text-white bg-slate-700 rounded-md opacity-0 group-hover:opacity-100 z-30 pointer-events-none">{scenarioData.aiInsight}</span></div>
-                                    <input type="number" value={scenarioData[month].user} onChange={(e) => handleInputChange(index, null, e.target.value, month)} className="w-full mt-1 p-1.5 border border-sky-300 rounded-md text-sm text-center bg-white"/>
-                                </td>
-                            ))}
-                            <td className="px-2 py-1"><select value={scenarioData.type} onChange={(e) => handleInputChange(index, 'type', e.target.value)} className="w-full p-1.5 border border-sky-300 rounded-md text-sm bg-white">{Object.values(EXPENSE_TYPE).map(t=><option key={t}>{t}</option>)}</select></td>
-                            <td className="px-2 py-1"><textarea value={scenarioData.notes} onChange={(e) => handleInputChange(index, 'notes', e.target.value)} rows="1" className="w-full p-1.5 border border-sky-300 rounded-md text-sm bg-white"/></td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                <div className="p-4 bg-sky-50 rounded-lg border border-sky-100">
+                    <p className="text-sm font-medium text-sky-700">Budgeted Headcount (FTE)</p>
+                    <p className="text-2xl font-bold text-sky-900">{data.headcount}</p>
                 </div>
-              </div>
+                <div className="p-4 bg-sky-50 rounded-lg border border-sky-100">
+                    <p className="text-sm font-medium text-sky-700 relative">AI Insight <FiInfo className="inline-block ml-1 text-gray-400" /></p>
+                    <p className="text-sm text-gray-800 mt-2">{data.aiInsight}</p>
+                </div>
             </div>
-            <div className="mb-6 mt-6 p-4 bg-sky-100/70 rounded-lg shadow-sm border">
-                <label className="block text-md font-semibold text-sky-800 mb-2">Budget Assumptions for {activeScenario}:</label>
-                <textarea value={scenarioAssumptions[activeScenario] || ''} onChange={(e) => { setScenarioAssumptions(prev => ({...prev, [activeScenario]: e.target.value})); setHasChanges(true); }} rows="3" className="w-full p-2 border border-sky-300 rounded-lg text-sm bg-white" placeholder={`e.g., Allocation rules, team-level commentary...`} />
+            <div className="text-right">
+                <button
+                    onClick={() => navigate('/budgeting/workforce-planning')}
+                    className="inline-flex items-center px-4 py-2 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700 transition-colors"
+                >
+                    <FiEdit className="mr-2" /> Manage Headcount Details
+                </button>
             </div>
-          </>
-        )}
-        
-        {activeTab === 'import' && (
-          <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
-            <h2 className="text-xl font-semibold text-sky-900 mb-4">Import Department Expense Plans</h2>
-            <p className="text-sm text-gray-600 mb-4">Upload an Excel (.xlsx) or CSV (.csv) file with your department budget data. Match by 'Department' and 'Expense Category'.</p>
-            <div className="border-2 border-dashed border-sky-300 rounded-lg p-8 text-center">
-              <FiUpload className="mx-auto text-4xl text-sky-500 mb-3" />
-              <label htmlFor="importFile" className="px-6 py-3 bg-blue-600 text-white text-md font-medium rounded-lg hover:bg-blue-700 cursor-pointer">Choose File to Import</label>
-              <input id="importFile" type="file" onChange={handleImport} accept=".xlsx,.xls,.csv" className="hidden"/>
-              <p className="text-xs text-gray-500 mt-3">File must contain 'Department', 'Expense Category', 'M1 Budget', 'M2 Budget', 'M3 Budget', 'Type', and 'Notes'.</p>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'compare' && (
-          <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
-            <h2 className="text-xl font-semibold text-sky-900 mb-6">Compare Department Scenarios</h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-sky-200">
-                <thead className="bg-sky-100">
-                  <tr>
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-sky-800 uppercase">Metric</th>
-                    {Object.values(SCENARIOS).map(name => <th key={name} className="px-5 py-3 text-left text-xs font-semibold text-sky-800 uppercase">{name}</th>)}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-sky-100">
-                  {['Total User Budget', 'Total AI Budget', 'Variance vs AI', 'Assumptions'].map(metric => (
-                    <tr key={metric} className={metric === 'Assumptions' ? 'align-top' : ''}>
-                      <td className="px-5 py-4 whitespace-nowrap text-sm font-medium text-sky-900">{metric}</td>
-                      {Object.values(SCENARIOS).map(scenarioName => {
-                        const totals = calculateTotalsForScenario(departmentData, scenarioName);
-                        let value, className = "text-sm text-sky-700";
-                        if (metric === 'Total User Budget') { value = `$${(totals.userTotal || 0).toLocaleString()}`; className = "text-sm font-semibold text-sky-800"; }
-                        else if (metric === 'Total AI Budget') { value = `$${(totals.aiTotal || 0).toLocaleString()}`; }
-                        else if (metric === 'Variance vs AI') { const variance = totals.userTotal - totals.aiTotal; value = `$${variance.toLocaleString()}`; className = `text-sm font-semibold ${variance >= 0 ? 'text-red-600' : 'text-green-600'}`; }
-                        else if (metric === 'Assumptions') { value = scenarioAssumptions[scenarioName] || 'N/A'; className = "text-xs text-gray-600 whitespace-pre-wrap max-w-xs"; }
-                        return <td key={`${metric}-${scenarioName}`} className={`px-5 py-4 ${className}`}>{value}</td>;
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        <div className="bg-white p-6 mt-5 rounded-lg shadow-sm border border-gray-200">
-          <h2 className="text-xl font-semibold text-sky-900 mb-4">Budget Version History</h2>
-          {budgetVersions.length === 0 ? <p className="text-sm text-gray-500">No versions saved yet.</p> : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-sky-100">
-                <thead className="bg-sky-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">Timestamp</th>
-                    {Object.values(SCENARIOS).map(scen => <th key={scen} className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">{scen} User Total</th>)}
-                    <th className="px-4 py-3 text-left text-xs font-medium text-sky-700 uppercase">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-sky-100">
-                  {budgetVersions.map((version, index) => (
-                    <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-sky-50/70"}>
-                      <td className="px-4 py-3 text-sm text-sky-800">{new Date(version.timestamp).toLocaleString()}</td>
-                      {Object.values(SCENARIOS).map(scen => {
-                        const total = version.totalsByScenario?.[scen] || { userTotal: 0 };
-                        return <td key={`${index}-${scen}`} className="px-4 py-3 text-sm font-semibold text-sky-800">${total.userTotal.toLocaleString()}</td>
-                      })}
-                      <td className="px-4 py-3"><button onClick={() => handleRestoreVersion(version)} className="text-sm text-sky-700 hover:text-sky-900 hover:underline">Restore</button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
         </div>
-      </div>
-    </div>
-  );
+    );
+
+    const DriverBasedTable = ({ title, description, items, columns, categoryKey }) => (
+        <div className="p-6 bg-white rounded-lg shadow-sm border">
+            <h3 className="text-lg font-semibold text-sky-900 mb-2">{title}</h3>
+            <p className="text-sm text-gray-500 mb-4">{description}</p>
+            <div className="overflow-x-auto">
+                <table className="min-w-full">
+                    <thead className="bg-sky-50">
+                        <tr>
+                            {columns.map(col => <th key={col.key} className="px-4 py-3 text-left text-xs font-semibold text-sky-800 uppercase tracking-wider">{col.label}</th>)}
+                            <th className="px-4 py-3 text-right text-xs font-semibold text-sky-800 uppercase tracking-wider">Calculated Total</th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {items.map((item, index) => (
+                            <tr key={item.id} className="hover:bg-sky-50/50">
+                                {columns.map(col => (
+                                    <td key={col.key} className="px-4 py-3 whitespace-nowrap">
+                                        <input
+                                            type={col.type || "text"}
+                                            value={item[col.key]}
+                                            onChange={(e) => handleInputChange(categoryKey, index, col.key, e.target.value)}
+                                            className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-sky-500"
+                                            placeholder={col.placeholder || ''}
+                                        />
+                                    </td>
+                                ))}
+                                <td className="px-4 py-3 text-right text-sm font-medium text-sky-900">
+                                    ${((parseFloat(item.driver_cost) || 0) * (parseFloat(item.driver_count) || 0)).toLocaleString()}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                    <tfoot className="bg-sky-100">
+                        <tr>
+                            <td colSpan={columns.length} className="px-4 py-3 text-right font-bold text-sky-800">Sub-Total</td>
+                            <td className="px-4 py-3 text-right font-bold text-sky-900">${calculateTotal(items).toLocaleString()}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                 <div className="text-right mt-4">
+                    <button className="text-sm font-medium text-sky-600 hover:text-sky-800">+ Add Line Item</button>
+                </div>
+            </div>
+        </div>
+    );
+
+    // --- Main Return ---
+
+    return (
+        <div className="space-y-6 p-4 min-h-screen relative bg-sky-50">
+            {/* Breadcrumb Navigation */}
+            <nav className="flex mb-4" aria-label="Breadcrumb">
+                <ol className="inline-flex items-center space-x-1 md:space-x-2">
+                    <li><Link to="/budgeting" className="text-sm font-medium text-gray-700 hover:text-blue-600">Budgeting Hub</Link></li>
+                    <li><div className="flex items-center"><FiChevronRight className="w-3 h-3 text-gray-400 mx-1" /><span className="text-sm font-medium text-gray-500">Opex Planning</span></div></li>
+                    <li><div className="flex items-center"><FiChevronRight className="w-3 h-3 text-gray-400 mx-1" /><span className="text-sm font-medium text-gray-500 capitalize">{departmentName}</span></div></li>
+                </ol>
+            </nav>
+            
+            {/* Header */}
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                <div className="flex justify-between items-center">
+                    <div>
+                        <h1 className="text-xl font-bold text-sky-900 capitalize">{departmentData.name} Department: Opex Budget</h1>
+                        <p className="text-sm text-gray-600 mt-1">Enter and manage all operating expenses using driver-based inputs for FY2025.</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <label className="text-sm font-medium text-gray-700">Scenario:</label>
+                        <select value={activeScenario} onChange={(e) => setActiveScenario(e.target.value)} className="p-2 border border-gray-300 rounded-md text-sm">
+                            {Object.values(SCENARIOS).map(name => <option key={name} value={name}>{name}</option>)}
+                        </select>
+                        <button onClick={() => {}} disabled={!hasChanges} className={`px-4 py-2 text-sm rounded-lg flex items-center ${hasChanges ? "bg-sky-600 text-white hover:bg-sky-700" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}><FiSave className="mr-2" /> Save Changes</button>
+                    </div>
+                </div>
+            </div>
+            
+            <CorporateGuidelineBanner guideline={departmentData.guideline} />
+
+            {/* Sub-Navigation Tabs */}
+            <div className="border-b border-gray-200">
+                <nav className="-mb-px flex space-x-6" aria-label="Tabs">
+                    {TABS.map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm flex items-center
+                                ${activeTab === tab.id ? 'border-sky-500 text-sky-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`
+                            }
+                        >
+                            {React.cloneElement(tab.icon, { className: 'mr-2' })}
+                            {tab.label}
+                        </button>
+                    ))}
+                </nav>
+            </div>
+            
+            {/* Tab Content */}
+            <div className="mt-4">
+                {activeTab === 'people' && <PeopleView data={departmentData.people} />}
+                
+                {activeTab === 'campaigns' && (
+                    <DriverBasedTable
+                        title="Campaigns, Events & Advertising"
+                        description="Budget for all marketing and promotional activities."
+                        items={departmentData.campaigns}
+                        categoryKey="campaigns"
+                        columns={[
+                            { key: 'name', label: 'Campaign/Event Name', placeholder: 'e.g., Q4 Conference' },
+                            { key: 'driver_cost', label: 'Cost per Unit/Event ($)', type: 'number', placeholder: '25000' },
+                            { key: 'driver_count', label: 'Count', type: 'number', placeholder: '1' },
+                            { key: 'notes', label: 'Notes / Justification', placeholder: 'Sponsorship cost' },
+                        ]}
+                    />
+                )}
+
+                {activeTab === 'software' && (
+                     <DriverBasedTable
+                        title="Software & Technology Tools"
+                        description="Budget for all SaaS subscriptions and technology licenses used by this department."
+                        items={departmentData.software}
+                        categoryKey="software"
+                        columns={[
+                            { key: 'name', label: 'Application Name', placeholder: 'e.g., Salesforce' },
+                            { key: 'driver_cost', label: 'Cost per Unit/Month ($)', type: 'number', placeholder: '150' },
+                            { key: 'driver_count', label: 'Units (e.g., Seats)', type: 'number', placeholder: '20' },
+                            { key: 'notes', label: 'Notes / Justification', placeholder: 'Sales team licenses' },
+                        ]}
+                    />
+                )}
+
+                {activeTab === 'general' && (
+                    <div className="p-6 bg-white rounded-lg shadow-sm border text-center">
+                         <h3 className="text-lg font-semibold text-sky-900 mb-2">General & Administrative Expenses</h3>
+                         <p className="text-sm text-gray-500">Budget for T&E, office supplies, consulting, and other general expenses.</p>
+                         <p className="mt-4 text-sm text-gray-400">(Content for this tab would be built out here)</p>
+                    </div>
+                )}
+            </div>
+            
+            <ReactTooltip id="global-tooltip" place="top" effect="solid" />
+        </div>
+    );
 };
 
 export default DepartmentLevelBudgeting;
