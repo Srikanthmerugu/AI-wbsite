@@ -1,9 +1,10 @@
+// src/pages/ForgotPasswordPage.js
 import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { FiMail } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+import { FiMail, FiArrowLeft } from 'react-icons/fi';
 import { motion } from 'framer-motion';
-import { LoginBG, offRobo } from '../assets/Assets'; // Reusing assets from LoginPage
+import { LoginBG, offRobo } from '../assets/Assets';
 import { toast } from 'react-toastify';
 
 const ForgotPasswordPage = () => {
@@ -13,9 +14,8 @@ const ForgotPasswordPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!email) {
-      toast.error('Please enter your email');
+      toast.error('Please enter your email address');
       return;
     }
 
@@ -29,10 +29,10 @@ const ForgotPasswordPage = () => {
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* Video Background with Overlay */}
       <div className="absolute inset-0 z-0">
-        <video
-          autoPlay
-          loop
-          muted
+        <video 
+          autoPlay 
+          loop 
+          muted 
           className="w-full h-full object-cover"
         >
           <source src={LoginBG} type="video/mp4" />
@@ -41,7 +41,6 @@ const ForgotPasswordPage = () => {
         <div className="absolute inset-0 bg-sky-900 opacity-70"></div>
       </div>
 
-      {/* Animated Robot Image */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -59,8 +58,8 @@ const ForgotPasswordPage = () => {
         className="relative right-15 z-10 w-full max-w-md bg-white bg-opacity-90 backdrop-blur-sm rounded-xl shadow-xl p-8"
       >
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-sky-900 mb-2">Forgot Password</h2>
-          <p className="text-sky-600">Enter your email to receive a password reset link</p>
+          <h1 className="text-3xl font-bold text-sky-900 mb-2">Reset Your Password</h1>
+          <p className="text-sky-600">Enter your email to receive a reset link</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -93,19 +92,20 @@ const ForgotPasswordPage = () => {
               disabled={loading}
               className={`w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors duration-200 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              {loading ? 'Sending link...' : 'Send Reset Link'}
+              {loading ? 'Sending...' : 'Send Reset Link'}
+            </button>
+          </div>
+
+          <div className="text-center">
+            <button
+              onClick={() => navigate('/login')}
+              className="text-sm font-medium text-sky-600 hover:text-sky-500 flex items-center justify-center"
+            >
+              <FiArrowLeft className="mr-1" />
+              Back to login
             </button>
           </div>
         </form>
-
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => navigate('/login')}
-            className="text-sm font-medium text-sky-600 hover:text-sky-500"
-          >
-            Back to login
-          </button>
-        </div>
       </motion.div>
     </div>
   );

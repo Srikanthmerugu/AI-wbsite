@@ -101,6 +101,7 @@ import CustomerAcquisitionRetentionBudgeting from '../pages/Budgeting/RevenueBas
 import SubscriptionRevenueBudgeting from '../pages/Budgeting/RevenueBased-Budgeting/SubscriptionRevenue';
 import ScenarioBasedCapexModeling from '../pages/Budgeting/CAPEX-Budgeting/ScenarioBasedCapex';
 import HeadcountPlanning from '../pages/Budgeting/WorkforcePayroll-Budgeting/HeadcountPlanning';
+
 import SalaryCompensationBudgeting from '../pages/Budgeting/WorkforcePayroll-Budgeting/SalaryCompensation';
 import AttritionReplacementCostProjections from '../pages/Budgeting/WorkforcePayroll-Budgeting/AttritionReplacement';
 import WorkforceEfficiencyAnalysis from '../pages/Budgeting/WorkforcePayroll-Budgeting/orkforceEfficiency';
@@ -123,8 +124,14 @@ import WorkforceBudgeting from '../pages/Budgeting/WorkforcePayroll-Budgeting/Wo
 import ZeroBasedBudgeting from '../pages/Budgeting/ZeroBased-Budgeting/ZeroBasedBudgeting';
 import RollingBudgeting from '../pages/Budgeting/Rolling&Flexible-Budgeting/RollingBudgeting';
 import ScenarioModelingBudgeting from '../pages/Budgeting/ScenarioModelling/ScenarioModellingBudgeting';
+
 import BudgetingHub from '../pages/Budgeting/BudgetingHub';
 import CorporateBudgetGuidelines from '../pages/Budgeting/CorporateBudgetGuidelines';
+
+import Setup2FA from '../context/Setup2FA';
+import Verify2FA from '../context/Verify2FA';
+import CashFlow from '../components/Dashboard/FinancialOverview items/CashFlow';
+import ProfitAnalysis from '../components/Dashboard/FinancialOverview items/ProfitAnalysis';
 
 
 
@@ -139,6 +146,8 @@ function AllRoutes() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
           <Route path="/register-page" element={<RegisterPage />} />
+           <Route path="/setup-2fa/:token" element={<Setup2FA />} />
+          <Route path="/verify-2fa" element={<Verify2FA />} />
           
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
@@ -269,6 +278,13 @@ function AllRoutes() {
 
               {/* GLUploadScreen */}
             <Route path="/gl-upload-screen" element={<GLUploadScreen />} />
+            <Route path="/cash-flow" element={<CashFlow />} />
+            <Route path="/profit-analysis" element={<ProfitAnalysis />} />
+
+
+
+              
+
 
 
             </Route>

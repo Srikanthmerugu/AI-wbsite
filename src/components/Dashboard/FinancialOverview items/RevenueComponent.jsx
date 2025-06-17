@@ -1,122 +1,165 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useContext } from 'react';
 import { Line, Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { CSVLink } from 'react-csv';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { FaDownload, FaArrowLeft, FaInfoCircle, FaChevronDown, FaChevronRight, FaHome } from 'react-icons/fa';
+import { AuthContext } from '../../../context/AuthContext';
+import { API_BASE_URL } from '../../../config/config';
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 const RevenueComponent = () => {
+  const { token } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [selectedYear, setSelectedYear] = useState('2025');
-  const [selectedDataset, setSelectedDataset] = useState('both');
-  const [selectedView, setSelectedView] = useState('trend'); // 'trend' or 'breakdown'
+  const [selectedYear, setSelectedYear] = useState('2023');
+  const [selectedView, setSelectedView] = useState('trend');
   const [expandedRows, setExpandedRows] = useState([]);
+  const [revenueData, setRevenueData] = useState(null);
+  const [availableYears, setAvailableYears] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Enhanced sample data with breakdown
-  const revenueData = {
-    2023: {
-      actual: [100000, 110000, 120000, 115000, 130000, 140000, 135000, 145000, 150000, 160000, 155000, 170000],
-      forecasted: [105000, 115000, 125000, 120000, 135000, 145000, 140000, 150000, 155000, 165000, 160000, 175000],
-      breakdown: [
-        { product: 'Product A', q1: 25000, q2: 28000, q3: 30000, q4: 32000 },
-        { product: 'Product B', q1: 30000, q2: 32000, q3: 35000, q4: 38000 },
-        { product: 'Service C', q1: 20000, q2: 22000, q3: 25000, q4: 28000 },
-        { product: 'Subscription D', q1: 25000, q2: 28000, q3: 30000, q4: 32000 },
-      ],
-    },
-    2024: {
-      actual: [120000, 130000, 140000, 135000, 150000, 160000, 155000, 165000, 170000, 180000, 175000, 190000],
-      forecasted: [125000, 135000, 145000, 140000, 155000, 165000, 160000, 170000, 175000, 185000, 180000, 195000],
-      breakdown: [
-        { product: 'Product A', q1: 30000, q2: 33000, q3: 35000, q4: 38000 },
-        { product: 'Product B', q1: 35000, q2: 38000, q3: 40000, q4: 42000 },
-        { product: 'Service C', q1: 25000, q2: 28000, q3: 30000, q4: 32000 },
-        { product: 'Subscription D', q1: 30000, q2: 33000, q3: 35000, q4: 38000 },
-      ],
-    },
-    2025: {
-      actual: [140000, 150000, 160000, 155000, 170000, 180000, 175000, 185000, 190000, 200000, 195000, 210000],
-      forecasted: [145000, 155000, 165000, 160000, 175000, 185000, 180000, 190000, 195000, 205000, 200000, 215000],
-      breakdown: [
-        { product: 'Product A', q1: 35000, q2: 38000, q3: 40000, q4: 42000 },
-        { product: 'Product B', q1: 40000, q2: 42000, q3: 45000, q4: 48000 },
-        { product: 'Service C', q1: 30000, q2: 32000, q3: 35000, q4: 38000 },
-        { product: 'Subscription D', q1: 35000, q2: 38000, q3: 40000, q4: 42000 },
-      ],
-    },
-  };
+  // Fetch revenue data from API
+  useEffect(() => {
+    const fetchRevenueData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_BASE_URL}/api/v1/company/financial/analytics/revenue?year=${selectedYear}`, {
+          headers: {
+            'accept': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch revenue data');
+        }
+
+        const data = await response.json();
+        setRevenueData(data);
+        setAvailableYears([2023]); // You might want to get this from API if available
+        setLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchRevenueData();
+  }, [selectedYear, token]);
+
+  // Process data for display
+  const processedData = useMemo(() => {
+    if (!revenueData) return null;
+
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthKeys = Object.keys(revenueData.monthly_revenue).sort();
+    
+    // Get all unique categories from the data
+    const allCategories = new Set();
+    Object.values(revenueData.monthly_category_revenue).forEach(monthData => {
+      Object.keys(monthData).forEach(category => allCategories.add(category));
+    });
+    
+    const categories = Array.from(allCategories);
+
+    return {
+      months,
+      monthKeys,
+      categories,
+      monthlyRevenue: monthKeys.map(key => revenueData.monthly_revenue[key]),
+      monthlyCategoryRevenue: categories.map(category => ({
+        category,
+        data: monthKeys.map(key => revenueData.monthly_category_revenue[key]?.[category] || 0)
+      })),
+      quarterlyCategoryRevenue: categories.map(category => ({
+        category,
+        q1: revenueData.quarterly_category_revenue.Q1?.[category] || 0,
+        q2: revenueData.quarterly_category_revenue.Q2?.[category] || 0,
+        q3: revenueData.quarterly_category_revenue.Q3?.[category] || 0,
+        q4: revenueData.quarterly_category_revenue.Q4?.[category] || 0
+      })),
+      yearlyCategoryRevenue: categories.map(category => ({
+        category,
+        amount: revenueData.yearly_category_revenue[category] || 0,
+        percentage: revenueData.yearly_contribution_percentages[category] || 0
+      }))
+    };
+  }, [revenueData]);
 
   // Calculate KPIs
   const kpiMetrics = useMemo(() => {
-    const data = revenueData[selectedYear][selectedDataset === 'both' ? 'actual' : selectedDataset];
-    const breakdown = revenueData[selectedYear].breakdown;
-    const totalRevenue = data.reduce((sum, value) => sum + value, 0);
-    const incrementalRevenue = data[data.length - 1] - data[data.length - 2] || 0;
-    const growthRate = ((data[data.length - 1] - data[0]) / data[0] * 100).toFixed(2);
+    if (!processedData) {
+      return {
+        totalRevenue: '0',
+        incrementalRevenue: '0',
+        growthRate: '0.00',
+        categoryContributions: [],
+        quarterlyBreakdown: [],
+      };
+    }
 
-    // Calculate product contributions
-    const productContributions = breakdown.map(item => ({
-      product: item.product,
-      contribution: ((item.q1 + item.q2 + item.q3 + item.q4) / totalRevenue * 100).toFixed(2),
-    }));
+    const monthlyRevenue = processedData.monthlyRevenue;
+    const totalRevenue = revenueData.total_revenue;
+    const incrementalRevenue = monthlyRevenue.length > 1 
+      ? monthlyRevenue[monthlyRevenue.length - 1] - monthlyRevenue[monthlyRevenue.length - 2] 
+      : 0;
+    const growthRate = monthlyRevenue.length > 1 
+      ? ((monthlyRevenue[monthlyRevenue.length - 1] - monthlyRevenue[0]) / monthlyRevenue[0] * 100) : (0);
 
     return {
       totalRevenue: totalRevenue.toLocaleString(),
       incrementalRevenue: incrementalRevenue.toLocaleString(),
-      growthRate,
-      productContributions,
-      quarterlyBreakdown: breakdown,
+      growthRate: growthRate.toFixed(2),
+      categoryContributions: processedData.yearlyCategoryRevenue.map(item => ({
+        category: item.category,
+        contribution: item.percentage.toFixed(2),
+      })),
+      quarterlyBreakdown: processedData.quarterlyCategoryRevenue,
     };
-  }, [selectedYear, selectedDataset]);
+  }, [processedData, revenueData]);
 
   // Chart data for trend view
   const getTrendChartData = () => {
-    const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const datasets = [];
+    if (!processedData) return { labels: [], datasets: [] };
 
-    if (selectedDataset === 'actual' || selectedDataset === 'both') {
-      datasets.push({
-        label: `Actual Revenue (${selectedYear})`,
-        data: revenueData[selectedYear].actual,
-        borderColor: '#4BC0C0',
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-        fill: true,
-        tension: 0.3,
-      });
-    }
-
-    if (selectedDataset === 'forecasted' || selectedDataset === 'both') {
-      datasets.push({
-        label: `Forecasted Revenue (${selectedYear})`,
-        data: revenueData[selectedYear].forecasted,
-        borderColor: '#FF6384',
-        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-        fill: true,
-        borderDash: [5, 5],
-        tension: 0.3,
-      });
-    }
-
-    return { labels, datasets };
+    return {
+      labels: processedData.months.slice(0, processedData.monthKeys.length),
+      datasets: [
+        {
+          label: `Monthly Revenue (${selectedYear})`,
+          data: processedData.monthlyRevenue,
+          borderColor: '#4BC0C0',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          fill: true,
+          tension: 0.3,
+        },
+        ...processedData.monthlyCategoryRevenue.map((categoryData, index) => ({
+          label: categoryData.category,
+          data: categoryData.data,
+          borderColor: `hsl(${index * 360 / processedData.categories.length}, 70%, 50%)`,
+          backgroundColor: `hsla(${index * 360 / processedData.categories.length}, 70%, 50%, 0.2)`,
+          hidden: true,
+          tension: 0.3,
+        }))
+      ]
+    };
   };
 
   // Chart data for breakdown view
   const getBreakdownChartData = () => {
-    const breakdown = revenueData[selectedYear].breakdown;
-    const products = breakdown.map(item => item.product);
-    const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+    if (!processedData) return { labels: [], datasets: [] };
 
     return {
-      labels: quarters,
-      datasets: breakdown.map((item, index) => ({
-        label: item.product,
-        data: [item.q1, item.q2, item.q3, item.q4],
-        backgroundColor: [`rgba(${75 + index * 50}, ${192 - index * 30}, ${192 - index * 20}, 0.7)`],
-        borderColor: [`rgba(${75 + index * 50}, ${192 - index * 30}, ${192 - index * 20}, 1)`],
+      labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+      datasets: processedData.quarterlyCategoryRevenue.map((category, index) => ({
+        label: category.category,
+        data: [category.q1, category.q2, category.q3, category.q4],
+        backgroundColor: `hsla(${index * 360 / processedData.categories.length}, 70%, 50%, 0.7)`,
+        borderColor: `hsl(${index * 360 / processedData.categories.length}, 70%, 50%)`,
         borderWidth: 1,
       })),
     };
@@ -129,8 +172,8 @@ const RevenueComponent = () => {
       legend: { position: 'top' },
       title: {
         display: true,
-        text: selectedView === 'trend' ? `Revenue Trend for ${selectedYear}` : `Revenue Breakdown by Product (${selectedYear})`,
-        color: '#083344', // text-sky-900
+        text: selectedView === 'trend' ? `Revenue Trend for ${selectedYear}` : `Revenue Breakdown by Category (${selectedYear})`,
+        color: '#083344',
       },
       tooltip: {
         callbacks: {
@@ -143,17 +186,17 @@ const RevenueComponent = () => {
         beginAtZero: true,
         ticks: { 
           callback: (value) => `$${value / 1000}k`,
-          color: '#075985', // text-sky-700
+          color: '#075985',
         },
         title: { 
           display: true, 
           text: 'Revenue ($)', 
-          color: '#075985', // text-sky-700
+          color: '#075985',
         },
       },
       x: {
         ticks: {
-          color: '#075985', // text-sky-700
+          color: '#075985',
         },
       },
     },
@@ -161,76 +204,65 @@ const RevenueComponent = () => {
 
   // CSV data
   const csvData = useMemo(() => {
+    if (!processedData) return [];
+
     const headers = [
       'Month',
-      'Actual Revenue',
-      'Forecasted Revenue',
-      'Variance ($)',
-      'Variance (%)',
-      ...revenueData[selectedYear].breakdown.map(p => `${p.product} Contribution`),
+      'Total Revenue',
+      ...processedData.categories.map(c => `${c} Revenue`),
+      ...processedData.categories.map(c => `${c} Contribution (%)`)
     ];
 
-    const rows = revenueData[selectedYear].actual.map((actual, index) => {
-      const forecasted = revenueData[selectedYear].forecasted[index];
-      const variance = forecasted - actual;
-      const variancePct = (variance / actual * 100).toFixed(2);
+    const rows = processedData.monthKeys.map((key, index) => {
+      const month = processedData.months[index];
+      const total = processedData.monthlyRevenue[index];
+      const rowData = {
+        Month: month,
+        'Total Revenue': total,
+      };
 
-      // Calculate product contributions for the month (simplified)
-      const monthlyTotal = revenueData[selectedYear].actual.reduce((a, b) => a + b, 0);
-      const productContributions = revenueData[selectedYear].breakdown.map(p => {
-        const productAnnual = p.q1 + p.q2 + p.q3 + p.q4;
-        const monthlyEstimate = (productAnnual / 12).toFixed(0);
-        return monthlyEstimate;
+      processedData.categories.forEach(category => {
+        const categoryRevenue = processedData.monthlyCategoryRevenue
+          .find(c => c.category === category)?.data[index] || 0;
+        const percentage = total > 0 ? (categoryRevenue / total * 100).toFixed(2) : 0;
+        
+        rowData[`${category} Revenue`] = categoryRevenue;
+        rowData[`${category} Contribution (%)`] = percentage;
       });
 
-      return {
-        Month: getTrendChartData().labels[index],
-        'Actual Revenue': actual,
-        'Forecasted Revenue': forecasted,
-        'Variance ($)': variance,
-        'Variance (%)': variancePct,
-        ...revenueData[selectedYear].breakdown.reduce((acc, p, i) => {
-          acc[`${p.product} Contribution`] = productContributions[i];
-          return acc;
-        }, {}),
-      };
+      return rowData;
     });
 
     return [headers, ...rows.map(row => Object.values(row))];
-  }, [selectedYear]);
+  }, [processedData]);
 
   // Table data for trend view
   const trendTableData = useMemo(() => {
-    return revenueData[selectedYear].actual.map((actual, index) => {
-      const forecasted = revenueData[selectedYear].forecasted[index];
-      const variance = forecasted - actual;
-      const variancePct = (variance / actual * 100).toFixed(2);
+    if (!processedData) return [];
 
-      // Calculate product contributions for detail view
-      const detailData = revenueData[selectedYear].breakdown.map(p => {
-        const quarterly = [p.q1, p.q2, p.q3, p.q4];
-        const monthlyEstimate = Math.round(quarterly.reduce((a, b) => a + b, 0) / 12);
+    return processedData.monthKeys.map((key, index) => {
+      const month = processedData.months[index];
+      const total = processedData.monthlyRevenue[index];
+      
+      const detailData = processedData.categories.map(category => {
+        const categoryRevenue = processedData.monthlyCategoryRevenue
+          .find(c => c.category === category)?.data[index] || 0;
+        const percentage = total > 0 ? (categoryRevenue / total * 100).toFixed(2) : 0;
+        
         return {
-          product: p.product,
-          contribution: Math.round(monthlyEstimate),
-          contributionPct: ((monthlyEstimate / actual) * 100).toFixed(2),
-          q1: p.q1,
-          q2: p.q2,
-          q3: p.q3,
-          q4: p.q4,
+          category,
+          contribution: categoryRevenue,
+          contributionPct: percentage,
         };
       });
 
       return {
-        month: getTrendChartData().labels[index],
-        actual,
-        forecasted,
-        variance,
-        variancePct,
+        month,
+        total,
         detailData,
       };
     });
-  }, [selectedYear]);
+  }, [processedData]);
 
   // Toggle row expansion
   const toggleRow = (index) => {
@@ -245,48 +277,49 @@ const RevenueComponent = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
   };
 
+  if (loading) {
+    return <div className="text-sky-700">Loading revenue data...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-600">Error: {error}</div>;
+  }
+
+  if (!revenueData) {
+    return <div className="text-sky-700">No revenue data available</div>;
+  }
+
   return (
     <motion.div
-      className="rounded-lg "
+      className="rounded-lg"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-       <button
-                 onClick={() => navigate('/financial-overview')}
-                 className="flex items-center justify-between text-sky-800 mb-2"
-               >
-                 <FaHome className="mr-2" /> Dashboard |<span className='ml-2 text-gray-400'>Revenue Analytics</span>
-               </button>
-           <div className="flex bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm justify-between items-center mb-6">
-        
+      <button
+        onClick={() => navigate('/financial-overview')}
+        className="flex items-center justify-between text-sky-800 mb-2"
+      >
+        <FaHome className="mr-2" /> Dashboard | <span className='ml-2 text-gray-400'> Revenue Breakdown</span>
+      </button>
+      <div className="flex bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm justify-between items-center mb-6">
         <div className="flex items-center space-x-4">
-          
-          <h2 className="text-2xl font-bold text-sky-50">Revenue Analytics</h2>
+          <h2 className="text-2xl font-bold text-sky-50">Revenue Breakdown</h2>
         </div>
         <div className="flex space-x-4 items-center">
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
-            className=" rounded-md px-3 text-white bg-sky-900 py-2  outline-0 "
+            className="rounded-md px-3 py-2 text-white bg-sky-900 outline-0"
           >
-            <option value="2023">2023</option>
-            <option value="2024">2024</option>
-            <option value="2025">2025</option>
-          </select>
-          <select
-            value={selectedDataset}
-            onChange={(e) => setSelectedDataset(e.target.value)}
-            className=" rounded-md px-3 py-2 text-sky-50 bg-sky-900  "
-          >
-            <option value="both">Actual & Forecasted</option>
-            <option value="actual">Actual Only</option>
-            <option value="forecasted">Forecasted Only</option>
+            {availableYears.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
           </select>
           <select
             value={selectedView}
             onChange={(e) => setSelectedView(e.target.value)}
-            className=" rounded-md px-3 py-2 text-sky-50  bg-sky-900  "
+            className="rounded-md px-3 py-2 text-white bg-sky-900 outline-0"
           >
             <option value="trend">Trend View</option>
             <option value="breakdown">Breakdown View</option>
@@ -294,7 +327,7 @@ const RevenueComponent = () => {
           <CSVLink
             data={csvData}
             filename={`revenue-analytics-${selectedYear}.csv`}
-            className="flex items-center bg-sky-800 text-white px-4 py-2 rounded-md hover:bg-sky-600 transition"
+            className="flex items-center bg-sky-500 text-white px-4 py-2 rounded-md hover:bg-sky-600 transition"
           >
             <FaDownload className="mr-2" /> Export
           </CSVLink>
@@ -303,7 +336,7 @@ const RevenueComponent = () => {
 
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="p-4 bg-sky-50 rounded-lg border border-sky-100">
+        <div className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
           <h3 className="text-sm font-semibold text-sky-700 flex items-center">
             Total Revenue ({selectedYear})
             <span className="ml-1 text-sky-500" title="Sum of all revenue for the selected year">
@@ -312,7 +345,7 @@ const RevenueComponent = () => {
           </h3>
           <p className="text-2xl font-bold text-sky-900">${kpiMetrics.totalRevenue}</p>
         </div>
-        <div className="p-4 bg-sky-50 rounded-lg border border-sky-100">
+        <div className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
           <h3 className="text-sm font-semibold text-sky-700 flex items-center">
             Incremental Revenue (Last Month)
             <span className="ml-1 text-sky-500" title="Change from previous month">
@@ -321,7 +354,7 @@ const RevenueComponent = () => {
           </h3>
           <p className="text-2xl font-bold text-sky-900">${kpiMetrics.incrementalRevenue}</p>
         </div>
-        <div className="p-4 bg-sky-50 rounded-lg border border-sky-100">
+        <div className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
           <h3 className="text-sm font-semibold text-sky-700 flex items-center">
             Annual Growth Rate
             <span className="ml-1 text-sky-500" title="Percentage growth from start to end of year">
@@ -333,141 +366,124 @@ const RevenueComponent = () => {
       </div>
 
       {/* Chart and Table Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Left: Detailed Table */}
-        <div>
-          <h3 className="text-lg font-semibold text-sky-900 mb-2">
-            {selectedView === 'trend' ? 'Monthly Revenue Details' : 'Product Breakdown'}
-          </h3>
-          <div className="overflow-x-auto">
-            {selectedView === 'trend' ? (
-              <table className="min-w-full bg-white border border-sky-200">
-                <thead>
-                  <tr className="bg-sky-100">
-                    <th className="py-2 px-4 border-b text-left text-sm font-semibold text-sky-700">Month</th>
-                    <th className="py-2 px-4 border-b text-left text-sm font-semibold text-sky-700">Actual Revenue ($)</th>
-                    <th className="py-2 px-4 border-b text-left text-sm font-semibold text-sky-700">Forecasted Revenue ($)</th>
-                    <th className="py-2 px-4 border-b text-left text-sm font-semibold text-sky-700">Variance ($)</th>
-                    <th className="py-2 px-4 border-b text-left text-sm font-semibold text-sky-700">Variance (%)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {trendTableData.map((row, index) => (
-                    <React.Fragment key={index}>
-                      <tr
-                        className="hover:bg-sky-50 cursor-pointer"
-                        onClick={() => toggleRow(index)}
-                      >
-                        <td className="py-2 px-4 border-b text-sm text-sky-700 flex items-center">
-                          {expandedRows.includes(index) ? (
-                            <FaChevronDown className="mr-2" />
-                          ) : (
-                            <FaChevronRight className="mr-2" />
-                          )}
-                          {row.month}
-                        </td>
-                        <td className="py-2 px-4 border-b text-sm text-sky-700">${row.actual.toLocaleString()}</td>
-                        <td className="py-2 px-4 border-b text-sm text-sky-700">${row.forecasted.toLocaleString()}</td>
-                        <td className={`py-2 px-4 border-b text-sm ${row.variance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          ${Math.abs(row.variance).toLocaleString()} {row.variance >= 0 ? '▲' : '▼'}
-                        </td>
-                        <td className={`py-2 px-4 border-b text-sm ${row.variancePct >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {Math.abs(row.variancePct)}% {row.variancePct >= 0 ? '▲' : '▼'}
-                        </td>
-                      </tr>
-                      {expandedRows.includes(index) && (
-                        <tr>
-                          <td colSpan="5" className="py-2 px-4 bg-sky-50">
-                            <div className="pl-8">
-                              <h4 className="text-sm font-semibold text-sky-700 mb-2">Product Breakdown</h4>
-                              <table className="min-w-full bg-white border border-sky-200">
-                                <thead>
-                                  <tr className="bg-sky-100">
-                                    <th className="py-2 px-4 border-b text-left text-sm font-semibold text-sky-700">Product</th>
-                                    <th className="py-2 px-4 border-b text-left text-sm font-semibold text-sky-700">Contribution ($)</th>
-                                    <th className="py-2 px-4 border-b text-left text-sm font-semibold text-sky-700">Contribution (%)</th>
-                                    <th className="py-2 px-4 border-b text-left text-sm font-semibold text-sky-700">Quarterly Trend</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {row.detailData.map((detail, i) => (
-                                    <tr key={i}>
-                                      <td className="py-2 px-4 border-b text-sm text-sky-700">{detail.product}</td>
-                                      <td className="py-2 px-4 border-b text-sm text-sky-700">${detail.contribution.toLocaleString()}</td>
-                                      <td className="py-2 px-4 border-b text-sm text-sky-700">{detail.contributionPct}%</td>
-                                      <td className="py-2 px-4 border-b text-sm text-sky-700">
-                                        <div className="flex items-center h-full">
-                                          {[detail.q1, detail.q2, detail.q3, detail.q4].map((val, j) => (
-                                            <div
-                                              key={j}
-                                              className="mx-0.5 bg-sky-500 rounded-sm"
-                                              style={{
-                                                width: '20px',
-                                                height: `${(val / Math.max(detail.q1, detail.q2, detail.q3, detail.q4) * 50)}px`,
-                                                alignSelf: 'flex-end',
-                                              }}
-                                              title={`Q${j + 1}: $${val.toLocaleString()}`}
-                                            ></div>
-                                          ))}
-                                        </div>
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
+      <div className="flex gap-2 mb-6 ">
+        <div className="flex flex-col w-[70%] lg:flex-row gap-6">
+          <div className="flex-1">
+            <h3 className="text-xl font-semibold text-sky-900 mb-3">
+              {selectedView === 'trend' ? 'Monthly Revenue Details' : 'Category Breakdown'}
+            </h3>
+            <div className="overflow-x-auto">
+              {selectedView === 'trend' ? (
+                <table className="w-full bg-white border border-sky-200">
+                  <thead>
+                    <tr className="bg-sky-100">
+                      <th className="py-3 px-6 border-b text-left text-base font-semibold text-sky-700 min-w-[120px] whitespace-nowrap">Month</th>
+                      <th className="py-3 px-6 border-b text-right text-base font-semibold text-sky-700 min-w-[120px] whitespace-nowrap">Total Revenue ($)</th>
+                      <th className="py-3 px-6 border-b text-left text-base font-semibold text-sky-700 min-w-[120px] whitespace-nowrap">Details</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {trendTableData.map((row, index) => (
+                      <React.Fragment key={index}>
+                        <tr
+                          className="hover:bg-sky-50 cursor-pointer"
+                          onClick={() => toggleRow(index)}
+                        >
+                          <td className="py-3 px-6 border-b text-base text-sky-700 min-w-[120px] whitespace-nowrap flex items-center">
+                            {expandedRows.includes(index) ? (
+                              <FaChevronDown className="mr-2" />
+                            ) : (
+                              <FaChevronRight className="mr-2" />
+                            )}
+                            {row.month}
+                          </td>
+                          <td className="py-3 px-6 border-b text-base text-sky-700 min-w-[120px] whitespace-nowrap text-right">${row.total.toLocaleString()}</td>
+                          <td className="py-3 px-6 border-b text-base text-sky-700 min-w-[120px] whitespace-nowrap">
+                            <button 
+                              className="text-sky-600 hover:text-sky-800"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleRow(index);
+                              }}
+                            >
+                              View breakdown
+                            </button>
                           </td>
                         </tr>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <table className="min-w-full bg-white border border-sky-200">
-                <thead>
-                  <tr className="bg-sky-100">
-                    <th className="py-2 px-4 border-b text-left text-sm font-semibold text-sky-700">Product</th>
-                    <th className="py-2 px-4 border-b text-left text-sm font-semibold text-sky-700">Q1 ($)</th>
-                    <th className="py-2 px-4 border-b text-left text-sm font-semibold text-sky-700">Q2 ($)</th>
-                    <th className="py-2 px-4 border-b text-left text-sm font-semibold text-sky-700">Q3 ($)</th>
-                    <th className="py-2 px-4 border-b text-left text-sm font-semibold text-sky-700">Q4 ($)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {kpiMetrics.quarterlyBreakdown.map((product, index) => (
-                    <tr key={index} className="hover:bg-sky-50">
-                      <td className="py-2 px-4 border-b text-sm text-sky-700">{product.product}</td>
-                      <td className="py-2 px-4 border-b text-sm text-sky-700">${product.q1.toLocaleString()}</td>
-                      <td className="py-2 px-4 border-b text-sm text-sky-700">${product.q2.toLocaleString()}</td>
-                      <td className="py-2 px-4 border-b text-sm text-sky-700">${product.q3.toLocaleString()}</td>
-                      <td className="py-2 px-4 border-b text-sm text-sky-700">${product.q4.toLocaleString()}</td>
+                        {expandedRows.includes(index) && (
+                          <tr>
+                            <td colSpan="3" className="py-3 px-6 bg-sky-50">
+                              <div>
+                                <h4 className="text-base font-semibold text-sky-700 mb-2">Category Breakdown</h4>
+                                <table className="w-full bg-white border border-sky-200">
+                                  <thead>
+                                    <tr className="bg-sky-100">
+                                      <th className="py-3 px-6 border-b text-left text-base font-semibold text-sky-700 min-w-[120px] whitespace-nowrap">Category</th>
+                                      <th className="py-3 px-6 border-b text-right text-base font-semibold text-sky-700 min-w-[120px] whitespace-nowrap">Amount ($)</th>
+                                      <th className="py-3 px-6 border-b text-right text-base font-semibold text-sky-700 min-w-[120px] whitespace-nowrap">Contribution (%)</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {row.detailData.map((detail, i) => (
+                                      <tr key={i}>
+                                        <td className="py-3 px-6 border-b text-base text-sky-700 min-w-[120px] whitespace-nowrap">{detail.category}</td>
+                                        <td className="py-3 px-6 border-b text-base text-sky-700 min-w-[120px] whitespace-nowrap text-right">${detail.contribution.toLocaleString()}</td>
+                                        <td className="py-3 px-6 border-b text-base text-sky-700 min-w-[120px] whitespace-nowrap text-right">{detail.contributionPct}%</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <table className="w-full bg-white border border-sky-200">
+                  <thead>
+                    <tr className="bg-sky-100">
+                      <th className="py-3 px-6 border-b text-left text-base font-semibold text-sky-700 min-w-[120px] whitespace-nowrap">Category</th>
+                      <th className="py-3 px-6 border-b text-right text-base font-semibold text-sky-700 min-w-[120px] whitespace-nowrap">Q1 ($)</th>
+                      <th className="py-3 px-6 border-b text-right text-base font-semibold text-sky-700 min-w-[120px] whitespace-nowrap">Q2 ($)</th>
+                      <th className="py-3 px-6 border-b text-right text-base font-semibold text-sky-700 min-w-[120px] whitespace-nowrap">Q3 ($)</th>
+                      <th className="py-3 px-6 border-b text-right text-base font-semibold text-sky-700 min-w-[120px] whitespace-nowrap">Q4 ($)</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+                  </thead>
+                  <tbody>
+                    {kpiMetrics.quarterlyBreakdown.map((category, index) => (
+                      <tr key={index} className="hover:bg-sky-50">
+                        <td className="py-3 px-6 border-b text-base text-sky-700 min-w-[120px] whitespace-nowrap">{category.category}</td>
+                        <td className="py-3 px-6 border-b text-base text-sky-700 min-w-[120px] whitespace-nowrap text-right">${category.q1.toLocaleString()}</td>
+                        <td className="py-3 px-6 border-b text-base text-sky-700 min-w-[120px] whitespace-nowrap text-right">${category.q2.toLocaleString()}</td>
+                        <td className="py-3 px-6 border-b text-base text-sky-700 min-w-[120px] whitespace-nowrap text-right">${category.q3.toLocaleString()}</td>
+                        <td className="py-3 px-6 border-b text-base text-sky-700 min-w-[120px] whitespace-nowrap text-right">${category.q4.toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Right: Product Contribution and Chart */}
         <div className="flex flex-col gap-6">
-          {/* Product Contribution Breakdown */}
           <div>
-            <h3 className="text-lg font-semibold text-sky-900 mb-2">Product Contribution</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {kpiMetrics.productContributions.map((product, index) => (
-                <div key={index} className="p-3 bg-sky-50 rounded-lg border border-sky-200">
-                  <h4 className="text-sm font-medium text-sky-700">{product.product}</h4>
-                  <p className="text-lg font-bold text-sky-900">{product.contribution}%</p>
+            <h3 className="text-xl font-semibold text-sky-900 mb-3">Category Contribution</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {kpiMetrics.categoryContributions.map((category, index) => (
+                <div key={index} className="p-4 bg-sky-50 rounded-lg  border border-sky-200">
+                  <h4 className="text-base font-medium text-sky-700 ">{category.category}</h4>
+                  <p className="text-xl font-bold text-sky-900">{category.contribution}%</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Chart View */}
           <div className="bg-sky-50 p-4 rounded-lg border border-sky-200">
-            <div className="h-96">
+            <div className="h-64">
               {selectedView === 'trend' ? (
                 <Line data={getTrendChartData()} options={chartOptions} />
               ) : (
@@ -485,42 +501,34 @@ const RevenueComponent = () => {
               )}
             </div>
           </div>
+          <div className="p-4 bg-sky-50 rounded-lg border border-sky-200">
+            <h4 className="text-base font-semibold text-sky-900 mb-2 flex items-center">
+              <FaInfoCircle className="mr-2 text-sky-500" />
+              Revenue Insights
+            </h4>
+            <ul className="list-disc pl-5 text-sky-700 text-base space-y-1">
+              <li>
+                <strong className="text-sky-800">Highest Revenue Category:</strong>{' '}
+                {kpiMetrics.categoryContributions.reduce(
+                  (max, c) => parseFloat(c.contribution) > parseFloat(max.contribution) ? c : max,
+                  kpiMetrics.categoryContributions[0] || { category: 'N/A', contribution: '0' }
+                ).category} (
+                {kpiMetrics.categoryContributions.reduce(
+                  (max, c) => parseFloat(c.contribution) > parseFloat(max.contribution) ? c : max,
+                  kpiMetrics.categoryContributions[0] || { category: 'N/A', contribution: '0' }
+                ).contribution}% contribution)
+              </li>
+              <li>
+                <strong className="text-sky-800">Revenue Trend:</strong>{' '}
+                {parseFloat(kpiMetrics.growthRate) > 0 ? 'Increasing' : 'Decreasing'} revenue observed year-to-date
+              </li>
+              <li>
+                <strong className="text-sky-800">Average Monthly Revenue:</strong>{' '}
+                ${(revenueData.total_revenue / processedData.monthKeys.length).toLocaleString(undefined, {maximumFractionDigits: 0})}
+              </li>
+            </ul>
+          </div>
         </div>
-      </div>
-
-      {/* Insights Section */}
-      <div className="mt-6 p-4 bg-sky-50 rounded-lg border border-sky-200">
-        <h3 className="text-lg font-semibold text-sky-900 mb-2 flex items-center">
-          <FaInfoCircle className="mr-2 text-sky-500" />
-          Revenue Insights
-        </h3>
-        <ul className="list-disc pl-5 text-sky-700 space-y-1">
-          <li>
-            <strong className="text-sky-800">Top Performing Product:</strong>{' '}
-            {
-              kpiMetrics.productContributions.reduce(
-                (max, p) => (parseFloat(p.contribution) > parseFloat(max.contribution) ? p : max),
-                kpiMetrics.productContributions[0]
-              ).product
-            }{' '}
-            (
-            {
-              kpiMetrics.productContributions.reduce(
-                (max, p) => (parseFloat(p.contribution) > parseFloat(max.contribution) ? p : max),
-                kpiMetrics.productContributions[0]
-              ).contribution
-            }
-            % contribution)
-          </li>
-          <li>
-            <strong className="text-sky-800">Growth Trend:</strong>{' '}
-            {parseFloat(kpiMetrics.growthRate) > 0 ? 'Positive' : 'Negative'} growth observed year-to-date
-          </li>
-          <li>
-            <strong className="text-sky-800">Forecast Accuracy:</strong>{' '}
-            {trendTableData.filter(r => Math.abs(r.variancePct) < 5).length} out of 12 months within 5% forecast variance
-          </li>
-        </ul>
       </div>
     </motion.div>
   );

@@ -23,7 +23,7 @@ const LoginPage = () => {
       return;
     }
 
-    await login(email, password);
+    await login(email, password, rememberMe);
   };
 
   return (
@@ -59,7 +59,7 @@ const LoginPage = () => {
         className="relative right-15 z-10 w-full max-w-md bg-white bg-opacity-90 backdrop-blur-sm rounded-xl shadow-xl p-8"
       >
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-sky-900 mb-2">Welcome to FinSightAI</h1>
+          <h1 className="text-3xl font-bold text-sky-900 mb-2">Welcome to FPnAInsights</h1>
           <p className="text-sky-600">Sign in to your financial dashboard</p>
         </div>
 
@@ -158,18 +158,6 @@ const LoginPage = () => {
             </button>
           </div>
         </form>
-
-        {/* <div className="mt-6 text-center">
-          <p className="text-sm text-sky-600">
-            Don't have an account?{' '}
-            <Link 
-              to="/register-page" 
-              className="font-light text-blue-700 hover:text-blue-600"
-            >
-              Register
-            </Link>
-          </p>
-        </div> */}
       </motion.div>
     </div>
   );

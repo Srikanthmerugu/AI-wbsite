@@ -1,22 +1,16 @@
 // src/components/ProtectedRoute.js
-import React, { useContext } from 'react';
+import { useContext } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import Loader from './Loading/Loading';
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = () => {
   const { isAuthenticated, loading } = useContext(AuthContext);
-  
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen"><Loader /></div>;
+    return <div>Loading...</div>; // Or a proper loading spinner
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children ? children : <Outlet />;
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
 };
 
 export default ProtectedRoute;

@@ -62,7 +62,7 @@ const RegisterPage = () => {
       >
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-sky-900 mb-2">Register Your Company</h1>
-          <p className="text-sky-600">Join FinSightAI's financial network</p>
+          <p className="text-sky-600">Join FPnAInsights financial network</p>
         </div>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">

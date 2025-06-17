@@ -2,7 +2,7 @@
 import React, { useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
+import { FiLock, FiEye, FiEyeOff, FiArrowLeft } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { LoginBG, offRobo } from '../assets/Assets';
 import { toast } from 'react-toastify';
@@ -12,12 +12,18 @@ const ResetPasswordPage = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { resetPassword, loading } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (!newPassword || !confirmPassword) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       toast.error('Passwords do not match');
       return;
@@ -79,11 +85,12 @@ const ResetPasswordPage = () => {
                 id="new-password"
                 name="new-password"
                 type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
                 required
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="block w-full pl-10 pr-10 py-2.5 border border-sky-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent text-sky-800 placeholder-sky-400"
-                placeholder="New password"
+                placeholder="••••••••"
                 disabled={loading}
               />
               <button
@@ -112,14 +119,27 @@ const ResetPasswordPage = () => {
               <input
                 id="confirm-password"
                 name="confirm-password"
-                type={showPassword ? "text" : "password"}
+                type={showConfirmPassword ? "text" : "password"}
+                autoComplete="new-password"
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="block w-full pl-10 pr-10 py-2.5 border border-sky-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent text-sky-800 placeholder-sky-400"
-                placeholder="Confirm password"
+                placeholder="••••••••"
                 disabled={loading}
               />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                disabled={loading}
+              >
+                {showConfirmPassword ? (
+                  <FiEyeOff className="h-5 w-5 text-sky-400 hover:text-sky-600" />
+                ) : (
+                  <FiEye className="h-5 w-5 text-sky-400 hover:text-sky-600" />
+                )}
+              </button>
             </div>
           </div>
 
@@ -129,7 +149,17 @@ const ResetPasswordPage = () => {
               disabled={loading}
               className={`w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors duration-200 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              {loading ? 'Resetting password...' : 'Reset Password'}
+              {loading ? 'Resetting...' : 'Reset Password'}
+            </button>
+          </div>
+
+          <div className="text-center">
+            <button
+              onClick={() => navigate('/login')}
+              className="text-sm font-medium text-sky-600 hover:text-sky-500 flex items-center justify-center"
+            >
+              <FiArrowLeft className="mr-1" />
+              Back to login
             </button>
           </div>
         </form>
