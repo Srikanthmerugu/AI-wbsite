@@ -113,12 +113,19 @@ const MENUITEMS = [
       {
         title: "Budgeting",
         icon: { name: "FiGrid" },
-        path: "/operational-budgeting",
+        path: "/budgeting-hub",
         type: "sub",
         badge: "badge badge-light-secondary",
         badgetxt: "New",
         active: false,
         children: [ 
+          {
+            path: "/corporate-budget-guidelines",
+            type: "link",
+            title: "Corporate Budget Guidelines ",
+            icon: { name: "FiFile" },
+          },
+          
           {
             path: "/operational-budgeting",
             type: "link",
