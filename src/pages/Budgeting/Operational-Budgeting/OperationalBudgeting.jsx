@@ -1,227 +1,247 @@
-// src/pages/Budgeting/OperationalBudgeting/OperationalBudgeting.jsx
-import React, { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import {
-	Chart as ChartJS,
-	CategoryScale,
-	LinearScale,
-	BarElement,
-	PointElement,
-	LineElement,
-	ArcElement,
-    RadialLinearScale,
-	Title,
-	Tooltip,
-	Legend,
-	Filler,
+  Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend,
 } from "chart.js";
-import { Bar, Line, Doughnut, Pie, Radar, PolarArea, Bubble } from "react-chartjs-2";
-import { motion } from "framer-motion";
-import {
-	FiFilter,
-	FiDollarSign,
-	FiUsers,
-	FiDownload,
-	FiSend,
-	FiChevronDown,
-	FiChevronRight,
-	FiClipboard,
-	FiPercent,
-	FiActivity,
-} from "react-icons/fi";
-import { BsStars, BsThreeDotsVertical } from "react-icons/bs";
-import { Tooltip as ReactTooltip } from "react-tooltip";
+import { Bar, Pie } from "react-chartjs-2";
+import { FiSave, FiPrinter, FiEdit, FiLayers,FiChevronRight, FiAlertTriangle, FiCheckCircle, FiTrendingDown, FiLayout, FiBriefcase, FiTarget } from "react-icons/fi";
+import { BsStars } from 'react-icons/bs';
+import { Tooltip as ReactTooltip } from 'react-tooltip';
 
-// (ChartJS registration and other constants remain the same)
-ChartJS.register( CategoryScale, LinearScale, BarElement, PointElement, LineElement, ArcElement, RadialLinearScale, Title, Tooltip, Legend, Filler );
-const useOutsideClick = (callback) => { const ref = useRef(); useEffect(() => { const handleClick = (event) => { if (ref.current && !ref.current.contains(event.target)) { callback(); } }; document.addEventListener("mousedown", handleClick); return () => document.removeEventListener("mousedown", handleClick); }, [callback]); return ref; };
-const cardVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { staggerChildren: 0.05 } }, };
-const kpiData = [ { id: "totalBudget", title: "Total Operational Budget", value: 12500000, change: "+5.2%", isPositive: false, icon: <FiDollarSign size={16}/>, componentPath: "#" }, { id: "variance", title: "Variance to Target", value: -225000, change: "1.8% Under", isPositive: true, icon: <FiPercent size={16}/>, componentPath: "#" }, { id: "deptBudgeted", title: "Departments Budgeted", value: "7 / 7", change: "100% Submitted", isPositive: true, icon: <FiUsers size={16}/>, componentPath: "#" }, { id: "aiOptimization", title: "AI Cost Optimization", value: 320000, change: "Identified Savings", isPositive: true, icon: <BsStars size={16}/>, componentPath: "#" }, ];
-const charts = { opexByDepartment: { title: "Opex by Department", componentPath: "/department-budgeting", data: { labels: ["Marketing", "Sales", "IT", "HR", "R&D", "Finance", "Operations"], datasets: [{ data: [25, 30, 18, 12, 20, 8, 12], backgroundColor: ["#3B82F6", "#10B981", "#F59E0B", "#8B5CF6", "#EF4444", "#0EA5E9", "#EC4899"], borderColor: "#fff", borderWidth: 2 }], }, options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: "right", labels: {font: {size: 10}, boxWidth: 12} } }}, defaultType: "doughnut", }, opexByCategory: { title: "Opex by Expense Category", componentPath: "/fixed-variable-expense", data: { labels: ["Salaries & Wages", "Software", "Marketing Spend", "Travel", "Office", "Consulting"], datasets: [{ label: "Amount ($)", data: [5500000, 1500000, 2200000, 800000, 600000, 1900000], backgroundColor: "rgba(16, 185, 129, 0.7)", borderColor: "rgba(16, 185, 129, 1)", borderWidth: 1 }], }, options: { maintainAspectRatio: false, responsive: true, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { ticks: { callback: value => `$${(value/1000000)}M` } } }}, defaultType: "bar", }, budgetVsActualTrend: { title: "Budget vs. Actual Trend (YTD, in Thousands)", componentPath: "/budget-vs-actuals", data: { labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"], datasets: [ { label: "Budgeted Opex", data: [1000, 1020, 1050, 1030, 1100, 1080, 1120, 1150], borderColor: "#3B82F6", backgroundColor: "rgba(59, 130, 246, 0.1)", fill: true, tension: 0.4 }, { label: "Actual Opex", data: [980, 1010, 1070, 1015, 1080, 1050, 1110, 1130], borderColor: "#10B981", backgroundColor: "rgba(16, 185, 129, 0.1)", fill: true, tension: 0.4 }, ], }, options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { y: { ticks: { callback: value => `$${value}k` } } }}, defaultType: "line" } };
-const navigationItems = [ { title: "Department-Level Budgeting", description: "Drill down into budgets for Marketing, Sales, IT, HR, R&D, etc. Assign owners and track individual department plans.", icon: <FiUsers className="text-3xl text-blue-500" />, path: "/department-budgeting", bgColor: "bg-blue-50", hoverColor: "hover:bg-blue-100" }, { title: "Fixed vs. Variable Expenses", description: "Categorize and plan for recurring vs. project-based expenses. Analyze cost behavior and flexibility.", icon: <FiClipboard className="text-3xl text-green-500" />, path: "/fixed-variable-expense", bgColor: "bg-green-50", hoverColor: "hover:bg-green-100" }, { title: "AI Cost Optimization", description: "Leverage AI to identify areas for reducing spend without impacting operations. Get actionable suggestions.", icon: <BsStars className="text-3xl text-purple-500" />, path: "/ai-cost-optimization", bgColor: "bg-purple-50", hoverColor: "hover:bg-purple-100" }, { title: "Budget vs. Actuals Tracking", description: "Monitor spending against budget in real-time. Automated variance analysis and spending control alerts.", icon: <FiActivity className="text-3xl text-yellow-500" />, path: "/budget-vs-actuals", bgColor: "bg-yellow-50", hoverColor: "hover:bg-yellow-100" }, ];
+// Register ChartJS components
+ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
+// --- MOCK DATA ---
+const CURRENT_YEAR = 2025;
+const DEPARTMENTS = ["Marketing", "R&D", "Sales", "HR", "IT"];
 
-// REFACTORED: EnhancedChartCard is now self-contained
-const EnhancedChartCard = ({ title, componentPath, chartType, chartData, widgetId, onChartTypeChange }) => {
-    const navigate = useNavigate();
-
-    // State is now local to each card instance
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [isChartTypeMenuOpen, setIsChartTypeMenuOpen] = useState(false);
-    const [isAiDropdownOpen, setIsAiDropdownOpen] = useState(false);
-    const [localAiInput, setLocalAiInput] = useState("");
-
-    const dropdownRef = useOutsideClick(() => setIsDropdownOpen(false));
-    const aiDropdownRef = useOutsideClick(() => setIsAiDropdownOpen(false));
-
-    const handleSendAIQuery = () => {
-        if (localAiInput.trim()) {
-            console.log(`AI Query for ${widgetId}:`, localAiInput);
-            setLocalAiInput("");
-            setIsAiDropdownOpen(false);
-        }
-    };
-
-    const renderChart = (type, data, options = {}) => {
-        // This helper function could also be defined outside if preferred
-		switch (type) {
-			case "line": return <Line data={data} options={options} />;
-			case "bar": return <Bar data={data} options={options} />;
-			case "pie": return <Pie data={data} options={options} />;
-			case "doughnut": return <Doughnut data={data} options={options} />;
-			case "radar": return <Radar data={data} options={options} />;
-			case "polarArea": return <PolarArea data={data} options={options} />;
-			case "bubble": return <Bubble data={data} options={options} />;
-			default: return <Line data={data} options={options} />;
-		}
-	};
-    
-    return (
-        <motion.div variants={cardVariants} className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-sky-100 h-full flex flex-col">
-            <div className="flex justify-between items-center mb-2">
-                <h3 className="text-sm font-semibold text-sky-800">{title}</h3>
-                <div className="flex space-x-2 relative">
-                    <div className="relative" ref={dropdownRef}>
-                        <button onClick={() => setIsDropdownOpen(p => !p)} className="p-1 rounded hover:bg-gray-100" data-tooltip-id="chart-options-tooltip" data-tooltip-content="Options"><BsThreeDotsVertical /></button>
-                        {isDropdownOpen && (
-                            <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-20 border border-gray-200">
-                                <div className="py-1 text-xs text-gray-800">
-                                    <div className="relative" onMouseEnter={() => setIsChartTypeMenuOpen(true)} onMouseLeave={() => setIsChartTypeMenuOpen(false)}>
-                                        <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex justify-between items-center">
-                                            All Chart Types <FiChevronDown className="ml-1 text-xs" />
-                                        </div>
-                                        {isChartTypeMenuOpen && (
-                                            <div className="absolute top-0 left-full w-40 bg-white rounded-md shadow-lg border border-gray-200 z-30 py-1" style={{ marginLeft: "-20px" }}>
-                                                {["line", "bar", "pie", "doughnut", "radar", "polarArea", "bubble"].map((type) => (
-                                                    <button key={type} onClick={() => { onChartTypeChange(widgetId, type); setIsDropdownOpen(false); }} className="block w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-100 transition">
-                                                        {type.charAt(0).toUpperCase() + type.slice(1)} Chart
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={() => { navigate(componentPath); setIsDropdownOpen(false); }}>Analyze</div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="relative" ref={aiDropdownRef}>
-                        <button onClick={() => setIsAiDropdownOpen(p => !p)} className="p-1 rounded hover:bg-gray-100" data-tooltip-id="ai-tooltip" data-tooltip-content="Ask AI"><BsStars /></button>
-                        {isAiDropdownOpen && (
-                            <div className="absolute right-0 top-full mt-2 w-full sm:w-64 bg-white rounded-md shadow-lg z-20 border border-gray-200 py-2 px-2">
-                                <h1 className="text-xs text-center mb-1">Ask regarding {title}</h1>
-                                <div className="flex justify-between gap-3 w-full">
-                                    <input type="text" value={localAiInput} onChange={(e) => setLocalAiInput(e.target.value)} placeholder="Ask AI..." className="w-full p-1 border border-gray-300 rounded text-xs" />
-                                    <button onClick={handleSendAIQuery} className="p-2 bg-sky-500 text-white rounded hover:bg-sky-600" disabled={!localAiInput.trim()}><FiSend /></button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-            <div className="flex-grow h-64">{renderChart(chartType, chartData.data, chartData.options)}</div>
-        </motion.div>
-    );
+const budgetData = {
+  Marketing: [
+    { id: 1, category: "Salaries & Wages", type: "Fixed", budget: 750000, actual: 755000, aiBaseline: 740000, aiInsight: "Slightly over budget due to mid-year salary adjustment. Consider for next cycle." },
+    { id: 2, category: "Paid Advertising", type: "Variable", budget: 500000, actual: 450000, aiBaseline: 480000, aiInsight: "Under budget. AI suggests reallocating the remaining $50k to Q4 campaigns for higher ROI." },
+    { id: 3, category: "Software/Subscriptions", type: "Fixed", budget: 120000, actual: 120000, aiBaseline: 125000, aiInsight: "AI identified a 5% cost-saving opportunity by switching to annual billing for 'Martech Tool X'." },
+    { id: 4, category: "Events & Conferences", type: "Variable", budget: 80000, actual: 95000, aiBaseline: 80000, aiInsight: "Overspend driven by higher-than-expected travel costs for 'Global Summit 2025'." },
+  ],
+  "R&D": [
+    { id: 5, category: "Salaries & Wages", type: "Fixed", budget: 1200000, actual: 1180000, aiBaseline: 1200000, aiInsight: "Under budget due to a delayed new hire start date." },
+    { id: 6, category: "Cloud Infrastructure", type: "Variable", budget: 600000, actual: 650000, aiBaseline: 610000, aiInsight: "Usage is 8% higher than projected. AI recommends exploring reserved instances for 15% savings." },
+    { id: 7, category: "Prototyping & Materials", type: "Variable", budget: 50000, actual: 45000, aiBaseline: 50000, aiInsight: "On track. No optimization needed." },
+  ],
+  Sales: [
+    { id: 8, category: "Salaries & Commissions", type: "Variable", budget: 950000, actual: 980000, aiBaseline: 950000, aiInsight: "Higher commission payout due to exceeding revenue targets by 5%." },
+    { id: 9, category: "Travel & Entertainment (T&E)", type: "Variable", budget: 150000, actual: 180000, aiBaseline: 160000, aiInsight: "T&E is 20% over budget. AI suggests reviewing the current travel policy." },
+  ],
+  HR: [
+    { id: 10, category: "Salaries & Wages", type: "Fixed", budget: 300000, actual: 300000, aiBaseline: 300000, aiInsight: "Budget is on track." },
+    { id: 11, category: "Recruitment Fees", type: "Variable", budget: 75000, actual: 60000, aiBaseline: 70000, aiInsight: "Lower fees due to successful employee referral program." },
+  ],
+  IT: [
+    { id: 12, category: "Salaries & Wages", type: "Fixed", budget: 450000, actual: 450000, aiBaseline: 450000, aiInsight: "Budget is on track." },
+    { id: 13, category: "Hardware & Equipment", type: "Variable", budget: 100000, actual: 110000, aiBaseline: 100000, aiInsight: "Overspend due to unplanned laptop replacements." },
+    { id: 14, category: "Enterprise Software", type: "Fixed", budget: 250000, actual: 250000, aiBaseline: 265000, aiInsight: "AI identified redundant licenses in 'Global CRM', suggesting a potential $15k annual saving." },
+  ],
 };
 
+// Reusable KPICard component
+const KPICard = ({ title, value, change, icon, tooltip, isPositive = true, aiNote }) => (
+    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 transition-all hover:shadow-md">
+      <div className="flex justify-between items-start">
+        <div className="flex items-center">
+          <div className="p-2 bg-sky-100 text-sky-600 rounded-full mr-3">{icon}</div>
+          <div>
+            <p className="text-sm font-semibold text-sky-800">{title}</p>
+            <p className="text-2xl font-bold text-gray-900">{value}</p>
+          </div>
+        </div>
+        {tooltip && <FiInfo className="text-gray-400" data-tooltip-id="info-tooltip" data-tooltip-content={tooltip} />}
+      </div>
+      {change && <p className={`text-xs mt-2 font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>{change}</p>}
+      {aiNote && (
+        <div className="mt-2 p-2 bg-blue-50 rounded text-xs text-blue-800 flex items-start">
+          <BsStars className="mr-1 mt-0.5 flex-shrink-0" />
+          <span>{aiNote}</span>
+        </div>
+      )}
+    </div>
+);
 
 const OperationalBudgeting = () => {
-    const navigate = useNavigate();
-	const [filters, setFilters] = useState({ budgetPeriod: "Annual Budget 2024", scenario: "Base Scenario", view: "Consolidated" });
-	const [showFilters, setShowFilters] = useState(false);
-	const filtersRef = useOutsideClick(() => setShowFilters(false));
+  const [activeDepartment, setActiveDepartment] = useState("Marketing");
+  const [data, setData] = useState(budgetData);
+  const [scenario, setScenario] = useState('Base Case');
+  const [version, setVersion] = useState(`FY${CURRENT_YEAR} Budget v1.2 - Approved`);
 
-    // Parent state now only tracks the chosen chart type, not the UI state
-    const [chartTypes, setChartTypes] = useState({
-        opexByDepartment: 'doughnut',
-        opexByCategory: 'bar',
-        budgetVsActualTrend: 'line',
+  const departmentTotals = useMemo(() => {
+    const totals = {};
+    Object.keys(data).forEach(dept => {
+      totals[dept] = data[dept].reduce((acc, item) => {
+        acc.budget += item.budget;
+        acc.actual += item.actual;
+        return acc;
+      }, { budget: 0, actual: 0 });
+      totals[dept].variance = totals[dept].budget - totals[dept].actual;
     });
-	
-    // This function is passed down to the child to update the parent's state
-    const toggleChartType = (widgetId, type) => {
-		setChartTypes((prev) => ({
-			...prev,
-			[widgetId]: type,
-		}));
-	};
+    return totals;
+  }, [data]);
 
-    // The KPICard already managed its own state correctly, so it remains unchanged.
-    const KPICard = ({ title, value, change, isPositive, icon, componentPath }) => {
-		const [showAIDropdown, setShowAIDropdown] = useState(false);
-		const [localAIInput, setLocalAIInput] = useState("");
-		const dropdownRef = useRef(null);
-		useEffect(() => { const handleClickOutside = (event) => { if (dropdownRef.current && !dropdownRef.current.contains(event.target)) { setShowAIDropdown(false); } }; document.addEventListener("mousedown", handleClickOutside); return () => { document.removeEventListener("mousedown", handleClickOutside); }; }, []);
-		const handleSendAIQuery = () => { if (localAIInput.trim()) { console.log(`AI Query for ${title}:`, localAIInput); setLocalAIInput(""); setShowAIDropdown(false); } };
-        const needsDollarSign = ["Total Operational Budget", "Variance to Target", "AI Cost Optimization"].includes(title);
-		return (
-			<motion.div variants={cardVariants} initial="hidden" animate="visible" whileHover={{ y: -3 }} className="bg-white p-3 rounded-lg shadow-sm border border-sky-100 relative cursor-pointer" onClick={() => navigate(componentPath)}>
-				<div className="flex justify-between items-start">
-					<div>
-						<div className="flex items-center justify-between">
-							<p className="text-[10px] font-semibold text-sky-600 uppercase tracking-wider truncate">{title}</p>
-							<button onClick={(e) => { e.stopPropagation(); setShowAIDropdown(!showAIDropdown); }} className="p-1 rounded hover:bg-gray-100" data-tooltip-id="ai-tooltip" data-tooltip-content="Ask AI"><BsStars /></button>
-							{showAIDropdown && ( <div ref={dropdownRef} className="absolute right-0 top-5 mt-2 w-full sm:w-44 bg-white rounded-md shadow-lg z-10 border border-gray-200 p-2" onClick={(e) => e.stopPropagation()}> <div className="flex items-center space-x-2"> <input type="text" value={localAIInput} onChange={(e) => setLocalAIInput(e.target.value)} placeholder="Ask AI..." className="w-full p-1 border border-gray-300 rounded text-xs" onClick={(e) => e.stopPropagation()} /> <button onClick={handleSendAIQuery} className="p-1 bg-sky-500 text-white rounded hover:bg-sky-600" disabled={!localAIInput.trim()}><FiSend /></button> </div> </div> )}
-						</div>
-						<p className="text-sm font-bold text-sky-900 mt-1">{needsDollarSign && "$"}{typeof value === "number" ? value.toLocaleString() : value}</p>
-						<div className={`flex items-center mt-2 ${ isPositive ? "text-green-500" : "text-red-500" }`}><span className="text-[10px] font-medium">{change} {isPositive ? "↑" : "↓"} vs LY</span></div>
-					</div>
-					<div className="p-2 rounded-full bg-sky-100 hover:bg-sky-200 transition-colors duration-200"><div className="text-sky-600 hover:text-sky-800 transition-colors duration-200">{icon}</div></div>
-				</div>
-			</motion.div>
-		);
-	};
+  const activeDeptData = data[activeDepartment] || [];
+  const activeDeptTotals = departmentTotals[activeDepartment] || { budget: 0, actual: 0, variance: 0 };
+  const totalBudgeted = Object.values(departmentTotals).reduce((sum, dept) => sum + dept.budget, 0);
 
-	return (
-		<div className="space-y-6 p-4 md:p-6 min-h-screen relative bg-sky-50">
-			<motion.div initial="hidden" animate="visible" variants={cardVariants}>
-				{/* Header Section */}
-				<div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-md">
-					<div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-						<div><h1 className="text-xl font-bold text-white">Operational Budgeting Dashboard</h1><p className="text-sky-100 text-sm mt-1">Explore and monitor the key components of core business expense planning.</p></div>
-						<div className="flex space-x-2 mt-3 md:mt-0">
-							<button onClick={() => setShowFilters((p) => !p)} className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors"><FiFilter className="mr-1.5" /> Filters</button>
-							<button onClick={() => window.print()} className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors"><FiDownload className="mr-1.5" /> Export View</button>
-						</div>
-					</div>
-				</div>
+  const handleBudgetChange = (id, value) => {
+    setData(prevData => {
+      const newData = { ...prevData };
+      const departmentData = newData[activeDepartment].map(item =>
+        item.id === id ? { ...item, budget: parseFloat(value) || 0 } : item
+      );
+      newData[activeDepartment] = departmentData;
+      return newData;
+    });
+  };
 
-				{/* Filters Dropdown */}
-				{showFilters && ( <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-4 rounded-lg shadow-md mt-4 border border-gray-200" ref={filtersRef}> <div className="grid grid-cols-1 md:grid-cols-3 gap-4"> {["Budget Period", "Scenario", "View"].map((filter) => (<div key={filter}><label className="block text-sm font-medium text-gray-700 mb-1">{filter}</label><select className="w-full p-2 border border-gray-300 rounded-md text-sm"><option>Default</option></select></div>))} </div> <div className="mt-4 text-right"><button onClick={() => setShowFilters(false)} className="px-4 py-2 text-sm bg-sky-600 text-white rounded-md hover:bg-sky-700">Apply</button></div> </motion.div> )}
+  const formatCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(value);
 
-				{/* Navigation to Sub-Modules */}
-				<div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mt-6">
-					<h3 className="text-lg font-semibold text-sky-800 mb-4">Dive Deeper into Operational Budgeting</h3>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						{navigationItems.map((item, index) => ( <Link to={item.path} key={index}> <motion.div variants={cardVariants} whileHover={{ scale: 1.0, boxShadow: "0px 5px 15px rgba(0,74,128,0.1)" }} className={`p-4 rounded-lg  ${item.bgColor} ${item.hoverColor} transition-all duration-100 flex items-start space-x-4 h-full`}> <div className="flex-shrink-0 mt-1">{item.icon}</div> <div><h4 className="font-semibold text-gray-800">{item.title}</h4><p className="text-xs text-gray-600 mt-1">{item.description}</p></div> <FiChevronRight className="ml-auto text-gray-400 self-center text-lg" /> </motion.div> </Link> ))}
-					</div>
-				</div>
+  const pieChartData = {
+    labels: Object.keys(departmentTotals),
+    datasets: [{
+      label: 'Budget by Department',
+      data: Object.values(departmentTotals).map(d => d.budget),
+      backgroundColor: ['#0ea5e9', '#14b8a6', '#f97316', '#8b5cf6', '#ef4444'],
+      hoverOffset: 4
+    }],
+  };
+  
+  const barChartData = {
+    labels: activeDeptData.map(item => item.category),
+    datasets: [
+        { label: 'Budget', data: activeDeptData.map(item => item.budget), backgroundColor: 'rgba(59, 130, 246, 0.7)' },
+        { label: 'Actual', data: activeDeptData.map(item => item.actual), backgroundColor: 'rgba(239, 68, 68, 0.7)' }
+    ],
+  };
 
-				{/* KPI Cards Section */}
-				<motion.div variants={cardVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
-					{kpiData.map((kpi) => <KPICard key={kpi.id} {...kpi} />)}
-				</motion.div>
+  const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } };
 
-				{/* Chart Section */}
-				<motion.div variants={cardVariants} className="grid grid-cols-1 lg:grid-cols-5 gap-6 mt-6">
-					<div className="lg:col-span-2">
-                        <EnhancedChartCard title={charts.opexByDepartment.title} chartType={chartTypes.opexByDepartment} chartData={charts.opexByDepartment} widgetId="opexByDepartment" componentPath={charts.opexByDepartment.componentPath} onChartTypeChange={toggleChartType} />
-                    </div>
-					<div className="lg:col-span-3">
-                        <EnhancedChartCard title={charts.opexByCategory.title} chartType={chartTypes.opexByCategory} chartData={charts.opexByCategory} widgetId="opexByCategory" componentPath={charts.opexByCategory.componentPath} onChartTypeChange={toggleChartType} />
-                    </div>
-				</motion.div>
-				<motion.div variants={cardVariants} className="mt-6">
-                    <EnhancedChartCard title={charts.budgetVsActualTrend.title} chartType={chartTypes.budgetVsActualTrend} chartData={charts.budgetVsActualTrend} widgetId="budgetVsActualTrend" componentPath={charts.budgetVsActualTrend.componentPath} onChartTypeChange={toggleChartType} />
-                </motion.div>
-			</motion.div>
-            
-			{/* Tooltips */}
-			<ReactTooltip id="ai-tooltip" place="top" effect="solid" />
-			<ReactTooltip id="chart-options-tooltip" place="top" effect="solid" />
-		</div>
-	);
+  return (
+    <div className="space-y-6 p-4 md:p-6 min-h-screen relative bg-sky-50">
+		<nav className="flex mb-4" aria-label="Breadcrumb">
+							<ol className="inline-flex items-center space-x-1 md:space-x-2">
+								<li><Link to="/budgeting-hub" className="text-sm font-medium text-gray-700 hover:text-blue-600">Budgeting Hub</Link></li>
+								<li><div className="flex items-center"><FiChevronRight className="w-3 h-3 text-gray-400 mx-1" /><span className="text-sm font-medium text-gray-500">Operational Budgeting</span></div></li>
+							</ol>
+						</nav>
+      <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-md flex flex-wrap justify-between items-center gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-white">Operational Budgeting</h1>
+          <p className="text-sky-100 text-sm mt-1">Plan, track, and optimize core business expenses across all departments.</p>
+        </div>
+        <div className="flex items-center gap-4 text-sm text-white">
+            <div>
+              <label className="font-medium mr-2">Scenario:</label>
+              <select value={scenario} onChange={e => setScenario(e.target.value)} className="p-1 border bg-white/20 border-white/30 rounded text-white focus:ring-1 focus:ring-sky-300">
+                <option className="text-black">Base Case</option>
+                <option className="text-black">Growth</option>
+                <option className="text-black">Conservative</option>
+              </select>
+            </div>
+             <div className="hidden sm:block text-white/50">|</div>
+             <div className="text-sky-100">
+                <span className="font-medium">Version:</span> {version}
+            </div>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <KPICard title="Total Operational Budget" value={formatCurrency(totalBudgeted)} icon={<FiLayout />} />
+        <KPICard title={`${activeDepartment} Budget`} value={formatCurrency(activeDeptTotals.budget)} change={`Actual: ${formatCurrency(activeDeptTotals.actual)}`} icon={<FiBriefcase />} />
+        <KPICard title={`${activeDepartment} Variance`} value={formatCurrency(activeDeptTotals.variance)} isPositive={activeDeptTotals.variance >= 0} change={`${(activeDeptTotals.variance / activeDeptTotals.budget * 100).toFixed(1)}%`} icon={<FiTarget />} aiNote="Positive variance indicates underspend (savings)." />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-3 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <h2 className="text-lg font-semibold text-sky-900 mb-3">Department Budget vs. Actual ({activeDepartment})</h2>
+          <div className="h-80"><Bar data={barChartData} options={chartOptions}/></div>
+        </div>
+        <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <h2 className="text-lg font-semibold text-sky-900 mb-3">Total Budget by Department</h2>
+          <div className="h-80"><Pie data={pieChartData} options={{...chartOptions, plugins: { legend: { position: 'right'}}}}/></div>
+        </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <div className="flex flex-wrap gap-4 justify-between items-center mb-4">
+            <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
+                {DEPARTMENTS.map(dept => (
+                    <button key={dept} onClick={() => setActiveDepartment(dept)} className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${activeDepartment === dept ? 'bg-white text-sky-800 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}>{dept}</button>
+                ))}
+            </div>
+            <div className="flex items-center gap-2">
+                <button className="px-4 py-2 bg-sky-600 text-white text-sm rounded-lg hover:bg-sky-700 flex items-center"><FiSave className="mr-2" /> Save Changes</button>
+                <button className="px-4 py-2 bg-gray-200 text-gray-800 text-sm rounded-lg hover:bg-gray-300 flex items-center"><FiPrinter className="mr-2" /> Print View</button>
+            </div>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-left text-xs text-gray-500 uppercase bg-gray-50">
+              <tr>
+                <th className="p-3">Expense Category</th>
+                <th className="p-3 text-center">Type (Fixed/Variable)</th>
+                <th className="p-3 text-right">AI Baseline</th>
+                <th className="p-3 text-right">Budget</th>
+                <th className="p-3 text-right">Actual</th>
+                <th className="p-3 text-right">Variance</th>
+                <th className="p-3 text-center">Status</th>
+                <th className="p-3">AI Cost Optimization Suggestion</th>
+              </tr>
+            </thead>
+            <tbody>
+              {activeDeptData.map(item => {
+                const variance = item.budget - item.actual;
+                const variancePercent = item.budget > 0 ? (variance / item.budget) * 100 : 0;
+                const isOverBudget = variance < 0;
+                
+                return (
+                  <tr key={item.id} className="border-b border-gray-100 hover:bg-sky-50">
+                    <td className="p-3 font-medium text-gray-800">{item.category}</td>
+                    <td className="p-3 text-center">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${item.type === 'Fixed' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>{item.type}</span>
+                    </td>
+                    <td className="p-3 text-right text-gray-500 font-mono">{formatCurrency(item.aiBaseline)}</td>
+                    <td className="p-3 text-right">
+                        <input type="number" value={item.budget} onChange={(e) => handleBudgetChange(item.id, e.target.value)} className="w-28 p-1 text-right bg-transparent border border-gray-300 rounded focus:ring-1 focus:ring-sky-500"/>
+                    </td>
+                    <td className="p-3 text-right font-mono">{formatCurrency(item.actual)}</td>
+                    <td className={`p-3 text-right font-mono font-semibold ${isOverBudget ? 'text-red-600' : 'text-green-600'}`}>
+                        {formatCurrency(variance)} ({variancePercent.toFixed(1)}%)
+                    </td>
+                    <td className="p-3 text-center">
+                        {isOverBudget ? <FiAlertTriangle className="mx-auto text-red-500" data-tooltip-id="info-tooltip" data-tooltip-content="Over Budget" /> : <FiCheckCircle className="mx-auto text-green-500" data-tooltip-id="info-tooltip" data-tooltip-content="On/Under Budget" />}
+                    </td>
+                    <td className="p-3 text-xs text-blue-800">
+                        <div className="flex items-start">
+                            <BsStars className="mr-2 mt-0.5 flex-shrink-0" />
+                            <span>{item.aiInsight}</span>
+                        </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+            <tfoot className="font-bold text-gray-900 bg-gray-50">
+                <tr className="border-t-2 border-gray-300">
+                    <td className="p-3" colSpan="3">Total {activeDepartment}</td>
+                    <td className="p-3 text-right font-mono">{formatCurrency(activeDeptTotals.budget)}</td>
+                    <td className="p-3 text-right font-mono">{formatCurrency(activeDeptTotals.actual)}</td>
+                    <td className={`p-3 text-right font-mono ${activeDeptTotals.variance < 0 ? 'text-red-600' : 'text-green-600'}`}>{formatCurrency(activeDeptTotals.variance)}</td>
+                    <td colSpan="2"></td>
+                </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      <ReactTooltip id="info-tooltip" className="max-w-xs text-xs z-50" />
+    </div>
+  );
 };
 
 export default OperationalBudgeting;

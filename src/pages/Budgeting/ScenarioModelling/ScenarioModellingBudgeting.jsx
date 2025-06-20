@@ -1,196 +1,231 @@
-// src/pages/Budgeting/ScenarioModeling/ScenarioModeling.jsx
-import React, { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import {
-	Chart as ChartJS,
-	CategoryScale,
-	LinearScale,
-	BarElement,
-	PointElement,
-	LineElement,
-	ArcElement,
-    RadialLinearScale,
-	Title,
-	Tooltip,
-	Legend,
-	Filler,
+  Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend,
 } from "chart.js";
-import { Bar, Line, Doughnut, Pie, Radar, PolarArea, Bubble } from "react-chartjs-2";
-import { motion } from "framer-motion";
-import {
-	FiFilter,
-	FiDownload,
-	FiSend,
-	FiChevronDown,
-	FiChevronRight,
-    FiTrendingUp,
-    FiScissors,
-    FiShuffle,
-    FiGlobe,
-    FiGitBranch,
-    FiArrowUpCircle,
-    FiArrowDownCircle,
-    FiSliders
-} from "react-icons/fi";
-import { BsStars, BsThreeDotsVertical } from "react-icons/bs";
-import { Tooltip as ReactTooltip } from "react-tooltip";
+import { Bar } from "react-chartjs-2";
+import { FiSave, FiPrinter, FiPlayCircle, FiZap,FiChevronRight, FiSliders, FiDollarSign, FiTrendingUp, FiBriefcase, FiBarChart2 } from "react-icons/fi";
+import { BsStars } from 'react-icons/bs';
 
-ChartJS.register( CategoryScale, LinearScale, BarElement, PointElement, LineElement, ArcElement, RadialLinearScale, Title, Tooltip, Legend, Filler );
-const useOutsideClick = (callback) => { const ref = useRef(); useEffect(() => { const handleClick = (event) => { if (ref.current && !ref.current.contains(event.target)) { callback(); } }; document.addEventListener("mousedown", handleClick); return () => document.removeEventListener("mousedown", handleClick); }, [callback]); return ref; };
-const cardVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { staggerChildren: 0.05 } }, };
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-// Data tailored for Scenario Modeling & What-If Analysis
-const kpiData = [
-    { id: "activeScenarios", title: "Active Scenarios", value: 5, change: "3 New this week", isPositive: true, icon: <FiGitBranch size={16}/>, componentPath: "#" },
-    { id: "bestCaseProfit", title: "Best Case Profit Impact", value: 2500000, change: "vs. Base Budget", isPositive: true, icon: <FiArrowUpCircle size={16}/>, componentPath: "#" },
-    { id: "worstCaseProfit", title: "Worst Case Profit Impact", value: -1200000, change: "vs. Base Budget", isPositive: false, icon: <FiArrowDownCircle size={16}/>, componentPath: "#" },
-    { id: "keyVariable", title: "Key Variable Tested", value: "Revenue Growth: +/- 10%", change: "Across 3 scenarios", isPositive: true, icon: <FiSliders size={16}/>, componentPath: "#" },
-];
+// --- BASELINE DATA ---
+const BASELINE_BUDGET = {
+  revenue: 25000000,
+  cogs: 8750000, // 35% of revenue
+  marketing: 3000000, // 12% of revenue
+  sales: 2500000, // 10% of revenue
+  rd: 3750000, // 15% of revenue
+  ga: 1250000, // 5% of revenue
+};
 
-const charts = {
-    profitImpact: {
-        title: "Projected Profit Impact of Scenarios",
-        componentPath: "#",
-        data: {
-            labels: ["Base Budget", "High Growth Scenario", "Cost-Cut Scenario", "Recession Scenario"],
-            datasets: [ { label: "Projected Profit", data: [12.5, 15.0, 13.5, 11.3], backgroundColor: ["#3B82F6", "#10B981", "#8B5CF6", "#EF4444"] } ],
-        },
-        options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { display: false } }, scales: { y: { title: {display: true, text: 'Profit ($M)'}}}},
-        defaultType: "bar",
-    },
-    investmentTradeoff: {
-        title: "Investment Trade-Off: Product vs. Sales",
-        componentPath: "#",
-        data: {
-            labels: ["Revenue Growth", "Profit Margin", "Market Share", "Customer Sat.", "Innovation"],
-            datasets: [
-                { label: 'Invest in Product Dev', data: [7, 8, 6, 8, 10], backgroundColor: 'rgba(59, 130, 246, 0.2)', borderColor: 'rgba(59, 130, 246, 1)', borderWidth: 1 },
-                { label: 'Invest in Sales', data: [9, 7, 8, 6, 5], backgroundColor: 'rgba(16, 185, 129, 0.2)', borderColor: 'rgba(16, 185, 129, 1)', borderWidth: 1 }
-            ],
-        },
-        options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: "bottom" }}},
-        defaultType: "radar",
-    },
-    costCuttingSim: {
-        title: "Cost-Cutting Simulation (Marketing Spend)",
-        componentPath: "#",
-        data: {
-            labels: ["0% Cut", "-10% Cut", "-15% Cut", "-20% Cut"],
-            datasets: [
-                { label: "Projected Leads", data: [10000, 9200, 8500, 7500], borderColor: "#3B82F6", yAxisID: 'y_leads', tension: 0.1 },
-                { label: "Projected Profit ($M)", data: [12.5, 12.8, 12.9, 12.7], borderColor: "#EF4444", yAxisID: 'y_profit', tension: 0.1 }
-            ]
-        },
-        options: {
-            maintainAspectRatio: false, responsive: true,
-            plugins: { legend: { position: 'bottom' } },
-            scales: {
-                y_leads: { type: 'linear', position: 'left', title: { display: true, text: 'Projected Leads'}},
-                y_profit: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Projected Profit ($M)'}}
-            }
-        },
-        defaultType: "line"
+const KPICard = ({ title, value, change, icon, isPositive = true }) => (
+    <div className={`p-4 rounded-xl shadow-sm border ${isPositive ? 'bg-white' : 'bg-red-50 border-red-200'}`}>
+        <div className="flex items-center">
+            <div className={`p-3 rounded-full mr-4 ${isPositive ? 'bg-sky-100 text-sky-600' : 'bg-red-100 text-red-600'}`}>{icon}</div>
+            <div>
+                <p className={`text-sm font-semibold ${isPositive ? 'text-sky-800' : 'text-red-800'}`}>{title}</p>
+                <p className="text-2xl font-bold text-gray-900">{value}</p>
+                {change && <p className={`text-xs mt-1 ${isPositive ? 'text-gray-500' : 'text-red-600'}`}>{change}</p>}
+            </div>
+        </div>
+    </div>
+);
+
+const ScenarioModellingBudgeting = () => {
+  const [drivers, setDrivers] = useState({
+    revenueGrowth: 0,
+    marketCondition: "Stable",
+    costCuts: { marketing: 0, rd: 0, ga: 0 },
+    investmentAllocation: 50, // 50% to R&D, 50% to S&M
+  });
+
+  const formatCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(value);
+
+  const scenarioResult = useMemo(() => {
+    let scenario = { ...BASELINE_BUDGET };
+    let aiSummary = [];
+
+    // 1. Market & Economic Condition Simulation
+    if (drivers.marketCondition === 'Recession') {
+        scenario.revenue *= 0.90; // -10% revenue
+        scenario.cogs *= 0.90;
+        aiSummary.push("Recession scenario applied: Revenue reduced by 10%.");
+    } else if (drivers.marketCondition === 'High Inflation') {
+        scenario.cogs *= 1.05; // +5% COGS
+        scenario.marketing *= 1.03;
+        scenario.sales *= 1.03;
+        scenario.rd *= 1.03;
+        scenario.ga *= 1.03;
+        aiSummary.push("High Inflation scenario applied: Costs increased by 3-5%.");
     }
+
+    // 2. Revenue Growth vs. Budget Expansion
+    const revenueModifier = 1 + drivers.revenueGrowth / 100;
+    scenario.revenue *= revenueModifier;
+    scenario.cogs *= revenueModifier; // COGS scales with revenue
+    scenario.sales *= revenueModifier; // Sales budget scales with revenue
+    if (drivers.revenueGrowth > 0) aiSummary.push(`Revenue increased by ${drivers.revenueGrowth}%, scaling COGS and Sales budgets.`);
+    if (drivers.revenueGrowth < 0) aiSummary.push(`Revenue decreased by ${-drivers.revenueGrowth}%, scaling COGS and Sales budgets.`);
+
+
+    // 3. Cost-Cutting Scenario Testing
+    scenario.marketing *= (1 - drivers.costCuts.marketing / 100);
+    scenario.rd *= (1 - drivers.costCuts.rd / 100);
+    scenario.ga *= (1 - drivers.costCuts.ga / 100);
+    if (drivers.costCuts.marketing > 0) aiSummary.push(`Marketing budget cut by ${drivers.costCuts.marketing}%.`);
+    if (drivers.costCuts.rd > 0) aiSummary.push(`R&D budget cut by ${drivers.costCuts.rd}%.`);
+
+    // 4. Investment Trade-Offs
+    const totalInvestmentPot = BASELINE_BUDGET.rd + BASELINE_BUDGET.marketing + BASELINE_BUDGET.sales;
+    const baseRdRatio = BASELINE_BUDGET.rd / totalInvestmentPot;
+    const baseSmRatio = (BASELINE_BUDGET.marketing + BASELINE_BUDGET.sales) / totalInvestmentPot;
+    
+    // This is a simplified model. A real one would be more complex.
+    const rdAllocationRatio = drivers.investmentAllocation / 100;
+    const smAllocationRatio = 1 - rdAllocationRatio;
+    
+    // For this demo, we'll just show the text impact, as re-calculating the actual budget is complex.
+    if(drivers.investmentAllocation > 60) aiSummary.push("Heavy focus on R&D may slow short-term growth but builds long-term product advantage.");
+    if(drivers.investmentAllocation < 40) aiSummary.push("Heavy focus on Sales/Marketing may boost short-term revenue but risks future product competitiveness.");
+
+    const grossProfit = scenario.revenue - scenario.cogs;
+    const totalExpenses = scenario.marketing + scenario.sales + scenario.rd + scenario.ga;
+    const netIncome = grossProfit - totalExpenses;
+
+    return { ...scenario, grossProfit, totalExpenses, netIncome, aiSummary: aiSummary.join(' ') };
+  }, [drivers]);
+
+  const chartData = {
+      labels: ['Baseline', 'Scenario'],
+      datasets: [
+          { label: 'Revenue', data: [BASELINE_BUDGET.revenue, scenarioResult.revenue], backgroundColor: '#3b82f6' },
+          { label: 'Total Expenses', data: [BASELINE_BUDGET.marketing + BASELINE_BUDGET.sales + BASELINE_BUDGET.rd + BASELINE_BUDGET.ga, scenarioResult.totalExpenses], backgroundColor: '#ef4444' },
+          { label: 'Net Income', data: [BASELINE_BUDGET.revenue - BASELINE_BUDGET.cogs - (BASELINE_BUDGET.marketing + BASELINE_BUDGET.sales + BASELINE_BUDGET.rd + BASELINE_BUDGET.ga), scenarioResult.netIncome], backgroundColor: '#10b981' },
+      ],
+  };
+
+  const handleDriverChange = (driver, value) => {
+    setDrivers(prev => ({ ...prev, [driver]: value }));
+  };
+
+  const handleCostCutChange = (dept, value) => {
+    setDrivers(prev => ({ ...prev, costCuts: { ...prev.costCuts, [dept]: value } }));
+  };
+
+  return (
+    <div className="space-y-6 p-4 md:p-6 min-h-screen relative bg-sky-50">
+        <nav className="flex mb-4" aria-label="Breadcrumb">
+                            <ol className="inline-flex items-center space-x-1 md:space-x-2">
+                                <li><Link to="/budgeting-hub" className="text-sm font-medium text-gray-700 hover:text-blue-600">Budgeting Hub</Link></li>
+                                <li><div className="flex items-center"><FiChevronRight className="w-3 h-3 text-gray-400 mx-1" /><span className="text-sm font-medium text-gray-500">Scenario & What-If</span></div></li>
+                            </ol>
+                        </nav>
+      <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-md">
+        <h1 className="text-xl font-bold text-white">Scenario Modeling & What-If Analysis</h1>
+        <p className="text-sky-100 text-sm mt-1">Simulate the impact of business decisions and market changes on your budget.</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* --- INTERACTIVE DRIVERS PANEL --- */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
+          <h2 className="text-xl font-semibold text-sky-900 flex items-center gap-2"><FiSliders/> Key Driver Adjustments</h2>
+          
+          {/* Market & Economic Conditions */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Market & Economic Condition</label>
+            <select value={drivers.marketCondition} onChange={e => handleDriverChange('marketCondition', e.target.value)} className="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-sky-500">
+              <option>Stable</option>
+              <option>Recession</option>
+              <option>High Inflation</option>
+            </select>
+          </div>
+
+          {/* Revenue Growth */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Revenue Growth / Decline (%)</label>
+            <div className="flex items-center gap-4">
+              <input type="range" min="-20" max="20" value={drivers.revenueGrowth} onChange={e => handleDriverChange('revenueGrowth', parseFloat(e.target.value))} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"/>
+              <span className="font-bold text-sky-800 w-16 text-center">{drivers.revenueGrowth}%</span>
+            </div>
+          </div>
+
+          {/* Cost Cutting */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Cost-Cutting Scenarios (%)</label>
+            <div className="space-y-2">
+              <div className="flex items-center gap-4"><span className="w-20">Marketing</span><input type="range" min="0" max="50" value={drivers.costCuts.marketing} onChange={e => handleCostCutChange('marketing', parseFloat(e.target.value))} className="w-full"/><span>{drivers.costCuts.marketing}%</span></div>
+              <div className="flex items-center gap-4"><span className="w-20">R&D</span><input type="range" min="0" max="50" value={drivers.costCuts.rd} onChange={e => handleCostCutChange('rd', parseFloat(e.target.value))} className="w-full"/><span>{drivers.costCuts.rd}%</span></div>
+              <div className="flex items-center gap-4"><span className="w-20">G&A</span><input type="range" min="0" max="50" value={drivers.costCuts.ga} onChange={e => handleCostCutChange('ga', parseFloat(e.target.value))} className="w-full"/><span>{drivers.costCuts.ga}%</span></div>
+            </div>
+          </div>
+          
+          {/* Investment Trade-Off */}
+           <div>
+            <label className="block text-sm font-medium text-gray-700">Investment Trade-Offs</label>
+            <input type="range" min="0" max="100" value={drivers.investmentAllocation} onChange={e => handleDriverChange('investmentAllocation', parseFloat(e.target.value))} className="w-full h-2 bg-gradient-to-r from-teal-200 to-blue-200 rounded-lg appearance-none cursor-pointer"/>
+            <div className="flex justify-between text-xs mt-1">
+              <span className="font-semibold text-blue-600">{100 - drivers.investmentAllocation}% Sales/Marketing</span>
+              <span className="font-semibold text-teal-600">{drivers.investmentAllocation}% R&D</span>
+            </div>
+          </div>
+        </div>
+
+        {/* --- SCENARIO IMPACT PANEL --- */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+           <h2 className="text-xl font-semibold text-sky-900 flex items-center gap-2"><FiZap/> Scenario P&L Impact</h2>
+           <div className="mt-4 overflow-x-auto">
+             <table className="w-full text-sm">
+                <thead>
+                    <tr className="border-b">
+                        <th className="py-2 text-left font-semibold text-gray-600">Metric</th>
+                        <th className="py-2 text-right font-semibold text-gray-600">Baseline</th>
+                        <th className="py-2 text-right font-semibold text-sky-600">Scenario</th>
+                        <th className="py-2 text-right font-semibold text-gray-600">Impact</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {[
+                        { label: 'Revenue', icon: <FiDollarSign className="text-green-500"/>, base: BASELINE_BUDGET.revenue, scenario: scenarioResult.revenue },
+                        { label: 'COGS', icon: <FiBriefcase className="text-amber-500"/>, base: BASELINE_BUDGET.cogs, scenario: scenarioResult.cogs },
+                        { label: 'Gross Profit', icon: <FiTrendingUp className="text-green-500"/>, base: BASELINE_BUDGET.revenue - BASELINE_BUDGET.cogs, scenario: scenarioResult.grossProfit, isBold: true },
+                        { label: 'Marketing', icon: <FiBriefcase className="text-amber-500"/>, base: BASELINE_BUDGET.marketing, scenario: scenarioResult.marketing },
+                        { label: 'Sales', icon: <FiBriefcase className="text-amber-500"/>, base: BASELINE_BUDGET.sales, scenario: scenarioResult.sales },
+                        { label: 'R&D', icon: <FiBriefcase className="text-amber-500"/>, base: BASELINE_BUDGET.rd, scenario: scenarioResult.rd },
+                        { label: 'G&A', icon: <FiBriefcase className="text-amber-500"/>, base: BASELINE_BUDGET.ga, scenario: scenarioResult.ga },
+                        { label: 'Total Expenses', icon: <FiBriefcase className="text-red-500"/>, base: BASELINE_BUDGET.marketing + BASELINE_BUDGET.sales + BASELINE_BUDGET.rd + BASELINE_BUDGET.ga, scenario: scenarioResult.totalExpenses, isBold: true },
+                        { label: 'Net Income', icon: <FiBarChart2 className="text-green-500"/>, base: BASELINE_BUDGET.revenue - BASELINE_BUDGET.cogs - (BASELINE_BUDGET.marketing + BASELINE_BUDGET.sales + BASELINE_BUDGET.rd + BASELINE_BUDGET.ga), scenario: scenarioResult.netIncome, isBold: true },
+                    ].map(item => {
+                        const impact = item.scenario - item.base;
+                        const isPositiveImpact = impact >= 0;
+                        return (
+                            <tr key={item.label} className={`border-b border-gray-100 ${item.isBold ? 'font-bold' : ''}`}>
+                                <td className="py-2 flex items-center gap-2">{item.icon} {item.label}</td>
+                                <td className="py-2 text-right font-mono">{formatCurrency(item.base)}</td>
+                                <td className="py-2 text-right font-mono text-sky-700">{formatCurrency(item.scenario)}</td>
+                                <td className={`py-2 text-right font-mono ${isPositiveImpact ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(impact)}</td>
+                            </tr>
+                        )
+                    })}
+                </tbody>
+             </table>
+           </div>
+           <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-800 flex items-start gap-2">
+                <BsStars className="mt-0.5 flex-shrink-0"/>
+                <div>
+                    <h4 className="font-semibold">AI Summary of Changes:</h4>
+                    <p>{scenarioResult.aiSummary}</p>
+                </div>
+            </div>
+        </div>
+      </div>
+      
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <h2 className="text-xl font-semibold text-sky-900 mb-3">Baseline vs. Scenario Comparison</h2>
+        <div className="h-96"><Bar data={chartData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }}}}/></div>
+      </div>
+    </div>
+  );
 };
 
-// Sub-menu navigation items as requested
-const navigationItems = [
-    { title: "Revenue Growth vs. Budget Expansion", description: "How does increasing revenue impact overall budget needs?", icon: <FiTrendingUp className="text-3xl text-green-500" />, path: "/revenue-budget-expansion", bgColor: "bg-green-50", hoverColor: "hover:bg-green-100" },
-    { title: "Cost-Cutting Scenario Testing", description: "What if we reduce marketing spend by 15%? Model the impact.", icon: <FiScissors className="text-3xl text-red-500" />, path: "/costCutting-scenario-testing", bgColor: "bg-red-50", hoverColor: "hover:bg-red-100" },
-    { title: "Investment Trade-Offs", description: "Should we allocate more to product development or sales?", icon: <FiShuffle className="text-3xl text-purple-500" />, path: "/investment-tradeOffs", bgColor: "bg-purple-50", hoverColor: "hover:bg-purple-100" },
-    { title: "Market & Economic Condition Simulations", description: "What happens if inflation rises by 5% or a new competitor enters?", icon: <FiGlobe className="text-3xl text-blue-500" />, path: "/market-economic-simulations", bgColor: "bg-blue-50", hoverColor: "hover:bg-blue-100" },
-];
-
-
-// Self-contained, performant chart card component
-const EnhancedChartCard = ({ title, componentPath, chartType, chartData, widgetId, onChartTypeChange }) => {
-    const navigate = useNavigate();
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [isChartTypeMenuOpen, setIsChartTypeMenuOpen] = useState(false);
-    const [isAiDropdownOpen, setIsAiDropdownOpen] = useState(false);
-    const [localAiInput, setLocalAiInput] = useState("");
-    const dropdownRef = useOutsideClick(() => setIsDropdownOpen(false));
-    const aiDropdownRef = useOutsideClick(() => setIsAiDropdownOpen(false));
-    const handleSendAIQuery = () => { if (localAiInput.trim()) { console.log(`AI Query for ${widgetId}:`, localAiInput); setLocalAiInput(""); setIsAiDropdownOpen(false); } };
-    const renderChart = (type, data, options = {}) => { switch (type) { case "line": return <Line data={data} options={options} />; case "bar": return <Bar data={data} options={options} />; case "pie": return <Pie data={data} options={options} />; case "doughnut": return <Doughnut data={data} options={options} />; case "radar": return <Radar data={data} options={options} />; case "polarArea": return <PolarArea data={data} options={options} />; case "bubble": return <Bubble data={data} options={options} />; default: return <Line data={data} options={options} />; } };
-    return ( <motion.div variants={cardVariants} className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-sky-100 h-full flex flex-col"> <div className="flex justify-between items-center mb-2"> <h3 className="text-sm font-semibold text-sky-800">{title}</h3> <div className="flex space-x-2 relative"> <div className="relative" ref={dropdownRef}> <button onClick={() => setIsDropdownOpen(p => !p)} className="p-1 rounded hover:bg-gray-100" data-tooltip-id="chart-options-tooltip" data-tooltip-content="Options"><BsThreeDotsVertical /></button> {isDropdownOpen && ( <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-20 border border-gray-200"> <div className="py-1 text-xs text-gray-800"> <div className="relative" onMouseEnter={() => setIsChartTypeMenuOpen(true)} onMouseLeave={() => setIsChartTypeMenuOpen(false)}> <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex justify-between items-center"> All Chart Types <FiChevronDown className="ml-1 text-xs" /> </div> {isChartTypeMenuOpen && ( <div className="absolute top-0 left-full w-40 bg-white rounded-md shadow-lg border border-gray-200 z-30 py-1" style={{ marginLeft: "-1px" }}> {["line", "bar", "pie", "doughnut", "radar", "polarArea", "bubble"].map((type) => ( <button key={type} onClick={() => { onChartTypeChange(widgetId, type); setIsDropdownOpen(false); }} className="block w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-100 transition"> {type.charAt(0).toUpperCase() + type.slice(1)} Chart </button> ))} </div> )} </div> <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={() => { navigate(componentPath); setIsDropdownOpen(false); }}>Analyze</div> </div> </div> )} </div> <div className="relative" ref={aiDropdownRef}> <button onClick={() => setIsAiDropdownOpen(p => !p)} className="p-1 rounded hover:bg-gray-100" data-tooltip-id="ai-tooltip" data-tooltip-content="Ask AI"><BsStars /></button> {isAiDropdownOpen && ( <div className="absolute right-0 top-full mt-2 w-full sm:w-64 bg-white rounded-md shadow-lg z-20 border border-gray-200 py-2 px-2"> <h1 className="text-xs text-center mb-1">Ask regarding {title}</h1> <div className="flex justify-between gap-3 w-full"> <input type="text" value={localAiInput} onChange={(e) => setLocalAiInput(e.target.value)} placeholder="Ask AI..." className="w-full p-1 border border-gray-300 rounded text-xs" /> <button onClick={handleSendAIQuery} className="p-2 bg-sky-500 text-white rounded hover:bg-sky-600" disabled={!localAiInput.trim()}><FiSend /></button> </div> </div> )} </div> </div> </div> <div className="flex-grow h-64">{renderChart(chartType, chartData.data, chartData.options)}</div> </motion.div> );
-};
-
-const ScenarioModelingBudgeting = () => {
-    const navigate = useNavigate();
-	const [filters, setFilters] = useState({ budgetPeriod: "Annual Budget 2024", scenario: "Base Scenario", view: "Consolidated" });
-	const [showFilters, setShowFilters] = useState(false);
-	const filtersRef = useOutsideClick(() => setShowFilters(false));
-
-    const [chartTypes, setChartTypes] = useState({
-        profitImpact: 'bar',
-        investmentTradeoff: 'radar',
-        costCuttingSim: 'line',
-    });
-	
-    const toggleChartType = (widgetId, type) => {
-		setChartTypes((prev) => ({ ...prev, [widgetId]: type }));
-	};
-
-    const KPICard = ({ title, value, change, isPositive, icon, componentPath }) => {
-		const [showAIDropdown, setShowAIDropdown] = useState(false);
-		const [localAIInput, setLocalAIInput] = useState("");
-		const dropdownRef = useRef(null);
-		useEffect(() => { const handleClickOutside = (event) => { if (dropdownRef.current && !dropdownRef.current.contains(event.target)) { setShowAIDropdown(false); } }; document.addEventListener("mousedown", handleClickOutside); return () => { document.removeEventListener("mousedown", handleClickOutside); }; }, []);
-		const handleSendAIQuery = () => { if (localAIInput.trim()) { console.log(`AI Query for ${title}:`, localAIInput); setLocalAIInput(""); setShowAIDropdown(false); } };
-        const needsDollarSign = ["Best Case Profit Impact", "Worst Case Profit Impact"].includes(title);
-		return ( <motion.div variants={cardVariants} initial="hidden" animate="visible" whileHover={{ y: -3 }} className="bg-white p-3 rounded-lg shadow-sm border border-sky-100 relative cursor-pointer" onClick={() => navigate(componentPath)}> <div className="flex justify-between items-start"> <div> <div className="flex items-center justify-between"> <p className="text-[10px] font-semibold text-sky-600 uppercase tracking-wider truncate">{title}</p> <button onClick={(e) => { e.stopPropagation(); setShowAIDropdown(!showAIDropdown); }} className="p-1 rounded hover:bg-gray-100" data-tooltip-id="ai-tooltip" data-tooltip-content="Ask AI"><BsStars /></button> {showAIDropdown && ( <div ref={dropdownRef} className="absolute right-0 top-5 mt-2 w-full sm:w-44 bg-white rounded-md shadow-lg z-10 border border-gray-200 p-2" onClick={(e) => e.stopPropagation()}> <div className="flex items-center space-x-2"> <input type="text" value={localAIInput} onChange={(e) => setLocalAIInput(e.target.value)} placeholder="Ask AI..." className="w-full p-1 border border-gray-300 rounded text-xs" onClick={(e) => e.stopPropagation()} /> <button onClick={handleSendAIQuery} className="p-1 bg-sky-500 text-white rounded hover:bg-sky-600" disabled={!localAIInput.trim()}><FiSend /></button> </div> </div> )} </div> <p className="text-sm font-bold text-sky-900 mt-1">{needsDollarSign && "$"}{typeof value === "number" ? value.toLocaleString() : value}</p> <div className={`flex items-center mt-2 ${ isPositive ? "text-green-500" : "text-red-500" }`}><span className="text-[10px] font-medium">{change} {isPositive ? "↑" : "↓"}</span></div> </div> <div className="p-2 rounded-full bg-sky-100 hover:bg-sky-200 transition-colors duration-200"><div className="text-sky-600 hover:text-sky-800 transition-colors duration-200">{icon}</div></div> </div> </motion.div> );
-	};
-
-	return (
-		<div className="space-y-6 p-4 md:p-6 min-h-screen relative bg-sky-50">
-			<motion.div initial="hidden" animate="visible" variants={cardVariants}>
-				{/* Header Section */}
-				<div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-md">
-					<div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-						<div><h1 className="text-xl font-bold text-white">Scenario Modeling & What-If Analysis</h1><p className="text-sky-100 text-sm mt-1">Advanced Budgeting Simulations.</p></div>
-						<div className="flex space-x-2 mt-3 md:mt-0">
-							<button onClick={() => setShowFilters((p) => !p)} className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors"><FiFilter className="mr-1.5" /> Filters</button>
-							<button onClick={() => window.print()} className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors"><FiDownload className="mr-1.5" /> Export View</button>
-						</div>
-					</div>
-				</div>
-
-				{/* Filters Dropdown */}
-				{showFilters && ( <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-4 rounded-lg shadow-md mt-4 border border-gray-200" ref={filtersRef}> <div className="grid grid-cols-1 md:grid-cols-3 gap-4"> {["Budget Period", "Scenario", "View"].map((filter) => (<div key={filter}><label className="block text-sm font-medium text-gray-700 mb-1">{filter}</label><select className="w-full p-2 border border-gray-300 rounded-md text-sm"><option>Default</option></select></div>))} </div> <div className="mt-4 text-right"><button onClick={() => setShowFilters(false)} className="px-4 py-2 text-sm bg-sky-600 text-white rounded-md hover:bg-sky-700">Apply</button></div> </motion.div> )}
-
-				{/* Navigation to Sub-Modules */}
-				<div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mt-6">
-					<h3 className="text-lg font-semibold text-sky-800 mb-4">Dive Deeper into Scenario Modeling</h3>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						{navigationItems.map((item, index) => ( <Link to={item.path} key={index}> <motion.div variants={cardVariants} whileHover={{ scale: 1.0, boxShadow: "0px 5px 15px rgba(0,74,128,0.1)" }} className={`p-4 rounded-lg  ${item.bgColor} ${item.hoverColor} transition-all duration-100 flex items-start space-x-4 h-full`}> <div className="flex-shrink-0 mt-1">{item.icon}</div> <div><h4 className="font-semibold text-gray-800">{item.title}</h4><p className="text-xs text-gray-600 mt-1">{item.description}</p></div> <FiChevronRight className="ml-auto text-gray-400 self-center text-lg" /> </motion.div> </Link> ))}
-					</div>
-				</div>
-
-				{/* KPI Cards Section */}
-				<motion.div variants={cardVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
-					{kpiData.map((kpi) => <KPICard key={kpi.id} {...kpi} />)}
-				</motion.div>
-
-				{/* Chart Section */}
-				<motion.div variants={cardVariants} className="grid grid-cols-1 lg:grid-cols-5 gap-6 mt-6">
-					<div className="lg:col-span-3">
-                        <EnhancedChartCard title={charts.profitImpact.title} chartType={chartTypes.profitImpact} chartData={charts.profitImpact} widgetId="profitImpact" componentPath={charts.profitImpact.componentPath} onChartTypeChange={toggleChartType} />
-                    </div>
-					<div className="lg:col-span-2">
-                        <EnhancedChartCard title={charts.investmentTradeoff.title} chartType={chartTypes.investmentTradeoff} chartData={charts.investmentTradeoff} widgetId="investmentTradeoff" componentPath={charts.investmentTradeoff.componentPath} onChartTypeChange={toggleChartType} />
-                    </div>
-				</motion.div>
-				<motion.div variants={cardVariants} className="mt-6">
-                    <EnhancedChartCard title={charts.costCuttingSim.title} chartType={chartTypes.costCuttingSim} chartData={charts.costCuttingSim} widgetId="costCuttingSim" componentPath={charts.costCuttingSim.componentPath} onChartTypeChange={toggleChartType} />
-                </motion.div>
-			</motion.div>
-            
-			{/* Tooltips */}
-			<ReactTooltip id="ai-tooltip" place="top" effect="solid" />
-			<ReactTooltip id="chart-options-tooltip" place="top" effect="solid" />
-		</div>
-	);
-};
-
-export default ScenarioModelingBudgeting;
+export default ScenarioModellingBudgeting;
