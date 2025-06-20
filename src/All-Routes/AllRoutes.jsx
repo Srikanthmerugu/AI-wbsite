@@ -4,7 +4,6 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import MainLayout from '../components/MainLayout';
 import FinancialOverview from '../components/Dashboard/FinancialOverview';
 import KeyFinancialKPIs from '../pages/KeyFinancialKPIs';
-import FinancialReports from '../pages/FinancialReportsCoreResult';
 import RevenueForecasting from '../pages/ForecastingOverview/RevenueForecasting';
 import AIChatBot from '../pages/AIChatBot';
 import LoginPage from '../pages/Login';
@@ -24,7 +23,6 @@ import FixedVariableExpense from '../pages/Budgeting/Operational-Budgeting/Fixed
 import  DepartmentBudgeting  from '../pages/Budgeting/Operational-Budgeting/DepartmentBudgeting';
 import AICostOptimization from '../pages/Budgeting/Operational-Budgeting/AICostOptimization';
 import BudgetVsActuals from '../pages/Budgeting/Operational-Budgeting/BudgetVsActuals';
-import PLDashboard from '../pages/Financial Reports/PLDashboard';
 import CapitalInvestmentPlanning from '../pages/Budgeting/CAPEX-Budgeting/CapitalInvestmentPlanning';
 import ROIAllocation from '../pages/Budgeting/CAPEX-Budgeting/ROIAllocation';
 import DepreciationForecast from '../pages/Budgeting/CAPEX-Budgeting/DepreciationForecast';
@@ -132,6 +130,16 @@ import Setup2FA from '../context/Setup2FA';
 import Verify2FA from '../context/Verify2FA';
 import CashFlow from '../components/Dashboard/FinancialOverview items/CashFlow';
 import ProfitAnalysis from '../components/Dashboard/FinancialOverview items/ProfitAnalysis';
+import IntegrationDetails from '../pages/SettingsCustomization/GL-Uploads/ExcelIntegrationDetailsView';
+import FinancialReports from '../pages/FinancialCustomeCoreResult/FinancialReportsCoreResult';
+import PLDashboard from '../pages/FinancialCustomeCoreResult/PLDashboard';
+import CashFlowStatement from '../pages/FinancialCustomeCoreResult/CashFlowStatement';
+import BalanceSheet from '../pages/FinancialCustomeCoreResult/BalanceSheet';
+import ARAgingReport from '../pages/FinancialCustomeCoreResult/ARAgingReport';
+import APAgingReport from '../pages/FinancialCustomeCoreResult/APAgingReport';
+import CustomRevenueReport from '../pages/FinancialCustomeCoreResult/CustomRevenueReport';
+import CustomerProfitabilityReport from '../pages/FinancialCustomeCoreResult/CustomerProfitabilityReport';
+import RevenueReportDashboard from '../pages/FinancialCustomeCoreResult/RevenueReportDashboard';
 
 
 
@@ -280,11 +288,19 @@ function AllRoutes() {
             <Route path="/gl-upload-screen" element={<GLUploadScreen />} />
             <Route path="/cash-flow" element={<CashFlow />} />
             <Route path="/profit-analysis" element={<ProfitAnalysis />} />
+            <Route path="/cash-flow-dashboard" element={<CashFlowStatement />} />
+                        <Route path="/balance-sheet-dashboard" element={<BalanceSheet />} />
+                        <Route path="/ar-aging-dashboard" element={<ARAgingReport />} />
+                        <Route path="/ap-aging-dashboard" element={<APAgingReport />} />
+                        <Route path="/customer-profitability-dashboard" element={<CustomerProfitabilityReport />} />
+                        <Route path="/revenue-dashboard" element={<RevenueReportDashboard />} />
 
+            
 
 
               
-
+{/* // In your main routing file (e.g., App.js) */}
+<Route path="/gl-uploads/integration/:integrationId" element={<IntegrationDetails/>} />
 
 
             </Route>

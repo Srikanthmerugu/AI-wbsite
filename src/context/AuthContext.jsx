@@ -318,7 +318,7 @@ export const AuthProvider = ({ children }) => {
       twoFASetupToken,
       twoFALoginToken,
       userId,
-      login,
+      login, 
       logout,
       setup2FA,
       verify2FALogin,
