@@ -120,12 +120,31 @@ const MENUITEMS = [
         active: false,
         children: [ 
           {
+            path: "/budgeting-hub",
+            type: "link",
+            title: "Dashboard",
+            icon: { name: "FiFile" },
+          },
+          {
             path: "/corporate-budget-guidelines",
             type: "link",
             title: "Corporate Budget Guidelines ",
             icon: { name: "FiFile" },
           },
-          
+
+          {
+            path: "/revenue-based-budgeting",
+            type: "link",
+            title: "Revenue-Based Budgeting ",
+            icon: { name: "FiFile" },
+            children: [
+              { path: "/revenue-driven-expense", type: "link", title: "Revenue-Driven Expense Allocation ", icon: { name: "FiFile" } },
+              { path: "/sale-growth-budget", type: "link", title: "Sales Growth-Linked Budget Adjustments ", icon: { name: "FiFile" } },
+              { path: "/customer-acquisition-retention", type: "link", title: "Customer Acquisition & Retention Budgeting ", icon: { name: "FiFile" } },
+              { path: "/subscription-recurring-revenue", type: "link", title: "Subscription & Recurring Revenue Considerations", icon: { name: "FiFile" } },
+            ],
+          },
+
           {
             path: "/operational-budgeting",
             type: "link",
@@ -140,18 +159,7 @@ const MENUITEMS = [
               // { path: "#", type: "link", title: "Cashflow", icon: { name: "FiFile" } },
             ],
           },
-          {
-            path: "/revenue-based-budgeting",
-            type: "link",
-            title: "Revenue-Based Budgeting ",
-            icon: { name: "FiFile" },
-            children: [
-              { path: "/revenue-driven-expense", type: "link", title: "Revenue-Driven Expense Allocation ", icon: { name: "FiFile" } },
-              { path: "/sale-growth-budget", type: "link", title: "Sales Growth-Linked Budget Adjustments ", icon: { name: "FiFile" } },
-              { path: "/customer-acquisition-retention", type: "link", title: "Customer Acquisition & Retention Budgeting ", icon: { name: "FiFile" } },
-              { path: "/subscription-recurring-revenue", type: "link", title: "Subscription & Recurring Revenue Considerations", icon: { name: "FiFile" } },
-            ],
-          },
+          
           {
             path: "/capex-budgeting",
             type: "link",

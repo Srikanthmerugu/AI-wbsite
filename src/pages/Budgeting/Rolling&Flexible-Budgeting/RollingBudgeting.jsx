@@ -1,187 +1,226 @@
-// src/pages/Budgeting/RollingBudgeting/RollingBudgeting.jsx
-import React, { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import {
-	Chart as ChartJS,
-	CategoryScale,
-	LinearScale,
-	BarElement,
-	PointElement,
-	LineElement,
-	ArcElement,
-    RadialLinearScale,
-	Title,
-	Tooltip,
-	Legend,
-	Filler,
+  Chart as ChartJS, CategoryScale, LinearScale, LineElement, PointElement, BarElement, Title, Tooltip, Legend, Filler
 } from "chart.js";
-import { Bar, Line, Doughnut, Pie, Radar, PolarArea, Bubble } from "react-chartjs-2";
-import { motion } from "framer-motion";
-import {
-	FiFilter,
-	FiDollarSign,
-	FiDownload,
-	FiSend,
-	FiChevronDown,
-	FiChevronRight,
-    FiRefreshCw,
-    FiShield,
-    FiAlertTriangle,
-    FiTarget
-} from "react-icons/fi";
-import { BsStars, BsThreeDotsVertical } from "react-icons/bs";
-import { Tooltip as ReactTooltip } from "react-tooltip";
+import { Line, Bar } from "react-chartjs-2";
+import { FiSave, FiPrinter, FiRefreshCw, FiDollarSign,FiChevronRight, FiTrendingUp, FiAlertTriangle, FiShield, FiSliders } from "react-icons/fi";
+import { BsStars } from 'react-icons/bs';
 
-ChartJS.register( CategoryScale, LinearScale, BarElement, PointElement, LineElement, ArcElement, RadialLinearScale, Title, Tooltip, Legend, Filler );
-const useOutsideClick = (callback) => { const ref = useRef(); useEffect(() => { const handleClick = (event) => { if (ref.current && !ref.current.contains(event.target)) { callback(); } }; document.addEventListener("mousedown", handleClick); return () => document.removeEventListener("mousedown", handleClick); }, [callback]); return ref; };
-const cardVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { staggerChildren: 0.05 } }, };
+// Register ChartJS components
+ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, BarElement, Title, Tooltip, Legend, Filler);
 
-// Data tailored for Rolling & Flexible Budgeting
-const kpiData = [
-    { id: "totalRollingBudget", title: "Total Rolling Budget", value: 22500000, change: "Updated this month", isPositive: true, icon: <FiDollarSign size={16}/>, componentPath: "#" },
-    { id: "forecastAccuracy", title: "Forecast Accuracy", value: "97.5%", change: "Within +/- 5% tolerance", isPositive: true, icon: <FiTarget size={16}/>, componentPath: "#" },
-    { id: "contingencyFund", title: "Contingency Fund", value: 425000, change: "85% Remaining", isPositive: true, icon: <FiShield size={16}/>, componentPath: "#" },
-    { id: "varianceAlerts", title: "Open Variance Alerts", value: 3, change: "Require Review", isPositive: false, icon: <FiAlertTriangle size={16}/>, componentPath: "#" },
+// --- MOCK DATA ---
+const QUARTERS = ["Q1 2025", "Q2 2025", "Q3 2025", "Q4 2025"];
+
+const initialBudgetData = [
+  { id: 1, category: "Revenue", type: "Income", q1_actual: 5200000, q1_forecast: 5000000, q2_forecast: 5500000, q3_forecast: 5800000, q4_forecast: 6200000, aiInsight: "Revenue is tracking 4% ahead of forecast. AI suggests increasing Q3/Q4 revenue forecast by 2-3%." },
+  { id: 2, category: "COGS", type: "Expense", q1_actual: 1850000, q1_forecast: 1800000, q2_forecast: 1950000, q3_forecast: 2050000, q4_forecast: 2200000, aiInsight: "Slightly over due to increased material costs. The forecast for future quarters has been adjusted upwards by AI." },
+  { id: 3, category: "Marketing", type: "Expense", q1_actual: 600000, q1_forecast: 600000, q2_forecast: 650000, q3_forecast: 700000, q4_forecast: 680000, aiInsight: "On track. With strong revenue, consider pulling Q3 spend into Q2 to accelerate lead generation." },
+  { id: 4, category: "Sales", type: "Expense", q1_actual: 780000, q1_forecast: 750000, q2_forecast: 800000, q3_forecast: 820000, q4_forecast: 850000, aiInsight: "Commissions are higher due to strong revenue performance. This is a healthy overage." },
+  { id: 5, category: "R&D", type: "Expense", q1_actual: 950000, q1_forecast: 900000, q2_forecast: 920000, q3_forecast: 930000, q4_forecast: 950000, aiInsight: "Cloud spend is 18% over forecast due to unplanned data processing for a new model. AI suggests a one-time budget adjustment." },
+  { id: 6, category: "G&A", type: "Expense", q1_actual: 450000, q1_forecast: 450000, q2_forecast: 450000, q3_forecast: 460000, q4_forecast: 460000, aiInsight: "Stable. No adjustments needed." },
 ];
 
-const charts = {
-    rollingForecast: {
-        title: "Rolling Budget vs. Actuals",
-        componentPath: "#",
-        data: {
-            labels: ["Q4 '23", "Q1 '24", "Q2 '24", "Q3 '24", "Q4 '24"],
-            datasets: [
-                { type: 'bar', label: "Actuals", data: [5.2, 5.5, 5.8, null, null], backgroundColor: "rgba(16, 185, 129, 0.7)", yAxisID: 'y' },
-                { type: 'line', label: "Rolling Forecast", data: [5.2, 5.6, 5.9, 6.1, 6.2], borderColor: "#3B82F6", tension: 0.1, yAxisID: 'y' }
-            ],
-        },
-        options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: "bottom" } }, scales: { y: { title: {display: true, text: 'Spend ($M)'}}}},
-        defaultType: "bar",
-    },
-    contingencyBreakdown: {
-        title: "Contingency Fund Allocation",
-        componentPath: "#",
-        data: {
-            labels: ["Remaining Fund", "Used: Supply Chain", "Used: IT Outage"],
-            datasets: [{ data: [425000, 50000, 25000], backgroundColor: ["#10B981", "#F59E0B", "#EF4444"], borderColor: "#fff", borderWidth: 2 }],
-        },
-        options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: "right" }}},
-        defaultType: "doughnut",
-    },
-    scenarioForecast: {
-        title: "AI-Suggested Forecast Scenarios (Next 6 Months)",
-        componentPath: "#",
-        data: {
-            labels: ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-            datasets: [
-                { label: "Base Scenario", data: [5.9, 6.0, 6.1, 6.1, 6.2, 6.2], borderColor: "#3B82F6", fill: false, tension: 0.4 },
-                { label: "Optimistic Scenario", data: [6.0, 6.2, 6.3, 6.4, 6.5, 6.6], borderColor: "#10B981", borderDash: [5, 5], fill: false, tension: 0.4 },
-                { label: "Pessimistic Scenario", data: [5.8, 5.8, 5.7, 5.6, 5.6, 5.5], borderColor: "#EF4444", borderDash: [5, 5], fill: false, tension: 0.4 }
-            ]
-        },
-        options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { y: { title: { display: true, text: 'Spend ($M)'}}}},
-        defaultType: "line"
-    }
-};
+const KPICard = ({ title, value, change, icon }) => (
+    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 transition-all hover:shadow-md">
+        <div className="flex items-center">
+            <div className="p-3 bg-sky-100 text-sky-600 rounded-full mr-4">{icon}</div>
+            <div>
+                <p className="text-sm font-semibold text-sky-800">{title}</p>
+                <p className="text-2xl font-bold text-gray-900">{value}</p>
+                {change && <p className="text-xs mt-1 text-gray-500">{change}</p>}
+            </div>
+        </div>
+    </div>
+);
 
-// Sub-menu navigation items as requested
-const navigationItems = [
-    { title: "Continuous Budget Updates", description: "Adjust budgets based on real-time business performance and outlook.", icon: <FiRefreshCw className="text-3xl text-blue-500" />, path: "/continuous-budget-updates", bgColor: "bg-blue-50", hoverColor: "hover:bg-blue-100" },
-    { title: "Scenario-Based Rolling Forecasts", description: "AI models suggest adjustments based on market trends and signals.", icon: <BsStars className="text-3xl text-purple-500" />, path: "/scenarioBased-rollingForecasts", bgColor: "bg-purple-50", hoverColor: "hover:bg-purple-100" },
-    { title: "Emergency Fund & Contingency Budgeting", description: "Allocate funds for unexpected expenses or downturns.", icon: <FiShield className="text-3xl text-yellow-500" />, path: "/emergency-contigency", bgColor: "bg-yellow-50", hoverColor: "hover:bg-yellow-100" },
-    { title: "Automated Variance Alerts", description: "Get notified when spending deviates significantly from budget.", icon: <FiAlertTriangle className="text-3xl text-red-500" />, path: "/automated-variance-alerts", bgColor: "bg-red-50", hoverColor: "hover:bg-red-100" },
-];
+const ContingencyFund = ({ budget, used, onUpdate }) => (
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <h3 className="text-lg font-semibold text-sky-900 flex items-center gap-2"><FiShield/>Contingency Fund</h3>
+        <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Total Fund Budget</label>
+            <input type="number" value={budget} onChange={e => onUpdate('budget', parseFloat(e.target.value))} className="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-sky-500"/>
+        </div>
+        <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Fund Used to Date</label>
+            <input type="number" value={used} onChange={e => onUpdate('used', parseFloat(e.target.value))} className="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-sky-500"/>
+        </div>
+        <div className="mt-4">
+            <div className="w-full bg-gray-200 rounded-full h-4">
+                <div className="bg-amber-500 h-4 rounded-full" style={{ width: `${(used / budget) * 100}%` }}></div>
+            </div>
+            <div className="text-sm font-bold text-gray-700 mt-1 text-right">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(budget - used)} Remaining</div>
+        </div>
+        <div className="mt-4 p-3 bg-blue-50 rounded-lg text-xs text-blue-800 flex items-start gap-2">
+            <BsStars className="mt-0.5 flex-shrink-0"/>
+            <span>AI Analysis: Based on historical spending volatility, a contingency of 5% of OpEx is recommended. Your current fund is adequate.</span>
+        </div>
+    </div>
+);
 
-
-// Self-contained, performant chart card component
-const EnhancedChartCard = ({ title, componentPath, chartType, chartData, widgetId, onChartTypeChange }) => {
-    const navigate = useNavigate();
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [isChartTypeMenuOpen, setIsChartTypeMenuOpen] = useState(false);
-    const [isAiDropdownOpen, setIsAiDropdownOpen] = useState(false);
-    const [localAiInput, setLocalAiInput] = useState("");
-    const dropdownRef = useOutsideClick(() => setIsDropdownOpen(false));
-    const aiDropdownRef = useOutsideClick(() => setIsAiDropdownOpen(false));
-    const handleSendAIQuery = () => { if (localAiInput.trim()) { console.log(`AI Query for ${widgetId}:`, localAiInput); setLocalAiInput(""); setIsAiDropdownOpen(false); } };
-    const renderChart = (type, data, options = {}) => { switch (type) { case "line": return <Line data={data} options={options} />; case "bar": return <Bar data={data} options={options} />; case "pie": return <Pie data={data} options={options} />; case "doughnut": return <Doughnut data={data} options={options} />; case "radar": return <Radar data={data} options={options} />; case "polarArea": return <PolarArea data={data} options={options} />; case "bubble": return <Bubble data={data} options={options} />; default: return <Line data={data} options={options} />; } };
-    return ( <motion.div variants={cardVariants} className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-sky-100 h-full flex flex-col"> <div className="flex justify-between items-center mb-2"> <h3 className="text-sm font-semibold text-sky-800">{title}</h3> <div className="flex space-x-2 relative"> <div className="relative" ref={dropdownRef}> <button onClick={() => setIsDropdownOpen(p => !p)} className="p-1 rounded hover:bg-gray-100" data-tooltip-id="chart-options-tooltip" data-tooltip-content="Options"><BsThreeDotsVertical /></button> {isDropdownOpen && ( <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-20 border border-gray-200"> <div className="py-1 text-xs text-gray-800"> <div className="relative" onMouseEnter={() => setIsChartTypeMenuOpen(true)} onMouseLeave={() => setIsChartTypeMenuOpen(false)}> <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex justify-between items-center"> All Chart Types <FiChevronDown className="ml-1 text-xs" /> </div> {isChartTypeMenuOpen && ( <div className="absolute top-0 left-full w-40 bg-white rounded-md shadow-lg border border-gray-200 z-30 py-1" style={{ marginLeft: "-1px" }}> {["line", "bar", "pie", "doughnut", "radar", "polarArea", "bubble"].map((type) => ( <button key={type} onClick={() => { onChartTypeChange(widgetId, type); setIsDropdownOpen(false); }} className="block w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-100 transition"> {type.charAt(0).toUpperCase() + type.slice(1)} Chart </button> ))} </div> )} </div> <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={() => { navigate(componentPath); setIsDropdownOpen(false); }}>Analyze</div> </div> </div> )} </div> <div className="relative" ref={aiDropdownRef}> <button onClick={() => setIsAiDropdownOpen(p => !p)} className="p-1 rounded hover:bg-gray-100" data-tooltip-id="ai-tooltip" data-tooltip-content="Ask AI"><BsStars /></button> {isAiDropdownOpen && ( <div className="absolute right-0 top-full mt-2 w-full sm:w-64 bg-white rounded-md shadow-lg z-20 border border-gray-200 py-2 px-2"> <h1 className="text-xs text-center mb-1">Ask regarding {title}</h1> <div className="flex justify-between gap-3 w-full"> <input type="text" value={localAiInput} onChange={(e) => setLocalAiInput(e.target.value)} placeholder="Ask AI..." className="w-full p-1 border border-gray-300 rounded text-xs" /> <button onClick={handleSendAIQuery} className="p-2 bg-sky-500 text-white rounded hover:bg-sky-600" disabled={!localAiInput.trim()}><FiSend /></button> </div> </div> )} </div> </div> </div> <div className="flex-grow h-64">{renderChart(chartType, chartData.data, chartData.options)}</div> </motion.div> );
-};
 
 const RollingBudgeting = () => {
-    const navigate = useNavigate();
-	const [filters, setFilters] = useState({ budgetPeriod: "Annual Budget 2024", scenario: "Base Scenario", view: "Consolidated" });
-	const [showFilters, setShowFilters] = useState(false);
-	const filtersRef = useOutsideClick(() => setShowFilters(false));
+  const [budgetData, setBudgetData] = useState(initialBudgetData);
+  const [contingency, setContingency] = useState({ budget: 500000, used: 85000 });
+  const [currentQuarterIndex, setCurrentQuarterIndex] = useState(0); // Q1 is the current quarter
 
-    const [chartTypes, setChartTypes] = useState({
-        rollingForecast: 'bar',
-        contingencyBreakdown: 'doughnut',
-        scenarioForecast: 'line',
-    });
-	
-    const toggleChartType = (widgetId, type) => {
-		setChartTypes((prev) => ({ ...prev, [widgetId]: type }));
-	};
+  const formatCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(value);
 
-    const KPICard = ({ title, value, change, isPositive, icon, componentPath }) => {
-		const [showAIDropdown, setShowAIDropdown] = useState(false);
-		const [localAIInput, setLocalAIInput] = useState("");
-		const dropdownRef = useRef(null);
-		useEffect(() => { const handleClickOutside = (event) => { if (dropdownRef.current && !dropdownRef.current.contains(event.target)) { setShowAIDropdown(false); } }; document.addEventListener("mousedown", handleClickOutside); return () => { document.removeEventListener("mousedown", handleClickOutside); }; }, []);
-		const handleSendAIQuery = () => { if (localAIInput.trim()) { console.log(`AI Query for ${title}:`, localAIInput); setLocalAIInput(""); setShowAIDropdown(false); } };
-        const needsDollarSign = ["Total Rolling Budget", "Contingency Fund"].includes(title);
-		return ( <motion.div variants={cardVariants} initial="hidden" animate="visible" whileHover={{ y: -3 }} className="bg-white p-3 rounded-lg shadow-sm border border-sky-100 relative cursor-pointer" onClick={() => navigate(componentPath)}> <div className="flex justify-between items-start"> <div> <div className="flex items-center justify-between"> <p className="text-[10px] font-semibold text-sky-600 uppercase tracking-wider truncate">{title}</p> <button onClick={(e) => { e.stopPropagation(); setShowAIDropdown(!showAIDropdown); }} className="p-1 rounded hover:bg-gray-100" data-tooltip-id="ai-tooltip" data-tooltip-content="Ask AI"><BsStars /></button> {showAIDropdown && ( <div ref={dropdownRef} className="absolute right-0 top-5 mt-2 w-full sm:w-44 bg-white rounded-md shadow-lg z-10 border border-gray-200 p-2" onClick={(e) => e.stopPropagation()}> <div className="flex items-center space-x-2"> <input type="text" value={localAIInput} onChange={(e) => setLocalAIInput(e.target.value)} placeholder="Ask AI..." className="w-full p-1 border border-gray-300 rounded text-xs" onClick={(e) => e.stopPropagation()} /> <button onClick={handleSendAIQuery} className="p-1 bg-sky-500 text-white rounded hover:bg-sky-600" disabled={!localAIInput.trim()}><FiSend /></button> </div> </div> )} </div> <p className="text-sm font-bold text-sky-900 mt-1">{needsDollarSign && "$"}{typeof value === "number" ? value.toLocaleString() : value}</p> <div className={`flex items-center mt-2 ${ isPositive ? "text-green-500" : "text-red-500" }`}><span className="text-[10px] font-medium">{change} {isPositive ? "↑" : "↓"}</span></div> </div> <div className="p-2 rounded-full bg-sky-100 hover:bg-sky-200 transition-colors duration-200"><div className="text-sky-600 hover:text-sky-800 transition-colors duration-200">{icon}</div></div> </div> </motion.div> );
-	};
+  const handleForecastChange = (id, quarter, value) => {
+    setBudgetData(prev => prev.map(item => item.id === id ? { ...item, [quarter]: parseFloat(value) || 0 } : item));
+  };
+  
+  const summary = useMemo(() => {
+    const revenue = budgetData.find(d => d.category === 'Revenue');
+    const expenses = budgetData.filter(d => d.type === 'Expense');
+    
+    const fullYearForecast = revenue ? (revenue.q1_actual + revenue.q2_forecast + revenue.q3_forecast + revenue.q4_forecast) : 0;
+    const fullYearExpense = expenses.reduce((sum, item) => sum + item.q1_actual + item.q2_forecast + item.q3_forecast + item.q4_forecast, 0);
+    const actualsYTD = revenue ? revenue.q1_actual : 0;
+    const forecastYTD = revenue ? revenue.q1_forecast : 0;
+    
+    return {
+      fullYearForecast,
+      fullYearProfit: fullYearForecast - fullYearExpense,
+      ytdVariance: actualsYTD - forecastYTD,
+    };
+  }, [budgetData]);
 
-	return (
-		<div className="space-y-6 p-4 md:p-6 min-h-screen relative bg-sky-50">
-			<motion.div initial="hidden" animate="visible" variants={cardVariants}>
-				{/* Header Section */}
-				<div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-md">
-					<div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-						<div><h1 className="text-xl font-bold text-white">Rolling & Flexible Budgeting</h1><p className="text-sky-100 text-sm mt-1">Dynamic, Real-Time Budget Adjustments.</p></div>
-						<div className="flex space-x-2 mt-3 md:mt-0">
-							<button onClick={() => setShowFilters((p) => !p)} className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors"><FiFilter className="mr-1.5" /> Filters</button>
-							<button onClick={() => window.print()} className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors"><FiDownload className="mr-1.5" /> Export View</button>
-						</div>
-					</div>
-				</div>
+  const lineChartData = {
+    labels: QUARTERS,
+    datasets: [
+      {
+        label: 'Revenue',
+        data: budgetData.filter(d => d.type === 'Income').flatMap(d => [d.q1_actual, d.q2_forecast, d.q3_forecast, d.q4_forecast]),
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        tension: 0.2,
+        fill: true,
+      },
+      {
+        label: 'Total Expenses',
+        data: QUARTERS.map((q, i) => budgetData.filter(d => d.type === 'Expense').reduce((sum, d) => sum + (i === 0 ? d.q1_actual : d[`q${i+1}_forecast`]), 0)),
+        borderColor: '#ef4444',
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        tension: 0.2,
+        fill: true,
+      },
+    ]
+  };
+  
+  return (
+    <div className="space-y-6 p-4 md:p-6 min-h-screen relative bg-sky-50">
+        <nav className="flex mb-4" aria-label="Breadcrumb">
+                            <ol className="inline-flex items-center space-x-1 md:space-x-2">
+                                <li><Link to="/budgeting-hub" className="text-sm font-medium text-gray-700 hover:text-blue-600">Budgeting Hub</Link></li>
+                                <li><div className="flex items-center"><FiChevronRight className="w-3 h-3 text-gray-400 mx-1" /><span className="text-sm font-medium text-gray-500">Rolling & Flexible</span></div></li>
+                            </ol>
+                        </nav>
+      <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-md">
+        <h1 className="text-xl font-bold text-white">Rolling & Flexible Budgeting</h1>
+        <p className="text-sky-100 text-sm mt-1">Continuously adapt your budget to real-time performance and market changes.</p>
+      </div>
 
-				{/* Filters Dropdown */}
-				{showFilters && ( <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-4 rounded-lg shadow-md mt-4 border border-gray-200" ref={filtersRef}> <div className="grid grid-cols-1 md:grid-cols-3 gap-4"> {["Budget Period", "Scenario", "View"].map((filter) => (<div key={filter}><label className="block text-sm font-medium text-gray-700 mb-1">{filter}</label><select className="w-full p-2 border border-gray-300 rounded-md text-sm"><option>Default</option></select></div>))} </div> <div className="mt-4 text-right"><button onClick={() => setShowFilters(false)} className="px-4 py-2 text-sm bg-sky-600 text-white rounded-md hover:bg-sky-700">Apply</button></div> </motion.div> )}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <KPICard title="Full Year Revenue Forecast" value={formatCurrency(summary.fullYearForecast)} icon={<FiDollarSign />} />
+        <KPICard title="Full Year Profit Forecast" value={formatCurrency(summary.fullYearProfit)} icon={<FiTrendingUp />} />
+        <KPICard title="YTD Revenue Variance" value={formatCurrency(summary.ytdVariance)} change={summary.ytdVariance > 0 ? 'Ahead of Plan' : 'Behind Plan'} icon={<FiSliders />} />
+      </div>
 
-				{/* Navigation to Sub-Modules */}
-				<div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mt-6">
-					<h3 className="text-lg font-semibold text-sky-800 mb-4">Dive Deeper into Rolling & Flexible Budgeting</h3>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						{navigationItems.map((item, index) => ( <Link to={item.path} key={index}> <motion.div variants={cardVariants} whileHover={{ scale: 1.0, boxShadow: "0px 5px 15px rgba(0,74,128,0.1)" }} className={`p-4 rounded-lg  ${item.bgColor} ${item.hoverColor} transition-all duration-100 flex items-start space-x-4 h-full`}> <div className="flex-shrink-0 mt-1">{item.icon}</div> <div><h4 className="font-semibold text-gray-800">{item.title}</h4><p className="text-xs text-gray-600 mt-1">{item.description}</p></div> <FiChevronRight className="ml-auto text-gray-400 self-center text-lg" /> </motion.div> </Link> ))}
-					</div>
-				</div>
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <div className="lg:col-span-3 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+              <h2 className="text-lg font-semibold text-sky-900 mb-3">Rolling 12-Month Forecast</h2>
+              <div className="h-96"><Line data={lineChartData} options={{ responsive: true, maintainAspectRatio: false }}/></div>
+          </div>
+          <div className="lg:col-span-2 space-y-6">
+              <ContingencyFund budget={contingency.budget} used={contingency.used} onUpdate={(field, value) => setContingency(c => ({...c, [field]: value}))} />
+          </div>
+      </div>
+      
+       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <h2 className="text-xl font-semibold text-sky-900 mb-4">Automated Variance Alerts & AI Forecasts</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-3">
+              <h3 className="font-semibold text-gray-800">Significant Variance Alerts (Q1)</h3>
+              <div className="p-3 bg-red-50 border-l-4 border-red-400 flex items-start gap-3">
+                  <FiAlertTriangle className="text-red-500 text-xl mt-0.5 flex-shrink-0"/>
+                  <div>
+                      <h4 className="font-semibold text-red-800">R&D Cloud Spend is 18% over forecast</h4>
+                      <p className="text-sm text-red-700">AI Analysis: Unplanned data processing for a new model. Recommend a one-time budget top-up of $50k from the contingency fund.</p>
+                  </div>
+              </div>
+               <div className="p-3 bg-green-50 border-l-4 border-green-400 flex items-start gap-3">
+                  <BsStars className="text-green-500 text-xl mt-0.5 flex-shrink-0"/>
+                  <div>
+                      <h4 className="font-semibold text-green-800">Revenue is 4% ahead of forecast</h4>
+                      <p className="text-sm text-green-700">AI Recommendation: Reinvest 50% of the surplus ($100k) into Q2 marketing campaigns to accelerate momentum.</p>
+                  </div>
+              </div>
+          </div>
+          <div className="space-y-3">
+              <h3 className="font-semibold text-gray-800">AI-Powered Forecast Scenarios (for Q2-Q4)</h3>
+               <div className="p-3 bg-blue-50 border-l-4 border-blue-400">
+                  <h4 className="font-semibold text-blue-800">Optimistic Scenario (e.g., strong market)</h4>
+                  <p className="text-sm text-blue-700 mt-1">AI suggests: Increase revenue forecast by 5%. Allocate an additional $200k to marketing and $100k to sales commissions.</p>
+              </div>
+              <div className="p-3 bg-amber-50 border-l-4 border-amber-400">
+                  <h4 className="font-semibold text-amber-800">Pessimistic Scenario (e.g., downturn)</h4>
+                  <p className="text-sm text-amber-700 mt-1">AI suggests: Decrease revenue forecast by 8%. Implement a hiring freeze and reduce T&E budget by 50% to preserve cash.</p>
+              </div>
+          </div>
+        </div>
+       </div>
 
-				{/* KPI Cards Section */}
-				<motion.div variants={cardVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
-					{kpiData.map((kpi) => <KPICard key={kpi.id} {...kpi} />)}
-				</motion.div>
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-sky-900">Budget & Forecast Editor</h2>
+          <button className="px-4 py-2 bg-sky-600 text-white text-sm rounded-lg hover:bg-sky-700 flex items-center"><FiSave className="mr-2" /> Save Forecast</button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+              <tr>
+                <th className="p-3 text-left">Category</th>
+                <th className="p-3 text-right">Actuals YTD (Q1)</th>
+                <th className="p-3 text-right">Forecast (Q1)</th>
+                <th className="p-3 text-right">Variance (Q1)</th>
+                <th className="p-3 text-right">Forecast (Q2)</th>
+                <th className="p-3 text-right">Forecast (Q3)</th>
+                <th className="p-3 text-right">Forecast (Q4)</th>
+                <th className="p-3 text-left">AI Insight</th>
+              </tr>
+            </thead>
+            <tbody>
+              {budgetData.map(item => {
+                const variance = item.q1_actual - item.q1_forecast;
+                const isExpenseOver = item.type === 'Expense' && variance > 0;
+                const isIncomeUnder = item.type === 'Income' && variance < 0;
+                const isUnfavorable = isExpenseOver || isIncomeUnder;
 
-				{/* Chart Section */}
-				<motion.div variants={cardVariants} className="grid grid-cols-1 lg:grid-cols-5 gap-6 mt-6">
-					<div className="lg:col-span-3">
-                        <EnhancedChartCard title={charts.rollingForecast.title} chartType={chartTypes.rollingForecast} chartData={charts.rollingForecast} widgetId="rollingForecast" componentPath={charts.rollingForecast.componentPath} onChartTypeChange={toggleChartType} />
-                    </div>
-					<div className="lg:col-span-2">
-                        <EnhancedChartCard title={charts.contingencyBreakdown.title} chartType={chartTypes.contingencyBreakdown} chartData={charts.contingencyBreakdown} widgetId="contingencyBreakdown" componentPath={charts.contingencyBreakdown.componentPath} onChartTypeChange={toggleChartType} />
-                    </div>
-				</motion.div>
-				<motion.div variants={cardVariants} className="mt-6">
-                    <EnhancedChartCard title={charts.scenarioForecast.title} chartType={chartTypes.scenarioForecast} chartData={charts.scenarioForecast} widgetId="scenarioForecast" componentPath={charts.scenarioForecast.componentPath} onChartTypeChange={toggleChartType} />
-                </motion.div>
-			</motion.div>
-            
-			{/* Tooltips */}
-			<ReactTooltip id="ai-tooltip" place="top" effect="solid" />
-			<ReactTooltip id="chart-options-tooltip" place="top" effect="solid" />
-		</div>
-	);
+                return(
+                  <tr key={item.id} className="border-b border-gray-100 hover:bg-sky-50">
+                    <td className="p-3 font-medium text-gray-800">{item.category}</td>
+                    <td className="p-3 text-right font-mono">{formatCurrency(item.q1_actual)}</td>
+                    <td className="p-3 text-right font-mono">{formatCurrency(item.q1_forecast)}</td>
+                    <td className={`p-3 text-right font-mono font-semibold ${isUnfavorable ? 'text-red-600' : 'text-green-600'}`}>{formatCurrency(variance)}</td>
+                    {[ 'q2_forecast', 'q3_forecast', 'q4_forecast'].map(q_key => (
+                      <td key={q_key} className="p-3 text-right">
+                        <input type="number" value={item[q_key]} onChange={(e) => handleForecastChange(item.id, q_key, e.target.value)} className="w-28 p-1 text-right bg-transparent border border-gray-300 rounded focus:ring-1 focus:ring-sky-500"/>
+                      </td>
+                    ))}
+                    <td className="p-3 text-xs text-blue-800 max-w-xs">
+                        <div className="flex items-start"><BsStars className="mr-2 mt-0.5 flex-shrink-0" /><span>{item.aiInsight}</span></div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default RollingBudgeting;

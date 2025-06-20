@@ -1,189 +1,604 @@
-// src/pages/Budgeting/RevenueBasedBudgeting/RevenueBasedBudgeting.jsx
-import React, { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+// src/pages/Budgeting/RevenueBasedBudgeting/RevenuebasedBudgeting.jsx
+import React, { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import {
-	Chart as ChartJS,
-	CategoryScale,
-	LinearScale,
-	BarElement,
-	PointElement,
-	LineElement,
-	ArcElement,
-    RadialLinearScale,
-	Title,
-	Tooltip,
-	Legend,
-	Filler,
+  Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler,
 } from "chart.js";
-import { Bar, Line, Doughnut, Pie, Radar, PolarArea, Bubble } from "react-chartjs-2";
-import { motion } from "framer-motion";
-import {
-	FiFilter,
-	FiDollarSign,
-	FiUsers,
-	FiDownload,
-	FiSend,
-	FiChevronDown,
-	FiChevronRight,
-	FiTrendingUp,
-    FiTarget,
-    FiRepeat
-} from "react-icons/fi";
-import { BsStars, BsThreeDotsVertical } from "react-icons/bs";
-import { Tooltip as ReactTooltip } from "react-tooltip";
+import { Line, Bar, Doughnut } from "react-chartjs-2";
+import { FiDollarSign, FiTrendingUp, FiTarget,FiChevronRight, FiRepeat, FiInfo, FiEdit2, FiUser, FiBriefcase, FiHardDrive, FiBarChart2 } from "react-icons/fi";
+import { BsStars } from 'react-icons/bs';
+import { Tooltip as ReactTooltip } from 'react-tooltip';
+import { motion, AnimatePresence } from "framer-motion";
 
-ChartJS.register( CategoryScale, LinearScale, BarElement, PointElement, LineElement, ArcElement, RadialLinearScale, Title, Tooltip, Legend, Filler );
-const useOutsideClick = (callback) => { const ref = useRef(); useEffect(() => { const handleClick = (event) => { if (ref.current && !ref.current.contains(event.target)) { callback(); } }; document.addEventListener("mousedown", handleClick); return () => document.removeEventListener("mousedown", handleClick); }, [callback]); return ref; };
-const cardVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { staggerChildren: 0.05 } }, };
+ChartJS.register(
+  CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler
+);
 
-// Data tailored for Revenue-Based Budgeting
-const kpiData = [
-    { id: "projectedRevenue", title: "Projected Annual Revenue", value: 25000000, change: "+15% vs LY", isPositive: true, icon: <FiTrendingUp size={16}/>, componentPath: "#" },
-    { id: "revenueLinkedBudget", title: "Revenue-Linked Budget", value: 6250000, change: "25% of Revenue", isPositive: true, icon: <FiDollarSign size={16}/>, componentPath: "#" },
-    { id: "cacLtvRatio", title: "CAC to LTV Ratio", value: "1 : 4.5", change: "Improving", isPositive: true, icon: <FiTarget size={16}/>, componentPath: "#" },
-    { id: "mrrGrowth", title: "MRR Growth (MoM)", value: "3.2%", change: "+0.5% vs Target", isPositive: true, icon: <FiRepeat size={16}/>, componentPath: "#" },
-];
+// --- MOCK DATA ALIGNED WITH NEW SPECIFICATION ---
+const CURRENT_YEAR = 2025;
+const PREVIOUS_YEAR = 2024;
 
-const charts = {
-    revenueVsSpend: {
-        title: "Revenue vs. Budgeted Spend",
-        componentPath: "/revenue-expense-allocation",
-        data: {
-            labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-            datasets: [
-                { type: 'line', label: "Actual Revenue", data: [1.8, 1.9, 2.1, 2.0, 2.3, 2.5], borderColor: "#10B981", backgroundColor: "rgba(16, 185, 129, 0.1)", yAxisID: 'y_revenue', tension: 0.4 },
-                { type: 'bar', label: "Budgeted Spend", data: [0.4, 0.42, 0.45, 0.48, 0.5, 0.55], backgroundColor: "#3B82F6", yAxisID: 'y_spend' }
-            ],
-        },
-        options: {
-            maintainAspectRatio: false, responsive: true,
-            plugins: { legend: { position: "bottom" } },
-            scales: { y_revenue: { type: 'linear', position: 'left', title: { display: true, text: 'Revenue ($M)'}}, y_spend: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Spend ($M)'}}}
-        },
-        defaultType: "bar",
-    },
-    cacByChannel: {
-        title: "Customer Acquisition Cost (CAC) by Channel",
-        componentPath: "/customer-acquisition-budgeting",
-        data: {
-            labels: ["Organic Search", "Paid Social", "Content Marketing", "Referrals", "Events"],
-            datasets: [{ label: "CAC ($)", data: [120, 250, 180, 85, 450], backgroundColor: ["#3B82F6", "#10B981", "#F59E0B", "#8B5CF6", "#EF4444"] }],
-        },
-        options: { maintainAspectRatio: false, responsive: true, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { ticks: { callback: value => `$${value}` } } }},
-        defaultType: "bar",
-    },
-    mrrGrowthTrend: {
-        title: "Monthly Recurring Revenue (MRR) Growth",
-        componentPath: "/subscription-revenue-considerations",
-        data: {
-            labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
-            datasets: [
-              { label: "Actual MRR", data: [450, 465, 485, 500, 520, 545, 570], borderColor: "#8B5CF6", backgroundColor: "rgba(139, 92, 246, 0.1)", fill: true, tension: 0.4 },
-              { label: "Growth Target", data: [445, 460, 475, 490, 510, 530, 550], borderColor: "#A855F7", borderDash: [5,5], fill: false, tension: 0.4, pointRadius: 0 },
-            ],
-        },
-        options: { maintainAspectRatio: false, responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { y: { ticks: { callback: value => `$${value}k` } } }},
-        defaultType: "line"
+const MOCK_DATA = {
+  revenue: [
+    { id: 1, client: "Global Tech Inc.", status: 'Existing', type: 'Recurring', units: 220, price: 520, churn: 1, upsell: 7, winProb: 100, aiNote: "Increased units based on historical usage growth." },
+    { id: 2, client: "Innovate Solutions", status: 'Existing', type: 'Recurring', units: 150, price: 480, churn: 2, upsell: 10, winProb: 100, aiNote: "Higher upsell potential identified from product engagement." },
+    { id: 3, client: "Data Driven LLC", status: 'Existing', type: 'Services', units: 1, price: 600000, churn: 0, upsell: 0, winProb: 100, aiNote: "Contract renewal with price increase." },
+    { id: 4, client: "Future Corp (Pipeline)", status: 'Pipeline', type: 'Recurring', units: 100, price: 500, churn: 0, upsell: 0, winProb: 75, aiNote: "High probability deal based on CRM stage." },
+    { id: 5, client: "New Ventures (Pipeline)", status: 'Pipeline', type: 'Recurring', units: 50, price: 450, churn: 0, upsell: 0, winProb: 50, aiNote: "Mid-stage opportunity, probability reflects discovery phase." },
+    { id: 6, client: "One-Time Project", status: 'Pipeline', type: 'One-time', units: 1, price: 150000, churn: 0, upsell: 0, winProb: 90, aiNote: "SOW accepted, awaiting signature." },
+  ],
+  cogs: [
+      { id: 1, product: 'SaaS Plan', costPerUnit: 85, forecastedUnits: 4250, vendor: 'Cloud Services Inc.', aiNote: 'Unit cost reflects 3% vendor increase.' },
+      { id: 2, product: 'Services', costPerUnit: 250000, forecastedUnits: 1, vendor: 'Consultant Pool', aiNote: 'Based on average project staffing costs.' },
+      { id: 3, product: 'One-time', costPerUnit: 60000, forecastedUnits: 1, vendor: 'Implementation Partner', aiNote: 'Fixed cost from SOW.' },
+  ],
+  opex: {
+    'Marketing': [
+      { id: 1, category: 'Paid Advertising', monthly: 50000, type: 'Recurring', aiBaseline: 45000, aiNote: 'Increased budget for new market campaign based on CPL analysis.' },
+      { id: 2, category: 'Software/Subscriptions', monthly: 15000, type: 'Recurring', aiBaseline: 15000, aiNote: 'Reflects known contract renewals for Martech stack.' },
+      { id: 3, category: 'Events/Conferences', monthly: 10000, type: 'One-Time', aiBaseline: 20000, aiNote: 'AI suggests shifting spend from events to higher ROI digital channels.' },
+    ],
+    'R&D': [
+      { id: 1, category: 'Cloud Infrastructure', monthly: 120000, type: 'Recurring', aiBaseline: 115000, aiNote: 'Scaled with projected platform usage.'},
+      { id: 2, category: 'Software/Subscriptions', monthly: 25000, type: 'Recurring', aiBaseline: 25000, aiNote: 'Developer tooling costs.'},
+    ],
+    'G&A': [
+      { id: 1, category: 'Office Lease', monthly: 40000, type: 'Recurring', aiBaseline: 40000, aiNote: 'Fixed cost per current lease agreement.'},
+      { id: 2, category: 'Professional Services (Legal/Audit)', monthly: 15000, type: 'Recurring', aiBaseline: 12000, aiNote: 'Increased audit fees expected for this year.'},
+    ]
+  },
+  headcount: [
+    { id: 1, name: 'Alice Johnson', title: 'Lead Developer', department: 'R&D', salary: 150000, raise: 5, bonus: 10, status: 'Active', startDate: '2023-01-01', termDate: null },
+    { id: 2, name: 'Bob Williams', title: 'Sales Director', department: 'Sales', salary: 120000, raise: 3, bonus: 20, status: 'Active', startDate: '2023-01-01', termDate: null },
+    { id: 3, name: 'Charlie Brown', title: 'Marketing Manager', department: 'Marketing', salary: 90000, raise: 4, bonus: 10, status: 'Active', startDate: '2023-01-01', termDate: '2025-06-30' },
+    { id: 4, name: 'New Hire - Engineer', title: 'Software Engineer', department: 'R&D', salary: 110000, raise: 0, bonus: 5, status: 'New Hire', startDate: '2025-03-01', termDate: null },
+    { id: 5, name: 'New Hire - Account Exec', title: 'Account Executive', department: 'Sales', salary: 75000, raise: 0, bonus: 25, status: 'New Hire', startDate: '2025-04-01', termDate: null },
+  ],
+  capex: [
+    { id: 1, asset: 'Server Farm Upgrade', cost: 250000, purchaseDate: '2025-02-15', usefulLife: 5, aiNote: 'Required to support projected 40% user growth.' },
+    { id: 2, asset: 'New Office Build-out', cost: 150000, purchaseDate: '2025-08-01', usefulLife: 10, aiNote: 'Capex for planned office expansion.' },
+  ],
+  multiYearPlan: {
+    drivers: {
+      revenueGrowth: { '2026': 25, '2027': 22, '2028': 20 },
+      grossMargin: { '2026': 67, '2027': 68, '2028': 69 },
+      opexAsRevenue: { '2026': 43, '2027': 41, '2028': 38 },
+      fteGrowth: { '2026': 20, '2027': 15, '2028': 15 },
     }
+  },
 };
 
-// Sub-menu navigation items as requested
-const navigationItems = [
-    { title: "Revenue-Driven Expense Allocation", description: "Adjust budgets dynamically based on real-time and expected income trends.", icon: <FiTrendingUp className="text-3xl text-green-500" />, path: "/revenue-driven-expense", bgColor: "bg-green-50", hoverColor: "hover:bg-green-100" },
-    { title: "Sales Growth-Linked Budget Adjustments", description: "Link departmental and project budgets directly to sales performance metrics.", icon: <FiDollarSign className="text-3xl text-blue-500" />, path: "/sale-growth-budget", bgColor: "bg-blue-50", hoverColor: "hover:bg-blue-100" },
-    { title: "Customer Acquisition & Retention Budgeting", description: "Optimize spending on acquiring new customers versus retaining existing ones.", icon: <FiTarget className="text-3xl text-red-500" />, path: "/customer-acquisition-retention", bgColor: "bg-red-50", hoverColor: "hover:bg-red-100" },
-    { title: "Subscription & Recurring Revenue", description: "Plan and forecast budgets based on key SaaS metrics like MRR, ARR, and Churn.", icon: <FiRepeat className="text-3xl text-purple-500" />, path: "/subscription-recurring-revenue", bgColor: "bg-purple-50", hoverColor: "hover:bg-purple-100" },
-];
-
-// Self-contained, performant chart card component
-const EnhancedChartCard = ({ title, componentPath, chartType, chartData, widgetId, onChartTypeChange }) => {
-    const navigate = useNavigate();
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [isChartTypeMenuOpen, setIsChartTypeMenuOpen] = useState(false);
-    const [isAiDropdownOpen, setIsAiDropdownOpen] = useState(false);
-    const [localAiInput, setLocalAiInput] = useState("");
-    const dropdownRef = useOutsideClick(() => setIsDropdownOpen(false));
-    const aiDropdownRef = useOutsideClick(() => setIsAiDropdownOpen(false));
-    const handleSendAIQuery = () => { if (localAiInput.trim()) { console.log(`AI Query for ${widgetId}:`, localAiInput); setLocalAiInput(""); setIsAiDropdownOpen(false); } };
-    const renderChart = (type, data, options = {}) => { switch (type) { case "line": return <Line data={data} options={options} />; case "bar": return <Bar data={data} options={options} />; case "pie": return <Pie data={data} options={options} />; case "doughnut": return <Doughnut data={data} options={options} />; case "radar": return <Radar data={data} options={options} />; case "polarArea": return <PolarArea data={data} options={options} />; case "bubble": return <Bubble data={data} options={options} />; default: return <Line data={data} options={options} />; } };
-    return ( <motion.div variants={cardVariants} className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-sky-100 h-full flex flex-col"> <div className="flex justify-between items-center mb-2"> <h3 className="text-sm font-semibold text-sky-800">{title}</h3> <div className="flex space-x-2 relative"> <div className="relative" ref={dropdownRef}> <button onClick={() => setIsDropdownOpen(p => !p)} className="p-1 rounded hover:bg-gray-100" data-tooltip-id="chart-options-tooltip" data-tooltip-content="Options"><BsThreeDotsVertical /></button> {isDropdownOpen && ( <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-20 border border-gray-200"> <div className="py-1 text-xs text-gray-800"> <div className="relative" onMouseEnter={() => setIsChartTypeMenuOpen(true)} onMouseLeave={() => setIsChartTypeMenuOpen(false)}> <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex justify-between items-center"> All Chart Types <FiChevronDown className="ml-1 text-xs" /> </div> {isChartTypeMenuOpen && ( <div className="absolute top-0 left-full w-40 bg-white rounded-md shadow-lg border border-gray-200 z-30 py-1" style={{ marginLeft: "-1px" }}> {["line", "bar", "pie", "doughnut", "radar", "polarArea", "bubble"].map((type) => ( <button key={type} onClick={() => { onChartTypeChange(widgetId, type); setIsDropdownOpen(false); }} className="block w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-100 transition"> {type.charAt(0).toUpperCase() + type.slice(1)} Chart </button> ))} </div> )} </div> <div className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={() => { navigate(componentPath); setIsDropdownOpen(false); }}>Analyze</div> </div> </div> )} </div> <div className="relative" ref={aiDropdownRef}> <button onClick={() => setIsAiDropdownOpen(p => !p)} className="p-1 rounded hover:bg-gray-100" data-tooltip-id="ai-tooltip" data-tooltip-content="Ask AI"><BsStars /></button> {isAiDropdownOpen && ( <div className="absolute right-0 top-full mt-2 w-full sm:w-64 bg-white rounded-md shadow-lg z-20 border border-gray-200 py-2 px-2"> <h1 className="text-xs text-center mb-1">Ask regarding {title}</h1> <div className="flex justify-between gap-3 w-full"> <input type="text" value={localAiInput} onChange={(e) => setLocalAiInput(e.target.value)} placeholder="Ask AI..." className="w-full p-1 border border-gray-300 rounded text-xs" /> <button onClick={handleSendAIQuery} className="p-2 bg-sky-500 text-white rounded hover:bg-sky-600" disabled={!localAiInput.trim()}><FiSend /></button> </div> </div> )} </div> </div> </div> <div className="flex-grow h-64">{renderChart(chartType, chartData.data, chartData.options)}</div> </motion.div> );
+const CORPORATE_GUIDELINES = {
+    'opex': "Overall Opex growth should not exceed 80% of revenue growth. Prioritize investments with clear ROI. All new software spend over $10k/year requires CFO approval.",
+    'headcount': `Hiring is limited to roles approved in the annual plan. Salary increases to average 3-5%. Exceptions require executive approval.`,
+    'capex': "Capital expenditures are limited to $500k for FY2025. All requests must include a business case detailing the expected return on investment.",
 };
+
+const formatCurrency = (value, compact = false) => {
+  if (compact) {
+    if (value >= 1e6) return `$${(value / 1e6).toFixed(1)}M`;
+    if (value >= 1e3) return `$${(value / 1e3).toFixed(0)}K`;
+    return `$${value}`;
+  }
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(value);
+};
+
+const KPICard = ({ title, value, change, icon, tooltip, isPositive = true, aiNote }) => (
+  <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 transition-all hover:shadow-md">
+    <div className="flex justify-between items-start">
+      <div className="flex items-center">
+        <div className="p-2 bg-sky-100 text-sky-600 rounded-full mr-3">{icon}</div>
+        <div>
+          <p className="text-sm font-semibold text-sky-800">{title}</p>
+          <p className="text-2xl font-bold text-gray-900">{value}</p>
+        </div>
+      </div>
+      {tooltip && <FiInfo className="text-gray-400" data-tooltip-id="info-tooltip" data-tooltip-content={tooltip} />}
+    </div>
+    {change && <p className={`text-xs mt-2 font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>{change}</p>}
+    {aiNote && (
+      <div className="mt-2 p-2 bg-blue-50 rounded text-xs text-blue-800 flex items-start">
+        <BsStars className="mr-1 mt-0.5 flex-shrink-0" />
+        <span>{aiNote}</span>
+      </div>
+    )}
+  </div>
+);
+
+const GuidelinePanel = ({ guideline }) => (
+    <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 mb-6 rounded-r-lg">
+        <div className="flex">
+            <div className="py-1"><FiInfo className="h-5 w-5 text-yellow-500 mr-3"/></div>
+            <div>
+                <p className="font-bold">Corporate Guideline</p>
+                <p className="text-sm">{guideline}</p>
+            </div>
+        </div>
+    </div>
+);
+
 
 const RevenueBasedBudgeting = () => {
-    const navigate = useNavigate();
-	const [filters, setFilters] = useState({ budgetPeriod: "Annual Budget 2024", scenario: "Base Scenario", view: "Consolidated" });
-	const [showFilters, setShowFilters] = useState(false);
-	const filtersRef = useOutsideClick(() => setShowFilters(false));
+  const [activeTab, setActiveTab] = useState("revenue");
+  const [activeOpexDept, setActiveOpexDept] = useState('Marketing');
+  const [scenario, setScenario] = useState('Base Case');
+  const [version, setVersion] = useState(`FY${CURRENT_YEAR} Budget v1.0 - Draft`);
+  
+  // State for all budget modules
+  const [revenueLines, setRevenueLines] = useState(MOCK_DATA.revenue);
+  const [cogsLines, setCogsLines] = useState(MOCK_DATA.cogs);
+  const [opex, setOpex] = useState(MOCK_DATA.opex);
+  const [headcount, setHeadcount] = useState(MOCK_DATA.headcount);
+  const [capex, setCapex] = useState(MOCK_DATA.capex);
+  const [multiYearPlan, setMultiYearPlan] = useState(MOCK_DATA.multiYearPlan);
 
-    const [chartTypes, setChartTypes] = useState({
-        revenueVsSpend: 'bar',
-        cacByChannel: 'bar',
-        mrrGrowthTrend: 'line',
+
+  // --- Driver-based Calculations ---
+  const calculateAnnualRevenue = (line) => {
+    const baseRevenue = line.units * line.price * (line.type === 'Recurring' ? 12 : 1);
+    let finalRevenue = baseRevenue;
+    if (line.status === 'Existing' && line.type === 'Recurring') {
+      finalRevenue = baseRevenue * (1 - (line.churn / 100)) * (1 + (line.upsell / 100));
+    } else if (line.status === 'Pipeline') {
+      finalRevenue = baseRevenue * (line.winProb / 100);
+    }
+    return finalRevenue;
+  };
+  
+  const totalRevenue = useMemo(() => revenueLines.reduce((sum, line) => sum + calculateAnnualRevenue(line), 0), [revenueLines]);
+
+  const totalCOGS = useMemo(() => cogsLines.reduce((sum, line) => sum + line.costPerUnit * line.forecastedUnits * (line.product === 'SaaS Plan' ? 12 : 1), 0), [cogsLines]);
+  
+  const grossProfit = totalRevenue - totalCOGS;
+  const grossMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
+
+  const calculateProratedCost = (employee) => {
+      const year = CURRENT_YEAR;
+      const startDate = new Date(employee.startDate);
+      const termDate = employee.termDate ? new Date(employee.termDate) : null;
+
+      let startMonth = 0;
+      if (startDate.getFullYear() === year) {
+          startMonth = startDate.getMonth();
+      }
+      
+      let endMonth = 11;
+      if (termDate && termDate.getFullYear() === year) {
+          endMonth = termDate.getMonth();
+      }
+      
+      const activeMonths = endMonth - startMonth + 1;
+      if (activeMonths <= 0) return 0;
+      
+      const adjustedSalary = employee.salary * (1 + (employee.raise || 0) / 100);
+      const bonusAmount = adjustedSalary * ((employee.bonus || 0) / 100);
+      const totalAnnualComp = adjustedSalary + bonusAmount;
+
+      return (totalAnnualComp / 12) * activeMonths;
+  };
+
+  const totalHeadcountCost = useMemo(() => headcount.reduce((sum, emp) => sum + calculateProratedCost(emp), 0), [headcount]);
+  
+  const totalOpex = useMemo(() => {
+      const nonSalaryOpex = Object.values(opex).flat().reduce((sum, line) => sum + (line.monthly * 12), 0);
+      return nonSalaryOpex + totalHeadcountCost;
+  }, [opex, totalHeadcountCost]);
+
+  const totalCapex = useMemo(() => capex.reduce((sum, item) => sum + item.cost, 0), [capex]);
+
+  const netIncome = grossProfit - totalOpex;
+
+  // --- Change Handlers for Edit Functionality ---
+  const handleStateChange = (setter, id, field, value, isNumeric = true) => {
+    setter(prevItems => prevItems.map(item => 
+      item.id === id ? { ...item, [field]: isNumeric ? (parseFloat(value) || 0) : value } : item
+    ));
+  };
+
+  const handleRevenueLineChange = (id, field, value) => handleStateChange(setRevenueLines, id, field, value);
+  const handleCogsLineChange = (id, field, value) => handleStateChange(setCogsLines, id, field, value);
+  const handleHeadcountChange = (id, field, value, isNumeric = true) => handleStateChange(setHeadcount, id, field, value, isNumeric);
+  const handleCapexChange = (id, field, value, isNumeric = true) => handleStateChange(setCapex, id, field, value, isNumeric);
+
+  const handleOpexChange = (department, id, field, value) => {
+    setOpex(prevOpex => {
+      const newOpex = { ...prevOpex };
+      newOpex[department] = newOpex[department].map(line => 
+        line.id === id ? { ...line, [field]: parseFloat(value) || 0 } : line
+      );
+      return newOpex;
     });
-	
-    const toggleChartType = (widgetId, type) => {
-		setChartTypes((prev) => ({ ...prev, [widgetId]: type }));
-	};
+  };
 
-    const KPICard = ({ title, value, change, isPositive, icon, componentPath }) => {
-		const [showAIDropdown, setShowAIDropdown] = useState(false);
-		const [localAIInput, setLocalAIInput] = useState("");
-		const dropdownRef = useRef(null);
-		useEffect(() => { const handleClickOutside = (event) => { if (dropdownRef.current && !dropdownRef.current.contains(event.target)) { setShowAIDropdown(false); } }; document.addEventListener("mousedown", handleClickOutside); return () => { document.removeEventListener("mousedown", handleClickOutside); }; }, []);
-		const handleSendAIQuery = () => { if (localAIInput.trim()) { console.log(`AI Query for ${title}:`, localAIInput); setLocalAIInput(""); setShowAIDropdown(false); } };
-        const needsDollarSign = ["Projected Annual Revenue", "Revenue-Linked Budget"].includes(title);
-		return ( <motion.div variants={cardVariants} initial="hidden" animate="visible" whileHover={{ y: -3 }} className="bg-white p-3 rounded-lg shadow-sm border border-sky-100 relative cursor-pointer" onClick={() => navigate(componentPath)}> <div className="flex justify-between items-start"> <div> <div className="flex items-center justify-between"> <p className="text-[10px] font-semibold text-sky-600 uppercase tracking-wider truncate">{title}</p> <button onClick={(e) => { e.stopPropagation(); setShowAIDropdown(!showAIDropdown); }} className="p-1 rounded hover:bg-gray-100" data-tooltip-id="ai-tooltip" data-tooltip-content="Ask AI"><BsStars /></button> {showAIDropdown && ( <div ref={dropdownRef} className="absolute right-0 top-5 mt-2 w-full sm:w-44 bg-white rounded-md shadow-lg z-10 border border-gray-200 p-2" onClick={(e) => e.stopPropagation()}> <div className="flex items-center space-x-2"> <input type="text" value={localAIInput} onChange={(e) => setLocalAIInput(e.target.value)} placeholder="Ask AI..." className="w-full p-1 border border-gray-300 rounded text-xs" onClick={(e) => e.stopPropagation()} /> <button onClick={handleSendAIQuery} className="p-1 bg-sky-500 text-white rounded hover:bg-sky-600" disabled={!localAIInput.trim()}><FiSend /></button> </div> </div> )} </div> <p className="text-sm font-bold text-sky-900 mt-1">{needsDollarSign && "$"}{typeof value === "number" ? value.toLocaleString() : value}</p> <div className={`flex items-center mt-2 ${ isPositive ? "text-green-500" : "text-red-500" }`}><span className="text-[10px] font-medium">{change} {isPositive ? "↑" : "↓"}</span></div> </div> <div className="p-2 rounded-full bg-sky-100 hover:bg-sky-200 transition-colors duration-200"><div className="text-sky-600 hover:text-sky-800 transition-colors duration-200">{icon}</div></div> </div> </motion.div> );
-	};
+  const handleMultiYearPlanChange = (driverKey, year, value) => {
+    setMultiYearPlan(prevPlan => ({
+        ...prevPlan,
+        drivers: {
+            ...prevPlan.drivers,
+            [driverKey]: {
+                ...prevPlan.drivers[driverKey],
+                [year]: parseFloat(value) || 0
+            }
+        }
+    }));
+  };
 
-	return (
-		<div className="space-y-6 p-4 md:p-6 min-h-screen relative bg-sky-50">
-			<motion.div initial="hidden" animate="visible" variants={cardVariants}>
-				{/* Header Section */}
-				<div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-md">
-					<div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-						<div><h1 className="text-xl font-bold text-white">Revenue-Based Budgeting</h1><p className="text-sky-100 text-sm mt-1">Align spending with income trends and performance.</p></div>
-						<div className="flex space-x-2 mt-3 md:mt-0">
-							<button onClick={() => setShowFilters((p) => !p)} className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors"><FiFilter className="mr-1.5" /> Filters</button>
-							<button onClick={() => window.print()} className="flex items-center py-2 px-3 text-xs font-medium text-white bg-sky-900 rounded-lg border border-sky-200 hover:bg-white hover:text-sky-900 transition-colors"><FiDownload className="mr-1.5" /> Export View</button>
-						</div>
-					</div>
-				</div>
+  return (
+    <div className="space-y-6 p-4 md:p-6 min-h-screen relative bg-sky-50">
+        <nav className="flex mb-4" aria-label="Breadcrumb">
+                            <ol className="inline-flex items-center space-x-1 md:space-x-2">
+                                <li><Link to="/budgeting-hub" className="text-sm font-medium text-gray-700 hover:text-blue-600">Budgeting Hub</Link></li>
+                                <li><div className="flex items-center"><FiChevronRight className="w-3 h-3 text-gray-400 mx-1" /><span className="text-sm font-medium text-gray-500">Revenue Based</span></div></li>
+                            </ol>
+                        </nav>
+      {/* --- Header & Global Controls (Restored Style) --- */}
+      <div className="bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-md flex flex-wrap justify-between items-center gap-4">
+          <div>
+            <h1 className="text-xl font-bold text-white">FP&A Budgeting Module - {CURRENT_YEAR} Plan</h1>
+            <p className="text-sky-100 text-sm mt-1">AI-driven, collaborative budget planning and forecasting.</p>
+          </div>
+          <div className="flex items-center gap-4 text-sm text-white">
+            <div className="flex items-center">
+              <label className="font-medium mr-2">Scenario:</label>
+              <select value={scenario} onChange={e => setScenario(e.target.value)} className="p-1 border bg-white/20 border-white/30 rounded text-white focus:ring-1 focus:ring-sky-300">
+                <option className="text-black">Base Case</option>
+                <option className="text-black">Stretch</option>
+                <option className="text-black">Worst Case</option>
+              </select>
+            </div>
+             <div className="hidden sm:block text-white/50">|</div>
+             <div className="text-sky-800">
+                <span className="font-medium">Version:</span> {version}
+            </div>
+          </div>
+      </div>
+      
+      {/* --- Main Navigation Tabs --- */}
+      <div className="flex items-center gap-1 border-b border-gray-200 pb-0 overflow-x-auto">
+        {[
+          { id: "revenue", label: "Revenue", icon: FiDollarSign },
+          { id: "cogs", label: "COGS", icon: FiTrendingUp },
+          { id: "opex", label: "Operating Expenses", icon: FiBriefcase },
+          { id: "headcount", label: "Headcount", icon: FiUser },
+          { id: "capex", label: "CapEx", icon: FiHardDrive },
+          { id: "multi_year_plan", label: "Multi-Year Plan", icon: FiBarChart2 },
+        ].map(tab => (
+          <button 
+            key={tab.id} 
+            onClick={() => setActiveTab(tab.id)} 
+            className={`flex items-center py-3 px-4 font-medium text-sm rounded-t-lg -mb-px transition-colors duration-200 whitespace-nowrap
+                        ${activeTab === tab.id 
+                          ? "text-white bg-sky-800 border-b-2 border-sky-500" 
+                          : "text-sky-700 hover:text-sky-900 hover:bg-sky-100 border-b-2 border-transparent"
+                        }`}
+          >
+            <tab.icon className="mr-2 h-4 w-4" /> {tab.label}
+          </button>
+        ))}
+      </div>
 
-				{/* Filters Dropdown */}
-				{showFilters && ( <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-4 rounded-lg shadow-md mt-4 border border-gray-200" ref={filtersRef}> <div className="grid grid-cols-1 md:grid-cols-3 gap-4"> {["Budget Period", "Scenario", "View"].map((filter) => (<div key={filter}><label className="block text-sm font-medium text-gray-700 mb-1">{filter}</label><select className="w-full p-2 border border-gray-300 rounded-md text-sm"><option>Default</option></select></div>))} </div> <div className="mt-4 text-right"><button onClick={() => setShowFilters(false)} className="px-4 py-2 text-sm bg-sky-600 text-white rounded-md hover:bg-sky-700">Apply</button></div> </motion.div> )}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+        >
+          {/* --- MODULE: Revenue Budgeting --- */}
+          {activeTab === "revenue" && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                 <KPICard title="Total Revenue" value={formatCurrency(totalRevenue)} icon={<FiDollarSign />} aiNote="Growth driven by strong upsell and high-probability pipeline."/>
+                 <KPICard title="Gross Profit" value={formatCurrency(grossProfit)} change={`${grossMargin.toFixed(1)}% Margin`} icon={<FiTrendingUp />} aiNote="Margin improvement expected from favorable product mix." />
+                 <KPICard title="Net Income" value={formatCurrency(netIncome)} change={`${(netIncome/totalRevenue * 100).toFixed(1)}% of Revenue`} icon={<FiTarget />} isPositive={netIncome > 0} aiNote="Profitability target is on track based on current plan." />
+              </div>
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 className="text-lg font-semibold text-sky-900 mb-4">Revenue Drivers Breakdown</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="text-left text-xs text-gray-500 uppercase bg-gray-50">
+                      <tr>
+                        <th className="p-2">Client / Product</th>
+                        <th className="p-2">Type</th>
+                        <th className="p-2 text-center">Units</th>
+                        <th className="p-2 text-center">Unit Price</th>
+                        <th className="p-2 text-center">Churn %</th>
+                        <th className="p-2 text-center">Upsell %</th>
+                        <th className="p-2 text-center">Win Prob %</th>
+                        <th className="p-2 text-right">Annual Forecast</th>
+                        <th className="p-2">AI Insight</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {revenueLines.map(line => (
+                          <tr key={line.id} className={`border-b border-gray-100 hover:bg-sky-50`}>
+                            <td className="p-2 font-medium text-gray-800">{line.client}</td>
+                            <td className="p-2"><span className={`px-2 py-1 text-xs font-medium rounded-full ${line.type === 'Recurring' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{line.type}</span></td>
+                            <td className="p-2"><input type="number" value={line.units} onChange={(e) => handleRevenueLineChange(line.id, 'units', e.target.value)} className="w-20 p-1 text-center bg-transparent border border-gray-300 rounded focus:ring-1 focus:ring-sky-500"/></td>
+                            <td className="p-2"><input type="number" value={line.price} onChange={(e) => handleRevenueLineChange(line.id, 'price', e.target.value)} className="w-20 p-1 text-center bg-transparent border border-gray-300 rounded focus:ring-1 focus:ring-sky-500"/></td>
+                            <td className="p-2"><input type="number" value={line.churn} onChange={(e) => handleRevenueLineChange(line.id, 'churn', e.target.value)} className="w-16 p-1 text-center bg-transparent border border-gray-300 rounded focus:ring-1 focus:ring-sky-500" disabled={line.status === 'Pipeline'}/></td>
+                            <td className="p-2"><input type="number" value={line.upsell} onChange={(e) => handleRevenueLineChange(line.id, 'upsell', e.target.value)} className="w-16 p-1 text-center bg-transparent border border-gray-300 rounded focus:ring-1 focus:ring-sky-500" disabled={line.status === 'Pipeline'}/></td>
+                            <td className="p-2"><input type="number" value={line.winProb} onChange={(e) => handleRevenueLineChange(line.id, 'winProb', e.target.value)} className="w-16 p-1 text-center bg-transparent border border-gray-300 rounded focus:ring-1 focus:ring-sky-500" disabled={line.status !== 'Pipeline'}/></td>
+                            <td className="p-2 text-right font-semibold text-gray-900">{formatCurrency(calculateAnnualRevenue(line))}</td>
+                            <td className="p-2 text-blue-600 text-xs"><BsStars className="inline mr-2" />{line.aiNote}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                    <tfoot className="font-bold text-gray-900 bg-gray-50">
+                      <tr className="border-t-2 border-gray-300">
+                        <td className="p-2" colSpan="7">Total Annual Projected Revenue</td>
+                        <td className="p-2 text-right">{formatCurrency(totalRevenue)}</td>
+                        <td className="p-2"></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
 
-				{/* Navigation to Sub-Modules */}
-				<div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mt-6">
-					<h3 className="text-lg font-semibold text-sky-800 mb-4">Dive Deeper into Revenue-Based Budgeting</h3>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						{navigationItems.map((item, index) => ( <Link to={item.path} key={index}> <motion.div variants={cardVariants} whileHover={{ scale: 1.0, boxShadow: "0px 5px 15px rgba(0,74,128,0.1)" }} className={`p-4 rounded-lg  ${item.bgColor} ${item.hoverColor} transition-all duration-100 flex items-start space-x-4 h-full`}> <div className="flex-shrink-0 mt-1">{item.icon}</div> <div><h4 className="font-semibold text-gray-800">{item.title}</h4><p className="text-xs text-gray-600 mt-1">{item.description}</p></div> <FiChevronRight className="ml-auto text-gray-400 self-center text-lg" /> </motion.div> </Link> ))}
-					</div>
-				</div>
+          {/* --- MODULE: COGS Budgeting --- */}
+          {activeTab === "cogs" && (
+            <div className="space-y-6">
+              <KPICard title="Total COGS" value={formatCurrency(totalCOGS)} change={`Linked to revenue forecast`} icon={<FiTrendingUp />} aiNote="COGS scales automatically with unit sales from the Revenue tab." />
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 className="text-lg font-semibold text-sky-900 mb-4">Cost of Goods Sold (COGS) Drivers</h3>
+                 <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="text-left text-xs text-gray-500 uppercase bg-gray-50">
+                      <tr>
+                        <th className="p-2">Product / Service</th>
+                        <th className="p-2">Vendor</th>
+                        <th className="p-2 text-center">Cost Per Unit</th>
+                        <th className="p-2 text-center">Forecasted Units (from Revenue)</th>
+                        <th className="p-2 text-right">Total Annual Cost</th>
+                        <th className="p-2">AI Insight</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cogsLines.map(line => (
+                        <tr key={line.id} className="border-b border-gray-100 hover:bg-sky-50">
+                            <td className="p-2 font-medium">{line.product}</td>
+                            <td className="p-2 text-gray-600">{line.vendor}</td>
+                            <td className="p-2"><input type="number" value={line.costPerUnit} onChange={e => handleCogsLineChange(line.id, 'costPerUnit', e.target.value)} className="w-24 p-1 text-center bg-transparent border border-gray-300 rounded focus:ring-1 focus:ring-sky-500" /></td>
+                            <td className="p-2 text-center text-gray-600">{line.forecastedUnits.toLocaleString()}</td>
+                            <td className="p-2 text-right font-semibold">{formatCurrency(line.costPerUnit * line.forecastedUnits * (line.product === 'SaaS Plan' ? 12 : 1))}</td>
+                            <td className="p-2 text-blue-600 text-xs"><BsStars className="inline mr-2" />{line.aiNote}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="font-bold text-gray-900 bg-gray-50">
+                      <tr className="border-t-2 border-gray-300">
+                        <td colSpan="4" className="p-2">Total COGS</td>
+                        <td className="p-2 text-right">{formatCurrency(totalCOGS)}</td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
 
-				{/* KPI Cards Section */}
-				<motion.div variants={cardVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
-					{kpiData.map((kpi) => <KPICard key={kpi.id} {...kpi} />)}
-				</motion.div>
-
-				{/* Chart Section */}
-				<motion.div variants={cardVariants} className="grid grid-cols-1 lg:grid-cols-5 gap-6 mt-6">
-					<div className="lg:col-span-3">
-                        <EnhancedChartCard title={charts.revenueVsSpend.title} chartType={chartTypes.revenueVsSpend} chartData={charts.revenueVsSpend} widgetId="revenueVsSpend" componentPath={charts.revenueVsSpend.componentPath} onChartTypeChange={toggleChartType} />
+          {/* --- MODULE: Operating Expenses (Opex) --- */}
+          {activeTab === "opex" && (
+            <div className="space-y-6">
+              <GuidelinePanel guideline={CORPORATE_GUIDELINES.opex} />
+              <KPICard title="Total Operating Expenses" value={formatCurrency(totalOpex)} change={`${(totalOpex/totalRevenue * 100).toFixed(1)}% of Revenue`} icon={<FiBriefcase />} aiNote={`Includes ${formatCurrency(totalHeadcountCost, true)} from Headcount Plan.`}/>
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold text-sky-900">Departmental Expense Budget</h3>
+                    <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
+                        {Object.keys(opex).map(dept => (
+                            <button key={dept} onClick={() => setActiveOpexDept(dept)} className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${activeOpexDept === dept ? 'bg-white text-sky-800 shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}>{dept}</button>
+                        ))}
                     </div>
-					<div className="lg:col-span-2">
-                        <EnhancedChartCard title={charts.cacByChannel.title} chartType={chartTypes.cacByChannel} chartData={charts.cacByChannel} widgetId="cacByChannel" componentPath={charts.cacByChannel.componentPath} onChartTypeChange={toggleChartType} />
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                        <thead className="text-left text-xs text-gray-500 uppercase bg-gray-50">
+                            <tr>
+                                <th className="p-2">Expense Category</th>
+                                <th className="p-2">Type</th>
+                                <th className="p-2 text-center">Monthly Cost</th>
+                                <th className="p-2 text-center">AI Baseline</th>
+                                <th className="p-2 text-right">Annual Budget</th>
+                                <th className="p-2 text-center">Status</th>
+                                <th className="p-2">AI Insight / Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {/* Special Row for Salaries */}
+                            <tr className="border-b border-gray-100 bg-blue-50">
+                                <td className="p-2 font-medium">Salaries & Wages</td>
+                                <td className="p-2 italic">From Headcount</td>
+                                <td className="p-2 text-center text-gray-500">-</td>
+                                <td className="p-2 text-center text-gray-500">-</td>
+                                <td className="p-2 text-right font-semibold">{formatCurrency(headcount.filter(h => h.department === activeOpexDept).reduce((sum, e) => sum + calculateProratedCost(e), 0))}</td>
+                                <td className="p-2 text-center"><span className="text-blue-700 font-medium text-xs">Linked</span></td>
+                                <td className="p-2 text-xs">Total cost calculated from the Headcount module. Click tab to edit.</td>
+                            </tr>
+                            {opex[activeOpexDept].map(line => (
+                                <tr key={line.id} className="border-b border-gray-100 hover:bg-sky-50">
+                                    <td className="p-2 font-medium">{line.category}</td>
+                                    <td className="p-2 text-gray-600">{line.type}</td>
+                                    <td className="p-2"><input type="number" value={line.monthly} onChange={e => handleOpexChange(activeOpexDept, line.id, 'monthly', e.target.value)} className="w-24 p-1 text-center bg-transparent border border-gray-300 rounded focus:ring-1 focus:ring-sky-500" /></td>
+                                    <td className="p-2 text-center text-gray-500">{formatCurrency(line.aiBaseline)}</td>
+                                    <td className="p-2 text-right font-semibold">{formatCurrency(line.monthly * 12)}</td>
+                                    <td className="p-2 text-center"><span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">Draft</span></td>
+                                    <td className="p-2 text-blue-600 text-xs"><BsStars className="inline mr-2" />{line.aiNote}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* --- MODULE: Headcount --- */}
+          {activeTab === "headcount" && (
+            <div className="space-y-6">
+              <GuidelinePanel guideline={CORPORATE_GUIDELINES.headcount} />
+              <KPICard title="Total Headcount Cost" value={formatCurrency(totalHeadcountCost)} change={`${headcount.length} Total Headcount`} icon={<FiUser />} aiNote="Costs are prorated for mid-year start/termination dates." />
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 className="text-lg font-semibold text-sky-900 mb-4">Employee & Headcount Planning</h3>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                        <thead className="text-left text-xs text-gray-500 uppercase bg-gray-50">
+                            <tr>
+                                <th className="p-2">Employee Name / Role</th>
+                                <th className="p-2">Department</th>
+                                <th className="p-2 text-right">Current Salary</th>
+                                <th className="p-2 text-center">Raise %</th>
+                                <th className="p-2 text-center">Bonus %</th>
+                                <th className="p-2 text-center">Start Date</th>
+                                <th className="p-2 text-center">Term Date</th>
+                                <th className="p-2 text-right">FY25 Cost</th>
+                                <th className="p-2 text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {headcount.map(emp => (
+                                <tr key={emp.id} className={`border-b border-gray-100 hover:bg-sky-50 ${emp.status === 'New Hire' ? 'bg-green-50' : ''}`}>
+                                    <td className="p-2 font-medium">{emp.name}<div className="text-xs text-gray-500">{emp.title}</div></td>
+                                    <td className="p-2">{emp.department}</td>
+                                    <td className="p-2 text-right"><input type="number" value={emp.salary} onChange={e => handleHeadcountChange(emp.id, 'salary', e.target.value)} className="w-24 p-1 text-right bg-transparent border border-gray-300 rounded focus:ring-1 focus:ring-sky-500" /></td>
+                                    <td className="p-2 text-center"><input type="number" value={emp.raise} onChange={e => handleHeadcountChange(emp.id, 'raise', e.target.value)} className="w-16 p-1 text-center bg-transparent border border-gray-300 rounded focus:ring-1 focus:ring-sky-500" /></td>
+                                    <td className="p-2 text-center"><input type="number" value={emp.bonus} onChange={e => handleHeadcountChange(emp.id, 'bonus', e.target.value)} className="w-16 p-1 text-center bg-transparent border border-gray-300 rounded focus:ring-1 focus:ring-sky-500" /></td>
+                                    <td className="p-2 text-center"><input type="date" value={emp.startDate} onChange={e => handleHeadcountChange(emp.id, 'startDate', e.target.value, false)} className="p-1 bg-transparent border border-gray-300 rounded text-xs focus:ring-1 focus:ring-sky-500" /></td>
+                                    <td className="p-2 text-center"><input type="date" value={emp.termDate || ''} onChange={e => handleHeadcountChange(emp.id, 'termDate', e.target.value, false)} className="p-1 bg-transparent border border-gray-300 rounded text-xs focus:ring-1 focus:ring-sky-500" /></td>
+                                    <td className="p-2 text-right font-semibold">{formatCurrency(calculateProratedCost(emp))}</td>
+                                    <td className="p-2 text-center"><span className={`px-2 py-1 text-xs font-medium rounded-full ${emp.status === 'New Hire' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>{emp.status}</span></td>
+                                </tr>
+                            ))}
+                        </tbody>
+                        <tfoot className="font-bold text-gray-900 bg-gray-50">
+                            <tr className="border-t-2 border-gray-300">
+                                <td colSpan="7" className="p-2">Total Headcount Cost</td>
+                                <td className="p-2 text-right">{formatCurrency(totalHeadcountCost)}</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* --- MODULE: Capital Expenditures (CapEx) --- */}
+          {activeTab === "capex" && (
+            <div className="space-y-6">
+              <GuidelinePanel guideline={CORPORATE_GUIDELINES.capex} />
+              <KPICard title="Total Capital Expenditure" value={formatCurrency(totalCapex)} icon={<FiHardDrive />} aiNote="Represents major investments in long-term assets." />
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h3 className="text-lg font-semibold text-sky-900 mb-4">Capital Asset Planning</h3>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                        <thead className="text-left text-xs text-gray-500 uppercase bg-gray-50">
+                            <tr>
+                                <th className="p-2">Asset Description</th>
+                                <th className="p-2 text-right">One-time Cost</th>
+                                <th className="p-2 text-center">Purchase Date</th>
+                                <th className="p-2 text-center">Useful Life (Yrs)</th>
+                                <th className="p-2 text-center">Status</th>
+                                <th className="p-2">AI Insight / Business Case</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {capex.map(item => (
+                                <tr key={item.id} className="border-b border-gray-100 hover:bg-sky-50">
+                                    <td className="p-2 font-medium">{item.asset}</td>
+                                    <td className="p-2 text-right"><input type="number" value={item.cost} onChange={e => handleCapexChange(item.id, 'cost', e.target.value)} className="w-32 p-1 text-right bg-transparent border border-gray-300 rounded focus:ring-1 focus:ring-sky-500" /></td>
+                                    <td className="p-2 text-center"><input type="date" value={item.purchaseDate} onChange={e => handleCapexChange(item.id, 'purchaseDate', e.target.value, false)} className="p-1 bg-transparent border border-gray-300 rounded text-xs focus:ring-1 focus:ring-sky-500" /></td>
+                                    <td className="p-2 text-center"><input type="number" value={item.usefulLife} onChange={e => handleCapexChange(item.id, 'usefulLife', e.target.value)} className="w-16 p-1 text-center bg-transparent border border-gray-300 rounded focus:ring-1 focus:ring-sky-500" /></td>
+                                    <td className="p-2 text-center"><span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">Pending Approval</span></td>
+                                    <td className="p-2 text-blue-600 text-xs"><BsStars className="inline mr-2" />{item.aiNote}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                        <tfoot className="font-bold text-gray-900 bg-gray-50">
+                            <tr className="border-t-2 border-gray-300">
+                                <td className="p-2">Total CapEx</td>
+                                <td className="p-2 text-right">{formatCurrency(totalCapex)}</td>
+                                <td colSpan="4"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* --- MODULE: Multi-Year Plan --- */}
+          {activeTab === "multi_year_plan" && (
+            <div className="space-y-6">
+                <KPICard title="3-Year Strategic Plan" value="FY26 - FY28" icon={<FiBarChart2 />} aiNote="High-level financial projections based on macro-economic and business growth drivers." />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h3 className="text-lg font-semibold text-sky-900 mb-4">High-Level Growth Drivers</h3>
+                        <div className="space-y-4 text-sm">
+                            {['revenueGrowth', 'grossMargin', 'opexAsRevenue', 'fteGrowth'].map(driverKey => (
+                                <div key={driverKey}>
+                                    <label className="font-medium text-gray-700 capitalize">{driverKey.replace(/([A-Z])/g, ' $1')}</label>
+                                    <div className="grid grid-cols-3 gap-2 mt-1">
+                                        {Object.keys(multiYearPlan.drivers[driverKey]).map(year => (
+                                            <div key={year}>
+                                                <span className="text-xs text-gray-500">{`FY${year}`}</span>
+                                                <div className="flex items-center">
+                                                    <input type="number" value={multiYearPlan.drivers[driverKey][year]} onChange={e => handleMultiYearPlanChange(driverKey, year, e.target.value)} className="w-full p-1 border border-gray-300 rounded focus:ring-1 focus:ring-sky-500" />
+                                                    <span className="ml-1 font-medium">%</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-				</motion.div>
-				<motion.div variants={cardVariants} className="mt-6">
-                    <EnhancedChartCard title={charts.mrrGrowthTrend.title} chartType={chartTypes.mrrGrowthTrend} chartData={charts.mrrGrowthTrend} widgetId="mrrGrowthTrend" componentPath={charts.mrrGrowthTrend.componentPath} onChartTypeChange={toggleChartType} />
-                </motion.div>
-			</motion.div>
-            
-			{/* Tooltips */}
-			<ReactTooltip id="ai-tooltip" place="top" effect="solid" />
-			<ReactTooltip id="chart-options-tooltip" place="top" effect="solid" />
-		</div>
-	);
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h3 className="text-lg font-semibold text-sky-900 mb-4">Projected 3-Year P&L</h3>
+                        <table className="w-full text-sm">
+                            <thead className="text-left text-xs text-gray-500 uppercase bg-gray-50">
+                                <tr>
+                                    <th className="p-2">Metric</th>
+                                    <th className="p-2 text-right">FY2026</th>
+                                    <th className="p-2 text-right">FY2027</th>
+                                    <th className="p-2 text-right">FY2028</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {[
+                                  {label: 'Revenue', values: [15.2, 18.5, 22.2]},
+                                  {label: 'Gross Profit', values: [10.2, 12.6, 15.3]},
+                                  {label: 'Operating Expense', values: [6.5, 7.6, 8.4]},
+                                  {label: 'Net Income', values: [3.7, 5.0, 6.9]},
+                                ].map(row => (
+                                    <tr key={row.label} className="border-b border-gray-100">
+                                        <td className="p-2 font-medium">{row.label}</td>
+                                        <td className="p-2 text-right">{formatCurrency(row.values[0] * 1e6, true)}</td>
+                                        <td className="p-2 text-right">{formatCurrency(row.values[1] * 1e6, true)}</td>
+                                        <td className="p-2 text-right">{formatCurrency(row.values[2] * 1e6, true)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                        <div className="mt-4 p-3 bg-blue-50 rounded-lg text-xs text-blue-800 flex items-start">
+                           <BsStars className="mr-2 mt-0.5 flex-shrink-0" />
+                           <span>AI Insight: Projections are based on your drivers. The model suggests a slightly more conservative revenue growth in FY28 due to market saturation benchmarks.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+          )}
+
+        </motion.div>
+      </AnimatePresence>
+      
+      <ReactTooltip id="info-tooltip" className="max-w-xs text-xs z-50" />
+    </div>
+  );
 };
 
 export default RevenueBasedBudgeting;
