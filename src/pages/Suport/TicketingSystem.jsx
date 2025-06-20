@@ -4,7 +4,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { API_BASE_URL } from '../../config/config';
 
 const TicketingSystem = () => {
-  const { token } = useContext(AuthContext);
+  const { token, user } = useContext(AuthContext);
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,8 +16,8 @@ const TicketingSystem = () => {
   const [currentTicket, setCurrentTicket] = useState(null);
   const [formData, setFormData] = useState({
     Issue_Type: '',
-    Title: '',
-    Description: '',
+    title: '',
+    description: '',
     priority: 'Low',
     files: []
   });
@@ -31,7 +31,7 @@ const TicketingSystem = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        `${API_BASE_URL}/api/v1/company/management/tickets/?page=${page}&limit=${limit}`,
+        `${API_BASE_URL}/api/v1/company/management/tickets/?page=${page}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -58,8 +58,8 @@ const TicketingSystem = () => {
     try {
       const formDataToSend = new FormData();
       formDataToSend.append('Issue_Type', formData.Issue_Type);
-      formDataToSend.append('Title', formData.Title);
-      formDataToSend.append('Description', formData.Description);
+      formDataToSend.append('title', formData.title);
+      formDataToSend.append('description', formData.description);
       formDataToSend.append('priority', formData.priority);
       
       formData.files.forEach(file => {
@@ -86,6 +86,7 @@ const TicketingSystem = () => {
       setTickets([newTicket, ...tickets]);
       setShowCreateModal(false);
       resetForm();
+      fetchTickets(); // Refresh the list
     } catch (err) {
       setError(err.message);
     }
@@ -95,8 +96,8 @@ const TicketingSystem = () => {
     setCurrentTicket(ticket);
     setFormData({
       Issue_Type: ticket.Issue_Type || '',
-      Title: ticket.Title || '',
-      Description: ticket.Description || '',
+      title: ticket.title || '',
+      description: ticket.description || '',
       priority: ticket.priority || 'Low',
       files: []
     });
@@ -114,10 +115,11 @@ const TicketingSystem = () => {
     try {
       const formDataToSend = new FormData();
       formDataToSend.append('TicketId', currentTicket.id);
-      formDataToSend.append('Issue_Type', formData.Issue_Type || '');
-      formDataToSend.append('Title', formData.Title || '');
-      formDataToSend.append('Description', formData.Description || '');
-      formDataToSend.append('priority', formData.priority || 'Low');
+      formDataToSend.append('user_id', user.id); // Add user_id from context
+      formDataToSend.append('Issue_Type', formData.Issue_Type);
+      formDataToSend.append('title', formData.title);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('priority', formData.priority);
       
       formData.files.forEach(file => {
         formDataToSend.append('files', file);
@@ -215,8 +217,8 @@ const TicketingSystem = () => {
   const resetForm = () => {
     setFormData({
       Issue_Type: '',
-      Title: '',
-      Description: '',
+      title: '',
+      description: '',
       priority: 'Low',
       files: []
     });
@@ -336,8 +338,8 @@ const TicketingSystem = () => {
                 <label className="block text-gray-700 mb-2">Title*</label>
                 <input
                   type="text"
-                  name="Title"
-                  value={formData.Title}
+                  name="title"
+                  value={formData.title}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
@@ -347,8 +349,8 @@ const TicketingSystem = () => {
               <div className="mb-4">
                 <label className="block text-gray-700 mb-2">Description*</label>
                 <textarea
-                  name="Description"
-                  value={formData.Description}
+                  name="description"
+                  value={formData.description}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
@@ -478,8 +480,8 @@ const TicketingSystem = () => {
                 <label className="block text-gray-700 mb-2">Title</label>
                 <input
                   type="text"
-                  name="Title"
-                  value={formData.Title}
+                  name="title"
+                  value={formData.title}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -488,8 +490,8 @@ const TicketingSystem = () => {
               <div className="mb-4">
                 <label className="block text-gray-700 mb-2">Description</label>
                 <textarea
-                  name="Description"
-                  value={formData.Description}
+                  name="description"
+                  value={formData.description}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows={4}
@@ -604,7 +606,7 @@ const TicketingSystem = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <h4 className="text-sm font-medium text-gray-500">Title</h4>
-                  <p className="text-gray-900">{currentTicket.Title}</p>
+                  <p className="text-gray-900">{currentTicket.title}</p>
                 </div>
                 <div>
                   <h4 className="text-sm font-medium text-gray-500">Issue Type</h4>
@@ -648,7 +650,7 @@ const TicketingSystem = () => {
               
               <div>
                 <h4 className="text-sm font-medium text-gray-500">Description</h4>
-                <p className="text-gray-900 whitespace-pre-line">{currentTicket.Description}</p>
+                <p className="text-gray-900 whitespace-pre-line">{currentTicket.description}</p>
               </div>
               
               {currentTicket.attachments?.length > 0 && (
@@ -702,7 +704,8 @@ const TicketingSystem = () => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket ID</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
@@ -712,8 +715,11 @@ const TicketingSystem = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {tickets.map(ticket => (
               <tr key={ticket.id} className="hover:bg-gray-50">
+                <td className="px-4 py-4 text-sm text-gray-500">
+                  {ticket.ticket_id}
+                </td>
                 <td className="px-4 py-4">
-                  <div className="font-medium">{ticket.Title}</div>
+                  <div className="font-medium">{ticket.title}</div>
                   <div className="text-sm text-gray-500">{ticket.Issue_Type}</div>
                 </td>
                 <td className="px-4 py-4">
