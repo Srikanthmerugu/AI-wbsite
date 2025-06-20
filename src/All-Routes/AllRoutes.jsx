@@ -139,6 +139,13 @@ import APAgingReport from '../pages/FinancialCustomeCoreResult/APAgingReport';
 import CustomRevenueReport from '../pages/FinancialCustomeCoreResult/CustomRevenueReport';
 import CustomerProfitabilityReport from '../pages/FinancialCustomeCoreResult/CustomerProfitabilityReport';
 import RevenueReportDashboard from '../pages/FinancialCustomeCoreResult/RevenueReportDashboard';
+import ProjectCostingReport from '../pages/FinancialCustomeCoreResult/ProjectCostingReport';
+import OpexReport from '../pages/FinancialCustomeCoreResult/OpexReport';
+import FixedAssetRegister from '../pages/FinancialCustomeCoreResult/FixedAssetRegister';
+import CapexReport from '../pages/FinancialCustomeCoreResult/CapexReport';
+import PayrollReconciliation from '../pages/FinancialCustomeCoreResult/PayrollReconciliation';
+import MarketingSpendReport from '../pages/FinancialCustomeCoreResult/MarketingSpendReport';
+import SalesFunnelReport from '../pages/FinancialCustomeCoreResult/SalesFunnelReport';
 
 
 
@@ -293,6 +300,14 @@ function AllRoutes() {
                         <Route path="/ap-aging-dashboard" element={<APAgingReport />} />
                         <Route path="/customer-profitability-dashboard" element={<CustomerProfitabilityReport />} />
                         <Route path="/revenue-dashboard" element={<RevenueReportDashboard />} />
+                        <Route path="/project-costing-dashboard" element={<ProjectCostingReport/>} />
+                        <Route path="/opex-dashboard" element={<OpexReport/>} />
+                        <Route path="/fixed-assets-dashboard" element={<FixedAssetRegister/>} />
+                        <Route path="/capex-dashboard" element={<CapexReport/>} />
+                        <Route path="/payroll-dashboard" element={<PayrollReconciliation/>} />
+                        <Route path="/marketing-dashboard" element={<MarketingSpendReport/>} />
+                        <Route path="/sales-funnel-dashboard" element={<SalesFunnelReport/>} />
+
 
             
 

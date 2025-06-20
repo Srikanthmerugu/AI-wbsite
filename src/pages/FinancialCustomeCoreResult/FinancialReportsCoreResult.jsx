@@ -472,7 +472,7 @@ const reports = [
     desc: "Provides a snapshot of assets, liabilities, and equity",
     route: "/balance-sheet-dashboard",
   },
-  { 
+  {
     id: "arAging",
     title: "AR Aging Report",
     desc: "Details outstanding receivables by aging periods",
@@ -646,6 +646,15 @@ const FinancialReports = () => {
   };
 
   const formatValue = (key, value) => {
+    if (key.toLowerCase() === "rank") {
+      return `#${value}`;
+    }
+    if (key.toLowerCase() === "completion") {
+      return `${value}%`;
+    }
+    if (key.toLowerCase() === "conversionrate") {
+      return `${value}%`;
+    }
     if (key.toLowerCase().includes("percentage") || key.toLowerCase().includes("margin")) {
       return `${value.toFixed(1)}%`;
     }
