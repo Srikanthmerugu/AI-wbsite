@@ -15,12 +15,12 @@ const TicketingSystem = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [currentTicket, setCurrentTicket] = useState(null);
   const [formData, setFormData] = useState({
-    Issue_Type: '',
-    title: '',
-    description: '',
-    priority: 'Low',
-    files: []
-  });
+  issue_type: '',
+  title: '',  // Changed from 'title'
+  description: '',  // Changed from 'description'
+  priority: 'Low',
+  files: []
+});
   const [previewImages, setPreviewImages] = useState([]);
 
   useEffect(() => {
@@ -57,9 +57,10 @@ const TicketingSystem = () => {
     e.preventDefault();
     try {
       const formDataToSend = new FormData();
-      formDataToSend.append('Issue_Type', formData.Issue_Type);
-      formDataToSend.append('title', formData.title);
-      formDataToSend.append('description', formData.description);
+      formDataToSend.append('issue_type', formData.issue_type);
+      // In both handleCreateTicket and handleUpdateTicket
+formDataToSend.append('title', formData.title);
+formDataToSend.append('description', formData.description);
       formDataToSend.append('priority', formData.priority);
       
       formData.files.forEach(file => {
@@ -92,89 +93,101 @@ const TicketingSystem = () => {
     }
   };
 
-  const handleEditTicket = (ticket) => {
-    setCurrentTicket(ticket);
-    setFormData({
-      Issue_Type: ticket.Issue_Type || '',
-      title: ticket.title || '',
-      description: ticket.description || '',
-      priority: ticket.priority || 'Low',
-      files: []
-    });
-    setPreviewImages([]);
-    setShowEditModal(true);
-  };
+ const handleEditTicket = (ticket) => {
+  setCurrentTicket(ticket);
+  setFormData({
+    issue_type: ticket.issue_type || '',
+    title: ticket.title || ticket.title || '', // Handle both cases
+    description: ticket.description || ticket.description || '', // Handle both cases
+    priority: ticket.priority || 'Low',
+    files: []
+  });
+  setPreviewImages([]);
+  setShowEditModal(true);
+};
 
   const handleViewTicket = (ticket) => {
     setCurrentTicket(ticket);
     setShowViewModal(true);
   };
 
-  const handleUpdateTicket = async (e) => {
-    e.preventDefault();
-    try {
-      const formDataToSend = new FormData();
-      formDataToSend.append('TicketId', currentTicket.id);
-      formDataToSend.append('user_id', user.id); // Add user_id from context
-      formDataToSend.append('Issue_Type', formData.Issue_Type);
-      formDataToSend.append('title', formData.title);
-      formDataToSend.append('description', formData.description);
-      formDataToSend.append('priority', formData.priority);
-      
-      formData.files.forEach(file => {
+ const handleUpdateTicket = async (e) => {
+  e.preventDefault();
+
+  try {
+    const formDataToSend = new FormData();
+
+    // ✅ Make sure field names match backend exactly
+    formDataToSend.append('ticketid', currentTicket.ticket_id); // fixed trailing space
+    formDataToSend.append('issue_type', formData.issue_type || '');
+    formDataToSend.append('title', formData.title || '');
+    formDataToSend.append('description', formData.description || '');
+    formDataToSend.append('priority', formData.priority || '');
+
+    // ✅ Append multiple files correctly
+    if (formData.files && formData.files.length > 0) {
+      formData.files.forEach((file) => {
         formDataToSend.append('files', file);
       });
-
-      const response = await fetch(
-        `${API_BASE_URL}/api/v1/company/management/tickets/`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-          body: formDataToSend
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update ticket');
-      }
-
-      const updatedTicket = await response.json();
-      setTickets(tickets.map(ticket => 
-        ticket.id === updatedTicket.id ? updatedTicket : ticket
-      ));
-      setShowEditModal(false);
-      resetForm();
-    } catch (err) {
-      setError(err.message);
     }
-  };
 
-  const handleDeleteTicket = async (ticketId) => {
-    if (!window.confirm('Are you sure you want to delete this ticket?')) return;
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/company/management/tickets/`,
+      {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // ⚠️ DO NOT manually set 'Content-Type' for FormData — let the browser handle it
+        },
+        body: formDataToSend,
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to update ticket');
+    }
+
+    const updatedTicket = await response.json();
+
+    setTickets((prevTickets) =>
+      prevTickets.map((ticket) =>
+        ticket.ticket_id === updatedTicket.ticket_id ? updatedTicket : ticket
+      )
+    );
+
+    setShowEditModal(false);
+    resetForm();
+  } catch (err) {
+    console.error('Update ticket error:', err);
+    setError(err.message);
+  }
+};
+
+
+  // const handleDeleteTicket = async (ticketid ) => {
+  //   if (!window.confirm('Are you sure you want to delete this ticket?')) return;
     
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/v1/company/management/tickets/${ticketId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          }
-        }
-      );
+  //   try {
+  //     const response = await fetch(
+  //       `${API_BASE_URL}/api/v1/company/management/tickets/${ticketid }`,
+  //       {
+  //         method: 'DELETE',
+  //         headers: {
+  //           'Authorization': `Bearer ${token}`,
+  //         }
+  //       }
+  //     );
 
-      if (!response.ok) {
-        throw new Error('Failed to delete ticket');
-      }
+  //     if (!response.ok) {
+  //       throw new Error('Failed to delete ticket');
+  //     }
 
-      setTickets(tickets.filter(ticket => ticket.id !== ticketId));
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+  //     setTickets(tickets.filter(ticket => ticket.ticket_id !== ticketid ));
+  //   } catch (err) {
+  //     setError(err.message);
+  //   }
+  // };
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
@@ -206,17 +219,20 @@ const TicketingSystem = () => {
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-  };
+const handleInputChange = (e) => {
+  const { name, value } = e.target;
+  // Map lowercase names to correct API field names
+  const apiFieldName = name === 'title' ? 'title' : 
+                      name === 'description' ? 'description' : name;
+  setFormData({
+    ...formData,
+    [apiFieldName]: value
+  });
+};
 
   const resetForm = () => {
     setFormData({
-      Issue_Type: '',
+      issue_type: '',
       title: '',
       description: '',
       priority: 'Low',
@@ -227,10 +243,10 @@ const TicketingSystem = () => {
     setPreviewImages([]);
   };
 
-  const handleStatusChange = async (ticketId, newStatus) => {
+  const handleStatusChange = async (ticketid , newStatus) => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/v1/company/management/tickets/${ticketId}/status`,
+        `${API_BASE_URL}/api/v1/company/management/tickets/${ticketid}/status`,
         {
           method: 'PATCH',
           headers: {
@@ -247,7 +263,7 @@ const TicketingSystem = () => {
 
       const updatedTicket = await response.json();
       setTickets(tickets.map(ticket => 
-        ticket.id === updatedTicket.id ? updatedTicket : ticket
+        ticket.ticket_id === updatedTicket.ticket_id ? updatedTicket : ticket
       ));
     } catch (err) {
       setError(err.message);
@@ -311,8 +327,8 @@ const TicketingSystem = () => {
                   <label className="block text-gray-700 mb-2">Issue Type*</label>
                   <input
                     type="text"
-                    name="Issue_Type"
-                    value={formData.Issue_Type}
+                    name="issue_type"
+                    value={formData.issue_type}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
@@ -335,27 +351,27 @@ const TicketingSystem = () => {
               </div>
               
               <div className="mb-4">
-                <label className="block text-gray-700 mb-2">Title*</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
+                <label className="block text-gray-700 mb-2">title*</label>
+               <input
+  type="text"
+  name="title"  // Changed from 'title'
+  value={formData.title}
+  onChange={handleInputChange}
+  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+  required
+/>
               </div>
               
               <div className="mb-4">
-                <label className="block text-gray-700 mb-2">Description*</label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                  rows={4}
-                />
+                <label className="block text-gray-700 mb-2">description*</label>
+               <textarea
+  name="description"  // Changed from 'description'
+  value={formData.description}
+  onChange={handleInputChange}
+  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+  required
+  rows={4}
+/>
               </div>
               
               <div className="mb-4">
@@ -455,8 +471,8 @@ const TicketingSystem = () => {
                   <label className="block text-gray-700 mb-2">Issue Type</label>
                   <input
                     type="text"
-                    name="Issue_Type"
-                    value={formData.Issue_Type}
+                    name="issue_type"
+                    value={formData.issue_type}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -477,7 +493,7 @@ const TicketingSystem = () => {
               </div>
               
               <div className="mb-4">
-                <label className="block text-gray-700 mb-2">Title</label>
+                <label className="block text-gray-700 mb-2">title</label>
                 <input
                   type="text"
                   name="title"
@@ -488,7 +504,7 @@ const TicketingSystem = () => {
               </div>
               
               <div className="mb-4">
-                <label className="block text-gray-700 mb-2">Description</label>
+                <label className="block text-gray-700 mb-2">description</label>
                 <textarea
                   name="description"
                   value={formData.description}
@@ -515,11 +531,31 @@ const TicketingSystem = () => {
                 {currentTicket.attachments?.length > 0 && (
                   <div className="mt-4">
                     <h4 className="text-sm font-medium text-gray-700 mb-2">Current attachments:</h4>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                       {currentTicket.attachments.map((attachment, index) => (
-                        <div key={index} className="relative bg-gray-100 p-2 rounded flex items-center">
-                          <FiPaperclip className="mr-2" />
-                          <span className="text-xs truncate max-w-xs">{attachment.name || `Attachment ${index + 1}`}</span>
+                        <div key={index} className="border rounded-md overflow-hidden">
+                          {attachment.file_path?.match(/\.(jpg|jpeg|png|gif)$/i) ? (
+                            <img 
+                              src={`${API_BASE_URL}/${attachment.file_path}`} 
+                              alt={`Attachment ${index + 1}`}
+                              className="w-full h-24 object-cover"
+                            />
+                          ) : (
+                            <div className="p-3 bg-gray-50 flex flex-col items-center justify-center h-24">
+                              <FiPaperclip className="text-gray-400 text-2xl mb-2" />
+                              <p className="text-xs text-gray-600 text-center truncate w-full px-2">
+                                {attachment.file_path?.split('/').pop() || `Attachment ${index + 1}`}
+                              </p>
+                            </div>
+                          )}
+                          <a 
+                            href={`${API_BASE_URL}/${attachment.file_path}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="block text-center text-xs text-blue-600 py-1 hover:bg-gray-100"
+                          >
+                            View
+                          </a>
                         </div>
                       ))}
                     </div>
@@ -605,12 +641,12 @@ const TicketingSystem = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500">Title</h4>
+                  <h4 className="text-sm font-medium text-gray-500">title</h4>
                   <p className="text-gray-900">{currentTicket.title}</p>
                 </div>
                 <div>
                   <h4 className="text-sm font-medium text-gray-500">Issue Type</h4>
-                  <p className="text-gray-900">{currentTicket.Issue_Type}</p>
+                  <p className="text-gray-900">{currentTicket.issue_type}</p>
                 </div>
                 <div>
                   <h4 className="text-sm font-medium text-gray-500">Priority</h4>
@@ -649,7 +685,7 @@ const TicketingSystem = () => {
               </div>
               
               <div>
-                <h4 className="text-sm font-medium text-gray-500">Description</h4>
+                <h4 className="text-sm font-medium text-gray-500">description</h4>
                 <p className="text-gray-900 whitespace-pre-line">{currentTicket.description}</p>
               </div>
               
@@ -659,9 +695,9 @@ const TicketingSystem = () => {
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                     {currentTicket.attachments.map((attachment, index) => (
                       <div key={index} className="border rounded-md overflow-hidden">
-                        {attachment.type?.startsWith('image/') ? (
+                        {attachment.file_path?.match(/\.(jpg|jpeg|png|gif)$/i) ? (
                           <img 
-                            src={`${API_BASE_URL}${attachment.url}`} 
+                            src={`${API_BASE_URL}/${attachment.file_path}`} 
                             alt={`Attachment ${index + 1}`}
                             className="w-full h-24 object-cover"
                           />
@@ -669,12 +705,12 @@ const TicketingSystem = () => {
                           <div className="p-3 bg-gray-50 flex flex-col items-center justify-center h-24">
                             <FiPaperclip className="text-gray-400 text-2xl mb-2" />
                             <p className="text-xs text-gray-600 text-center truncate w-full px-2">
-                              {attachment.name || `Attachment ${index + 1}`}
+                              {attachment.file_path?.split('/').pop() || `Attachment ${index + 1}`}
                             </p>
                           </div>
                         )}
                         <a 
-                          href={`${API_BASE_URL}${attachment.url}`} 
+                          href={`${API_BASE_URL}/${attachment.file_path}`} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="block text-center text-xs text-blue-600 py-1 hover:bg-gray-100"
@@ -705,7 +741,7 @@ const TicketingSystem = () => {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket ID</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">title</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
@@ -720,7 +756,7 @@ const TicketingSystem = () => {
                 </td>
                 <td className="px-4 py-4">
                   <div className="font-medium">{ticket.title}</div>
-                  <div className="text-sm text-gray-500">{ticket.Issue_Type}</div>
+                  <div className="text-sm text-gray-500">{ticket.issue_type}</div>
                 </td>
                 <td className="px-4 py-4">
                   <div className="flex items-center">
@@ -761,13 +797,13 @@ const TicketingSystem = () => {
                     >
                       <FiEdit2 size={18} />
                     </button>
-                    <button 
-                      onClick={() => handleDeleteTicket(ticket.id)}
+                    {/* <button 
+                      onClick={() => handleDeleteTicket(ticket.ticket_id)}
                       className="text-gray-600 hover:text-red-600 transition-colors"
                       title="Delete"
                     >
                       <FiTrash2 size={18} />
-                    </button>
+                    </button> */}
                   </div>
                 </td>
               </tr>

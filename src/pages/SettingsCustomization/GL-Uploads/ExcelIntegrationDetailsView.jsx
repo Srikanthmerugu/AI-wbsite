@@ -21,20 +21,27 @@ const IntegrationDetails = ({ token }) => {
   const fetchIntegrationDetails = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/v1/company/financial/integration-history/${integration_id}/gl-entries`, {
+      // Assuming an endpoint exists for fetching integration details by ID
+      // If not, we can fetch from the history endpoint and filter by ID
+      const response = await fetch(`${API_BASE_URL}/api/v1/company/financial/integration-history`, {
         headers: { 'Authorization': `Bearer ${token}` }
-      });GET
-// /api/v1/company/financial/integration-history/{integration_id}/gl-entries
+      });
 
-      
       if (!response.ok) {
         throw new Error('Failed to fetch integration details');
       }
-      
+
       const data = await response.json();
-      setIntegrationData(data);
+      const integration = data.records.find(item => item.id === integrationId);
+      if (!integration) {
+        throw new Error('Integration not found');
+      }
+      setIntegrationData(integration);
     } catch (error) {
       toast.error(error.message);
+      setIntegrationData(null);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -45,27 +52,19 @@ const IntegrationDetails = ({ token }) => {
       let url = `${API_BASE_URL}/api/v1/company/financial/integration-history/${integrationId}/gl-entries?page=${currentPage}&limit=${itemsPerPage}`;
       
       // Add search filters if they exist
-      if (searchTerm) {
-        url += `&account_name=${searchTerm}`;
-      }
-      if (dateFilter) {
-        url += `&date=${dateFilter}`;
-      }
-      if (dateRange.from) {
-        url += `&date_from=${dateRange.from}`;
-      }
-      if (dateRange.to) {
-        url += `&date_to=${dateRange.to}`;
-      }
-      
+      if (searchTerm) url += `&account_name=${encodeURIComponent(searchTerm)}`;
+      if (dateFilter) url += `&date=${dateFilter}`;
+      if (dateRange.from) url += `&date_from=${dateRange.from}`;
+      if (dateRange.to) url += `&date_to=${dateRange.to}`;
+
       const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch GL entries');
       }
-      
+
       const data = await response.json();
       setGlEntries(data.data || []);
     } catch (error) {
@@ -83,13 +82,13 @@ const IntegrationDetails = ({ token }) => {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to delete integration');
       }
-      
+
       toast.success('Integration deleted successfully!');
-      navigate('/gl-uploads'); // Navigate back to the main view
+      navigate('/gl-Uploads');
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -137,7 +136,9 @@ const IntegrationDetails = ({ token }) => {
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
-      <div className="flex justify-between items-center mb-6">
+      {/* <div className="flex justify-between  items-center mb-6"> */}
+            <div className="flex  justify-between bg-gradient-to-r from-[#004a80] to-[#cfe6f7] p-4 rounded-lg shadow-sm">
+
         <button
           onClick={() => navigate(-1)}
           className="flex items-center text-[#004a80] hover:text-[#003366]"
