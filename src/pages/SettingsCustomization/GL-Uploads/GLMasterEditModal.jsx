@@ -8,41 +8,59 @@ const GLMasterEditModal = ({
   onSave,
   loading
 }) => {
-  const [editedEntry, setEditedEntry] = useState(entry);
+  const [editedEntry, setEditedEntry] = useState({
+    general_ledger_code: '',
+    account_name: '',
+    category: '',
+    tags: []
+  });
 
   useEffect(() => {
-    setEditedEntry(entry);
+    if (entry) {
+      setEditedEntry({
+        general_ledger_code: entry.general_ledger_code || '',
+        account_name: entry.account_name || '',
+        category: entry.category || '',
+        tags: entry.tags || []
+      });
+    }
   }, [entry]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setEditedEntry({
-      ...editedEntry,
+    setEditedEntry(prev => ({
+      ...prev,
       [name]: value
-    });
+    }));
   };
 
   const handleTagChange = (e) => {
     const { value } = e.target;
-    setEditedEntry({
-      ...editedEntry,
-      tags: value.split(',').map(tag => tag.trim())
-    });
+    setEditedEntry(prev => ({
+      ...prev,
+      tags: value.split(',').map(tag => tag.trim()).filter(tag => tag)
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Clear any existing toasts
     toast.dismiss();
 
-    // GL Master specific validation
     if (!editedEntry.account_name || !editedEntry.category) {
       toast.error('Account name and category are required');
       return;
     }
-    
-    onSave(editedEntry);
+
+    // Prepare payload with all required fields including general_ledger_code
+    const payload = {
+      general_ledger_code: editedEntry.general_ledger_code,
+      account_name: editedEntry.account_name,
+      category: editedEntry.category,
+      tags: editedEntry.tags
+    };
+
+    onSave(payload);
   };
 
   if (!entry) return null;
@@ -52,7 +70,11 @@ const GLMasterEditModal = ({
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-medium text-gray-900">Edit GL Account</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <button 
+            onClick={onClose} 
+            className="text-gray-500 hover:text-gray-700"
+            disabled={loading}
+          >
             <FiX size={20} />
           </button>
         </div>
@@ -62,7 +84,7 @@ const GLMasterEditModal = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">GL Code</label>
               <input
-                type="number"
+                type="text"
                 name="general_ledger_code"
                 value={editedEntry.general_ledger_code}
                 onChange={handleChange}
@@ -103,53 +125,17 @@ const GLMasterEditModal = ({
                 value={editedEntry.tags?.join(', ') || ''}
                 onChange={handleTagChange}
                 className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#004a80] focus:border-[#004a80]"
+                placeholder="tag1, tag2, tag3"
               />
             </div>
-            <div className="flex justify-between  gap-14 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Debit</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    name="debit"
-                    value={editedEntry.debit}
-                    onChange={(e) => {
-                      const value = parseFloat(e.target.value) || 0;
-                      setEditedEntry({
-                        ...editedEntry,
-                        debit: value,
-                        credit: value > 0 ? 0 : editedEntry.credit
-                      });
-                    }}
-                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#004a80] focus:border-[#004a80]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Credit</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    name="credit"
-                    value={editedEntry.credit}
-                    onChange={(e) => {
-                      const value = parseFloat(e.target.value) || 0;
-                      setEditedEntry({
-                        ...editedEntry,
-                        credit: value,
-                        debit: value > 0 ? 0 : editedEntry.debit
-                      });
-                    }}
-                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#004a80] focus:border-[#004a80]"
-                  />
-                </div>
-              </div>
           </div>
           
           <div className="flex justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              disabled={loading}
+              className="px-4 py-2 border border-gray-300 rounded text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
             >
               Cancel
             </button>

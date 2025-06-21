@@ -46,6 +46,7 @@ const GLEntriesTable = ({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-100">
             <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">GL Code</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Account</th>
@@ -71,6 +72,8 @@ const GLEntriesTable = ({
             ) : (
               paginatedData.map((item) => (
                 <tr key={item.id}>
+                                    <td className="px-6 py-4 text-sm text-gray-900">{item.id}</td>
+
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {new Date(item.date).toLocaleDateString()}
                   </td>

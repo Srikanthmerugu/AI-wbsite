@@ -202,61 +202,95 @@ const SystemDataPreferences = ({ token }) => {
   };
 
   // Handle update of GL entry
-  const handleUpdateEntry = async (updatedEntry) => {
-    try {
-      setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/v1/company/financial/gl-entries/item/${updatedEntry.id}`, {
+const handleUpdateEntry = async (updatedEntry) => {
+  try {
+    if (!updatedEntry.id || typeof updatedEntry.id !== 'string') {
+      toast.error('Invalid or missing entry ID');
+      return;
+    }
+
+    setLoading(true);
+
+    const isDebit = parseFloat(updatedEntry.debit) > 0;
+    const isCredit = parseFloat(updatedEntry.credit) > 0;
+
+    if (isDebit && isCredit) {
+      toast.error('Cannot enter both debit and credit');
+      return;
+    }
+
+    if (!isDebit && !isCredit) {
+      toast.error('Enter at least debit or credit');
+      return;
+    }
+
+    const payload = {
+      date: updatedEntry.date ? new Date(updatedEntry.date).toISOString() : null,
+      general_ledger_code: updatedEntry.general_ledger_code ? parseInt(updatedEntry.general_ledger_code) : null,
+      account_name: updatedEntry.account_name || null,
+      category: updatedEntry.category || null,
+      description: updatedEntry.description || null,
+      ...(isDebit ? { debit: parseFloat(updatedEntry.debit) } : { credit: parseFloat(updatedEntry.credit) }),
+    };
+
+    console.log('Sending PATCH payload:', payload);
+
+    const response = await fetch(`${API_BASE_URL}/api/v1/company/financial/gl-entries/item/${updatedEntry.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error Response:', errorData);
+      throw new Error(errorData.message || 'Failed to update GL entry');
+    }
+
+    toast.success('GL entry updated successfully!');
+    setShowEditModal(false);
+    fetchGlEntries();
+  } catch (error) {
+    toast.error(error.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+
+  // Handle update of GL Master Account
+const handleUpdateGlAccount = async (updatedAccount) => {
+  try {
+    setLoading(true);
+    
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/company/financial/gl-master/${updatedAccount.general_ledger_code}`,
+      {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          date: updatedEntry.date,
-          general_ledger_code: parseInt(updatedEntry.general_ledger_code),
-          account_name: updatedEntry.account_name,
-          category: updatedEntry.category,
-          description: updatedEntry.description,
-          debit: parseFloat(updatedEntry.debit) || 0,
-          credit: parseFloat(updatedEntry.credit) || 0
+          general_ledger_code: updatedAccount.general_ledger_code, // ✅ Include this
+          account_name: updatedAccount.account_name,
+          category: updatedAccount.category,
+          tags: updatedAccount.tags || []
         })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to update GL entry');
       }
-      
-      toast.success('GL entry updated successfully!');
-      setShowEditModal(false);
-      fetchGlEntries();
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    );
 
-  // Handle update of GL Master Account
-const handleUpdateGlAccount = async (updatedAccount) => {
-  try {
-    setLoading(true);
-    const response = await fetch(`${API_BASE_URL}/api/v1/company/financial/gl-master/${updatedAccount.general_ledger_code}`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        account_name: updatedAccount.account_name,
-        category: updatedAccount.category,
-        tags: updatedAccount.tags || []
-      })
-    });
-    
     if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Update error:', errorData); // optional debugging
       throw new Error('Failed to update GL account');
     }
-    
+
     toast.success('GL account updated successfully!');
     setShowEditModal(false);
     fetchGlMasterData();
@@ -266,6 +300,7 @@ const handleUpdateGlAccount = async (updatedAccount) => {
     setLoading(false);
   }
 };
+
 
   // Handle page change
   const handlePageChange = (newPage) => {
@@ -467,13 +502,20 @@ const handleUpdateGlAccount = async (updatedAccount) => {
 )}
 
 {showEditModal && (activeTab === 'entries' || activeTab === 'history') && (
-  <GLEntryEditModal
-    entry={entryToEdit}
-    onClose={() => setShowEditModal(false)}
-    onSave={activeTab === 'entries' ? handleUpdateEntry : handleUpdateHistoryItem}
-    loading={loading}
-  />
+  
+ <GLEntryEditModal
+  entry={entryToEdit}
+  
+  onClose={() => setShowEditModal(false)}
+  onSave={handleUpdateEntry}
+  loading={loading}
+  
+/>
+
+
+
 )}
+
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
